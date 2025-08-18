@@ -1,42 +1,251 @@
+// ==========================================
 // lib/app/routes.dart
+// ==========================================
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../presentation/screens/splash_screen.dart';
 import '../presentation/screens/home_screen.dart';
 import '../presentation/screens/note_editor_screen.dart';
 import '../presentation/screens/notes_list_screen.dart';
 import '../presentation/screens/settings_screen.dart';
-import '../presentation/screens/splash_screen.dart';
+import '../presentation/screens/favorites_screen.dart';
+import '../presentation/screens/archive_screen.dart';
+import '../presentation/screens/search_screen.dart';
+import '../presentation/screens/tag_management_screen.dart';
+import '../presentation/screens/statistics_screen.dart';
+import '../presentation/screens/backup_screen.dart';
+import '../presentation/screens/nfc_screen.dart';
 
 class AppRouter {
-  static final router = GoRouter(
+  static final GoRouter router = GoRouter(
     initialLocation: '/',
+    debugLogDiagnostics: true,
     routes: [
+      // Splash Screen
       GoRoute(
         path: '/',
+        name: 'splash',
         builder: (context, state) => const SplashScreen(),
       ),
+      
+      // Home Screen
       GoRoute(
         path: '/home',
+        name: 'home',
         builder: (context, state) {
           final mode = state.uri.queryParameters['mode'];
-          return HomeScreen(initialMode: mode);
+          final action = state.uri.queryParameters['action'];
+          return HomeScreen(
+            initialMode: mode,
+            initialAction: action,
+          );
         },
       ),
+      
+      // Notes List Screen
       GoRoute(
         path: '/notes',
-        builder: (context, state) => const NotesListScreen(),
-      ),
-      GoRoute(
-        path: '/editor',
+        name: 'notes',
         builder: (context, state) {
-          final noteId = state.uri.queryParameters['id'];
-          return NoteEditorScreen(noteId: noteId);
+          final mode = state.uri.queryParameters['mode'];
+          final tag = state.uri.queryParameters['tag'];
+          return NotesListScreen(
+            filterMode: mode,
+            filterTag: tag,
+          );
         },
       ),
+      
+      // Note Editor Screen
+      GoRoute(
+        path: '/editor',
+        name: 'editor',
+        builder: (context, state) {
+          final noteId = state.uri.queryParameters['id'];
+          final mode = state.uri.queryParameters['mode'];
+          final template = state.uri.queryParameters['template'];
+          return NoteEditorScreen(
+            noteId: noteId,
+            initialMode: mode,
+            template: template,
+          );
+        },
+      ),
+      
+      // Search Screen
+      GoRoute(
+        path: '/search',
+        name: 'search',
+        builder: (context, state) {
+          final query = state.uri.queryParameters['q'];
+          return SearchScreen(initialQuery: query);
+        },
+      ),
+      
+      // Favorites Screen
+      GoRoute(
+        path: '/favorites',
+        name: 'favorites',
+        builder: (context, state) => const FavoritesScreen(),
+      ),
+      
+      // Archive Screen
+      GoRoute(
+        path: '/archive',
+        name: 'archive',
+        builder: (context, state) => const ArchiveScreen(),
+      ),
+      
+      // Settings Screen
       GoRoute(
         path: '/settings',
+        name: 'settings',
         builder: (context, state) => const SettingsScreen(),
       ),
+      
+      // Tag Management Screen
+      GoRoute(
+        path: '/tags',
+        name: 'tags',
+        builder: (context, state) => const TagManagementScreen(),
+      ),
+      
+      // Statistics Screen
+      GoRoute(
+        path: '/stats',
+        name: 'stats',
+        builder: (context, state) => const StatisticsScreen(),
+      ),
+      
+      // Backup Screen
+      GoRoute(
+        path: '/backup',
+        name: 'backup',
+        builder: (context, state) => const BackupScreen(),
+      ),
+      
+      // NFC Screen
+      GoRoute(
+        path: '/nfc',
+        name: 'nfc',
+        builder: (context, state) {
+          final action = state.uri.queryParameters['action']; // 'read' or 'write'
+          return NfcScreen(initialAction: action);
+        },
+      ),
+      
+      // Deep link handlers for NFC modes
+      GoRoute(
+        path: '/work',
+        name: 'work-mode',
+        redirect: (context, state) {
+          final action = state.uri.queryParameters['action'] ?? 'home';
+          return '/home?mode=work&action=$action';
+        },
+      ),
+      
+      GoRoute(
+        path: '/personal',
+        name: 'personal-mode',
+        redirect: (context, state) {
+          final action = state.uri.queryParameters['action'] ?? 'home';
+          return '/home?mode=personal&action=$action';
+        },
+      ),
     ],
+    
+    // Error handling
+    errorBuilder: (context, state) => Scaffold(
+      appBar: AppBar(
+        title: const Text('Page Not Found'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/home'),
+        ),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Colors.grey,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Page Not Found',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'The page "${state.location}" does not exist.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () => context.go('/home'),
+              icon: const Icon(Icons.home),
+              label: const Text('Go Home'),
+            ),
+          ],
+        ),
+      ),
+    ),
+    
+    // Route redirect logic
+    redirect: (context, state) {
+      // Handle initial app launch
+      if (state.location == '/') {
+        return '/'; // Show splash screen first
+      }
+      
+      return null; // No redirect needed
+    },
   );
+  
+  // Navigation helper methods
+  static void goToNoteEditor({String? noteId, String? mode}) {
+    final params = <String, String>{};
+    if (noteId != null) params['id'] = noteId;
+    if (mode != null) params['mode'] = mode;
+    
+    final uri = Uri(path: '/editor', queryParameters: params.isEmpty ? null : params);
+    router.go(uri.toString());
+  }
+  
+  static void goToNotes({String? mode, String? tag}) {
+    final params = <String, String>{};
+    if (mode != null) params['mode'] = mode;
+    if (tag != null) params['tag'] = tag;
+    
+    final uri = Uri(path: '/notes', queryParameters: params.isEmpty ? null : params);
+    router.go(uri.toString());
+  }
+  
+  static void goToSearch({String? query}) {
+    final params = <String, String>{};
+    if (query != null) params['q'] = query;
+    
+    final uri = Uri(path: '/search', queryParameters: params.isEmpty ? null : params);
+    router.go(uri.toString());
+  }
+  
+  static void goToHome({String? mode, String? action}) {
+    final params = <String, String>{};
+    if (mode != null) params['mode'] = mode;
+    if (action != null) params['action'] = action;
+    
+    final uri = Uri(path: '/home', queryParameters: params.isEmpty ? null : params);
+    router.go(uri.toString());
+  }
+  
+  static void goToNfc({String? action}) {
+    final params = <String, String>{};
+    if (action != null) params['action'] = action;
+    
+    final uri = Uri(path: '/nfc', queryParameters: params.isEmpty ? null : params);
+    router.go(uri.toString());
+  }
 }
-
