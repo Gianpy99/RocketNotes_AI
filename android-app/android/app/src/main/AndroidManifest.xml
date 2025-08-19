@@ -39,6 +39,18 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="rocketnotes" android:host="note"/>
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="rocketnotes" android:host="work"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="rocketnotes" android:host="personal"/>
+            </intent-filter>
         </activity>
 
         <!-- Required for NFC foreground dispatch -->
