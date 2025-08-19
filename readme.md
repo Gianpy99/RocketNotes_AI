@@ -60,26 +60,27 @@ flutter run
 
 ```
 rocketnotes_ai/
-├── lib/
-│   ├── main.dart                 # App entry point
-│   ├── app/
-│   │   ├── app.dart              # App configuration
-│   │   └── routes.dart           # Navigation routes
-│   ├── core/
-│   │   ├── constants/            # App constants
-│   │   ├── themes/               # Theme definitions
-│   │   └── utils/                # Utility functions
-│   ├── data/
-│   │   ├── models/               # Data models
-│   │   ├── repositories/         # Data repositories
-│   │   └── services/             # External services
-│   ├── domain/
-│   │   ├── entities/             # Business entities
-│   │   └── usecases/             # Business logic
-│   └── presentation/
-│       ├── screens/              # UI screens
-│       ├── widgets/              # Reusable widgets
-│       └── providers/            # State management
+├── android-app/
+│   └── lib/
+│       ├── main.dart                 # App entry point
+│       ├── app/
+│       │   ├── app.dart              # App configuration
+│       │   └── routes.dart           # Navigation routes
+│       ├── core/
+│       │   ├── constants/            # App constants
+│       │   ├── themes/               # Theme definitions
+│       │   └── utils/                # Utility functions
+│       ├── data/
+│       │   ├── models/               # Data models
+│       │   ├── repositories/         # Data repositories
+│       │   └── services/             # External services
+│       ├── domain/
+│       │   ├── entities/             # Business entities
+│       │   └── usecases/             # Business logic
+│       └── presentation/
+│           ├── screens/              # UI screens
+│           ├── widgets/              # Reusable widgets
+│           └── providers/            # State management
 ├── assets/
 │   ├── images/                   # Image assets
 │   └── fonts/                    # Custom fonts
