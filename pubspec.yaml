@@ -57,6 +57,9 @@ dependencies:
   connectivity_plus: ^4.0.2
   uuid: ^4.0.0
 
+  # Date Formatting
+  intl: ^0.18.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
