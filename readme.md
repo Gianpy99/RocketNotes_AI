@@ -43,7 +43,7 @@ flutter pub get
 
 3. **Configure platform-specific settings:**
 
-**Android:** Ensure minimum SDK 21 in `android/app/build.gradle`
+**Android:** Ensure minimum SDK 21 in `android-app/android/app/build.gradle`
 ```gradle
 minSdkVersion 21
 targetSdkVersion 34
