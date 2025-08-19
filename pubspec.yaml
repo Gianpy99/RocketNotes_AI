@@ -52,6 +52,11 @@ dependencies:
   # URL Launcher
   url_launcher: ^6.2.1
 
+  # Web App dependencies
+  http: ^1.1.0
+  connectivity_plus: ^4.0.2
+  uuid: ^4.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
