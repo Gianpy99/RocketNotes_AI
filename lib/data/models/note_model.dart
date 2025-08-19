@@ -171,6 +171,7 @@ class NoteModel extends HiveObject {
       'priority': priority,
       'reminderDate': reminderDate?.toIso8601String(),
       'isArchived': isArchived,
+      'userId': 'user_${DateTime.now().millisecondsSinceEpoch}', // Add user ID
     };
   }
   
