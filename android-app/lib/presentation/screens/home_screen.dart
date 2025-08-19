@@ -4,16 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../data/services/nfc_service.dart';
+import '../../data/services/deep_link_service.dart';
 import '../providers/app_providers.dart';
-import '../widgets/mode_selector.dart';
-import '../widgets/quick_actions.dart';
-import '../widgets/recent_notes.dart';
-import '../widgets/sync_status_widget.dart';
-
+import '../widgets/mode_card.dart';
+import '../widgets/quick_action_button.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   final String? initialMode;
-  
+
   const HomeScreen({super.key, this.initialMode});
 
   @override
@@ -21,6 +20,10 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final NfcService _nfcService = NfcService();
+  final DeepLinkService _deepLinkService = DeepLinkService();
+  bool _isNfcScanning = false;
+
   @override
   void initState() {
     super.initState();
@@ -29,260 +32,332 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ref.read(appModeProvider.notifier).setMode(widget.initialMode!);
       });
     }
+    _listenToDeepLinks();
+  }
+
+  void _listenToDeepLinks() {
+    _deepLinkService.linkStream.listen((uri) {
+      final mode = _deepLinkService.extractModeFromUri(uri);
+      if (mode != null) {
+        ref.read(appModeProvider.notifier).setMode(mode);
+      }
+    });
+  }
+
+  Future<void> _scanNfcTag() async {
+    if (_isNfcScanning) return;
+
+    setState(() {
+      _isNfcScanning = true;
+    });
+
+    try {
+      final uri = await _nfcService.readNfcTag();
+      if (uri != null) {
+        final mode = _nfcService.extractModeFromUri(uri);
+        if (mode != null) {
+          ref.read(appModeProvider.notifier).setMode(mode);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Switched to $mode mode'),
+                backgroundColor: mode == 'work' 
+                    ? AppColors.workBlue 
+                    : AppColors.personalGreen,
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error reading NFC tag: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _isNfcScanning = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final currentMode = ref.watch(appModeProvider);
-    
+    final recentNotes = ref.watch(recentNotesProvider);
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppConstants.appName),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => context.push('/settings'),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const ModeSelector(),
-              const SizedBox(height: 24),
-              const QuickActions(),
-              const SizedBox(height: 24),
-              Expanded(
-                child: RecentNotes(mode: currentMode),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 200,
+            floating: false,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text(
+                'RocketNotes AI',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: currentMode == 'work'
+                        ? [AppColors.workBlue, AppColors.workBlue.withOpacity(0.8)]
+                        : [AppColors.personalGreen, AppColors.personalGreen.withOpacity(0.8)],
+                  ),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.rocket_launch,
+                    size: 60,
+                    color: Colors.white70,
+                  ),
+                ),
+              ),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: () => context.push('/settings'),
               ),
             ],
           ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/editor'),
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-}
-class HomeScreen extends ConsumerWidget {
-  final String? initialMode;
-  
-  const HomeScreen({super.key, this.initialMode});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final currentMode = ref.watch(appModeProvider);
-    final syncStatus = ref.watch(syncStatusProvider);
-    
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('RocketNotes AI'),
-        actions: [
-          // Sync status in app bar
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: const SyncStatusWidget(showText: false),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Offline banner
-          if (!syncStatus.isOnline)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              color: Colors.orange.shade100,
-              child: Row(
-                children: [
-                  Icon(Icons.wifi_off, color: Colors.orange.shade700),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Working offline. Changes will sync when connected.',
-                    style: TextStyle(color: Colors.orange.shade700),
-                  ),
-                ],
-              ),
-            ),
-          
-          // Sync error banner
-          if (syncStatus.error != null)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              color: Colors.red.shade100,
-              child: Row(
-                children: [
-                  Icon(Icons.error_outline, color: Colors.red.shade700),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Sync error: ${syncStatus.error}',
-                      style: TextStyle(color: Colors.red.shade700),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      ref.read(syncStatusProvider.notifier).syncNotes();
-                    },
-                    child: Text('Retry'),
-                  ),
-                ],
-              ),
-            ),
-            
-          Expanded(
+          SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Welcome section
+                  // Current Mode Indicator
                   Container(
-                    padding: const EdgeInsets.all(24),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.blue.shade400, Colors.purple.shade400],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                      color: currentMode == 'work'
+                          ? AppColors.workBlue.withOpacity(0.1)
+                          : AppColors.personalGreen.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: currentMode == 'work'
+                            ? AppColors.workBlue
+                            : AppColors.personalGreen,
+                        width: 2,
                       ),
-                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Column(
+                    child: Row(
                       children: [
-                        const Text(
-                          '🚀',
-                          style: TextStyle(fontSize: 48),
+                        Icon(
+                          currentMode == 'work' ? Icons.work : Icons.home,
+                          color: currentMode == 'work'
+                              ? AppColors.workBlue
+                              : AppColors.personalGreen,
+                          size: 28,
                         ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'RocketNotes AI',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Current Mode',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            Text(
+                              '${currentMode.toUpperCase()} MODE',
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: currentMode == 'work'
+                                    ? AppColors.workBlue
+                                    : AppColors.personalGreen,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Your intelligent note-taking companion',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white70,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        // Sync status in welcome card
-                        const SyncStatusWidget(showText: true),
                       ],
                     ),
                   ),
-                  
-                  const SizedBox(height: 32),
-                  
-                  // Mode selection cards
+
+                  const SizedBox(height: 24),
+
+                  // Mode Selection
+                  Text(
+                    'Switch Mode',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
-                        child: _ModeCard(
-                          title: 'Work Mode',
-                          icon: Icons.work,
-                          color: Colors.blue,
+                        child: ModeCard(
+                          mode: 'work',
                           isSelected: currentMode == 'work',
-                          onTap: () {
-                            ref.read(appModeProvider.notifier).setMode('work');
-                          },
+                          onTap: () => ref.read(appModeProvider.notifier).setMode('work'),
                         ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: _ModeCard(
-                          title: 'Personal Mode',
-                          icon: Icons.person,
-                          color: Colors.green,
+                        child: ModeCard(
+                          mode: 'personal',
                           isSelected: currentMode == 'personal',
-                          onTap: () {
-                            ref.read(appModeProvider.notifier).setMode('personal');
-                          },
+                          onTap: () => ref.read(appModeProvider.notifier).setMode('personal'),
                         ),
                       ),
                     ],
                   ),
+
+                  const SizedBox(height: 24),
+
+                  // NFC Scanning
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Theme.of(context).dividerColor,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.nfc,
+                          size: 48,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'NFC Quick Switch',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Tap an NFC tag to quickly switch modes',
+                          style: Theme.of(context).textTheme.bodySmall,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: _isNfcScanning ? null : _scanNfcTag,
+                          icon: _isNfcScanning
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.nfc),
+                          label: Text(_isNfcScanning ? 'Scanning...' : 'Scan NFC Tag'),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Quick Actions
+                  Text(
+                    'Quick Actions',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: QuickActionButton(
+                          icon: Icons.add_circle_outline,
+                          label: 'New Note',
+                          color: AppColors.primaryBlue,
+                          onTap: () => context.push('/editor'),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: QuickActionButton(
+                          icon: Icons.list_alt,
+                          label: 'All Notes',
+                          color: AppColors.accentOrange,
+                          onTap: () => context.push('/notes'),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Recent Notes
+                  if (recentNotes.isNotEmpty) ...[
+                    Text(
+                      'Recent Notes',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ...recentNotes.take(3).map((note) => Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: note.mode == 'work'
+                                  ? AppColors.workBlue
+                                  : AppColors.personalGreen,
+                              child: Icon(
+                                note.mode == 'work' ? Icons.work : Icons.home,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                            title: Text(
+                              note.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Text(
+                              note.content,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            trailing: Text(
+                              _formatDate(note.updatedAt),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            onTap: () => context.push('/editor?id=${note.id}'),
+                          ),
+                        )),
+                  ],
                 ],
               ),
             ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.pushNamed(context, '/editor');
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('New Note'),
-      ),
     );
   }
-}
 
-class _ModeCard extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final Color color;
-  final bool isSelected;
-  final VoidCallback onTap;
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
 
-  const _ModeCard({
-    required this.title,
-    required this.icon,
-    required this.color,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: isSelected ? color : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: color.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              size: 32,
-              color: isSelected ? Colors.white : Colors.grey.shade600,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : Colors.grey.shade700,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inHours < 1) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inDays < 1) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
   }
 }
