@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
+import 'package:uuid/uuid.dart';
 import '../../core/constants/app_constants.dart';
 import '../../data/models/note_model.dart';
 import '../../data/models/app_settings_model.dart';
@@ -15,6 +16,8 @@ import '../../data/services/notification_service.dart';
 import '../../data/services/backup_service.dart';
 import '../../data/services/ai_service.dart';
 import '../../data/services/search_service.dart';
+import '../../data/services/api_service.dart';
+import '../../data/services/sync_service.dart';
 
 // ==========================================
 // Repository Providers
@@ -858,4 +861,106 @@ final appInitializationProvider = FutureProvider<bool>((ref) async {
   }
 });
 
+// Add sync providers
+final userIdProvider = Provider<String>((ref) {
+  // Generate or retrieve user ID
+  final box = Hive.box(AppConstants.settingsBox);
+  String? userId = box.get('user_id');
+  if (userId == null) {
+    userId = const Uuid().v4();
+    box.put('user_id', userId);
+  }
+  return userId;
+});
+
+final apiServiceProvider = Provider<ApiService>((ref) {
+  final userId = ref.watch(userIdProvider);
+  return ApiService(userId: userId);
+});
+
+final noteRepositoryProvider = Provider<NoteRepository>((ref) {
+  return NoteRepository();
+});
+
+final syncServiceProvider = Provider<SyncService>((ref) {
+  final apiService = ref.watch(apiServiceProvider);
+  final noteRepository = ref.watch(noteRepositoryProvider);
+  return SyncService(
+    apiService: apiService,
+    noteRepository: noteRepository,
+  );
+});
+
+// Add connectivity provider
+final connectivityProvider = StreamProvider<ConnectivityResult>((ref) {
+  final syncService = ref.watch(syncServiceProvider);
+  return syncService.connectivityStream;
+});
+
+// Add sync status provider
+final syncStatusProvider = StateNotifierProvider<SyncStatusNotifier, SyncStatus>((ref) {
+  return SyncStatusNotifier(ref.watch(syncServiceProvider));
+});
+class SyncStatus {
+  final bool isSyncing;
+  final bool isOnline;
+  final DateTime? lastSyncTime;
+  final String? error;
+  
+  SyncStatus({
+    this.isSyncing = false,
+    this.isOnline = false,
+    this.lastSyncTime,
+    this.error,
+  });
+}
+
+class SyncStatusNotifier extends StateNotifier<SyncStatus> {
+  final SyncService _syncService;
+  Timer? _syncTimer;
+  
+  SyncStatusNotifier(this._syncService) : super(SyncStatus()) {
+    _initSync();
+  }
+  
+  void _initSync() {
+    // Auto-sync every 30 seconds
+    _syncTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      syncNotes();
+    });
+    
+    // Initial sync
+    syncNotes();
+  }
+  
+  Future<void> syncNotes() async {
+    state = state.copyWith(isSyncing: true, error: null);
+    
+    try {
+      final isOnline = await _syncService.isOnline;
+      if (isOnline) {
+        await _syncService.syncNotes();
+        state = SyncStatus(
+          isSyncing: false,
+          isOnline: true,
+          lastSyncTime: DateTime.now(),
+        );
+      } else {
+        state = SyncStatus(isSyncing: false, isOnline: false);
+      }
+    } catch (e) {
+      state = SyncStatus(
+        isSyncing: false,
+        isOnline: await _syncService.isOnline,
+        error: e.toString(),
+      );
+    }
+  }
+  
+  @override
+  void dispose() {
+    _syncTimer?.cancel();
+    super.dispose();
+  }
+}
 import '../../data/services/search_service.dart';
