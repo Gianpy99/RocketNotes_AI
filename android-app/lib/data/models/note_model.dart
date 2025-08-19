@@ -1,5 +1,5 @@
 // ==========================================
-// lib/data/models/note_model.dart
+// lib/data/models/note_model.dart (Merged)
 // ==========================================
 import 'package:hive/hive.dart';
 
@@ -9,46 +9,46 @@ part 'note_model.g.dart';
 class NoteModel extends HiveObject {
   @HiveField(0)
   final String id;
-  
+
   @HiveField(1)
   String content;
-  
+
   @HiveField(2)
   final String mode; // 'work' or 'personal'
-  
+
   @HiveField(3)
   final DateTime createdAt;
-  
+
   @HiveField(4)
   DateTime updatedAt;
-  
+
   @HiveField(5)
   List<String> tags;
-  
+
   @HiveField(6)
   String? aiSummary;
-  
+
   @HiveField(7)
   List<String> attachments;
-  
+
   @HiveField(8)
   String? nfcTagId;
-  
+
   @HiveField(9)
   String title;
-  
+
   @HiveField(10)
   bool isFavorite;
-  
+
   @HiveField(11)
   String? color; // For custom note colors
-  
+
   @HiveField(12)
   int priority; // 0 = low, 1 = medium, 2 = high
-  
+
   @HiveField(13)
   DateTime? reminderDate;
-  
+
   @HiveField(14)
   bool isArchived;
 
@@ -70,7 +70,7 @@ class NoteModel extends HiveObject {
     this.isArchived = false,
   });
 
-  // Factory constructor for creating a new note
+  /// Factory constructor for creating a new note with default metadata
   factory NoteModel.create({
     required String title,
     required String content,
@@ -93,7 +93,7 @@ class NoteModel extends HiveObject {
     );
   }
 
-  // Copy with method for immutable updates
+  /// Copy with method for immutable updates
   NoteModel copyWith({
     String? content,
     String? title,
@@ -126,13 +126,15 @@ class NoteModel extends HiveObject {
     );
   }
 
-  // Utility methods
+  // -----------------------------
+  // Utility getters
+  // -----------------------------
   bool get hasReminder => reminderDate != null;
   bool get isOverdue => reminderDate != null && reminderDate!.isBefore(DateTime.now());
   bool get isEmpty => title.trim().isEmpty && content.trim().isEmpty;
-  
+
   String get displayTitle => title.isEmpty ? 'Untitled Note' : title;
-  
+
   String get priorityText {
     switch (priority) {
       case 2:
@@ -143,17 +145,19 @@ class NoteModel extends HiveObject {
         return 'Low';
     }
   }
-  
-  // Search helper
+
+  /// Search helper
   bool matchesQuery(String query) {
     final lowercaseQuery = query.toLowerCase();
     return title.toLowerCase().contains(lowercaseQuery) ||
-           content.toLowerCase().contains(lowercaseQuery) ||
-           tags.any((tag) => tag.toLowerCase().contains(lowercaseQuery)) ||
-           (aiSummary?.toLowerCase().contains(lowercaseQuery) ?? false);
+        content.toLowerCase().contains(lowercaseQuery) ||
+        tags.any((tag) => tag.toLowerCase().contains(lowercaseQuery)) ||
+        (aiSummary?.toLowerCase().contains(lowercaseQuery) ?? false);
   }
-  
+
+  // -----------------------------
   // JSON serialization (for backup/export)
+  // -----------------------------
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -171,10 +175,9 @@ class NoteModel extends HiveObject {
       'priority': priority,
       'reminderDate': reminderDate?.toIso8601String(),
       'isArchived': isArchived,
-      'userId': 'user_${DateTime.now().millisecondsSinceEpoch}', // Add user ID
     };
   }
-  
+
   factory NoteModel.fromJson(Map<String, dynamic> json) {
     return NoteModel(
       id: json['id'] as String,
@@ -190,13 +193,16 @@ class NoteModel extends HiveObject {
       isFavorite: json['isFavorite'] as bool? ?? false,
       color: json['color'] as String?,
       priority: json['priority'] as int? ?? 0,
-      reminderDate: json['reminderDate'] != null 
+      reminderDate: json['reminderDate'] != null
           ? DateTime.parse(json['reminderDate'] as String)
           : null,
       isArchived: json['isArchived'] as bool? ?? false,
     );
   }
 
+  // -----------------------------
+  // Overrides
+  // -----------------------------
   @override
   String toString() {
     return 'NoteModel(id: $id, title: $title, mode: $mode, createdAt: $createdAt)';
