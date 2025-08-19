@@ -136,7 +136,7 @@ flutter run
 ## 🏗️ Project Structure
 
 ```
-lib/
+android-app/lib/
 ├── core/
 │   ├── constants/      # App constants, colors, themes
 │   ├── services/       # NFC, AI, backup, search services
