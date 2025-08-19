@@ -913,8 +913,20 @@ class SyncStatus {
     this.lastSyncTime,
     this.error,
   });
+  SyncStatus copyWith({
+    bool? isSyncing,
+    bool? isOnline,
+    DateTime? lastSyncTime,
+    String? error,
+  }) {
+    return SyncStatus(
+      isSyncing: isSyncing ?? this.isSyncing,
+      isOnline: isOnline ?? this.isOnline,
+      lastSyncTime: lastSyncTime ?? this.lastSyncTime,
+      error: error ?? this.error,
+    );
+  }
 }
-
 class SyncStatusNotifier extends StateNotifier<SyncStatus> {
   final SyncService _syncService;
   Timer? _syncTimer;
@@ -934,22 +946,22 @@ class SyncStatusNotifier extends StateNotifier<SyncStatus> {
   }
   
   Future<void> syncNotes() async {
-    state = state.copyWith(isSyncing: true, error: null);
-    
+    state = state.copyWith(isSyncing: true, error: null);    
     try {
       final isOnline = await _syncService.isOnline;
       if (isOnline) {
         await _syncService.syncNotes();
-        state = SyncStatus(
+        state = state.copyWith(
           isSyncing: false,
           isOnline: true,
           lastSyncTime: DateTime.now(),
+          error: null,
         );
       } else {
-        state = SyncStatus(isSyncing: false, isOnline: false);
+        state = state.copyWith(isSyncing: false, isOnline: false);
       }
     } catch (e) {
-      state = SyncStatus(
+      state = state.copyWith(
         isSyncing: false,
         isOnline: await _syncService.isOnline,
         error: e.toString(),
