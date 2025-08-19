@@ -2,13 +2,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/constants/app_constants.dart';
+import '../../core/constants/app_colors.dart';
 import '../../data/models/note_model.dart';
 import '../providers/app_providers.dart';
+import '../widgets/tag_input_field.dart';
 
 class NoteEditorScreen extends ConsumerStatefulWidget {
   final String? noteId;
-  
+
   const NoteEditorScreen({super.key, this.noteId});
 
   @override
@@ -16,152 +17,343 @@ class NoteEditorScreen extends ConsumerStatefulWidget {
 }
 
 class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
-  late TextEditingController _titleController;
-  late TextEditingController _contentController;
-  late FocusNode _titleFocus;
-  late FocusNode _contentFocus;
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _contentController = TextEditingController();
+  final FocusNode _titleFocusNode = FocusNode();
+  final FocusNode _contentFocusNode = FocusNode();
   
-  NoteModel? currentNote;
-  bool isLoading = false;
+  List<String> _tags = [];
+  NoteModel? _currentNote;
+  bool _isLoading = true;
+  bool _hasUnsavedChanges = false;
 
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController();
-    _contentController = TextEditingController();
-    _titleFocus = FocusNode();
-    _contentFocus = FocusNode();
-    
-    if (widget.noteId != null) {
-      _loadNote();
-    } else {
-      // Focus on title for new notes
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _titleFocus.requestFocus();
-      });
-    }
+    _loadNote();
+    _setupChangeListeners();
+  }
+
+  void _setupChangeListeners() {
+    _titleController.addListener(() {
+      if (!_hasUnsavedChanges) {
+        setState(() {
+          _hasUnsavedChanges = true;
+        });
+      }
+    });
+
+    _contentController.addListener(() {
+      if (!_hasUnsavedChanges) {
+        setState(() {
+          _hasUnsavedChanges = true;
+        });
+      }
+    });
   }
 
   Future<void> _loadNote() async {
-    setState(() => isLoading = true);
-    try {
-      final repository = ref.read(noteRepositoryProvider);
-      final note = await repository.getNoteById(widget.noteId!);
+    if (widget.noteId != null) {
+      final note = await ref.read(notesProvider.notifier).getNoteById(widget.noteId!);
       if (note != null) {
         setState(() {
-          currentNote = note;
+          _currentNote = note;
           _titleController.text = note.title;
           _contentController.text = note.content;
+          _tags = List.from(note.tags);
+          _isLoading = false;
         });
+        return;
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading note: $e')),
-      );
-    } finally {
-      setState(() => isLoading = false);
     }
+    
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Future<void> _saveNote() async {
-    if (_titleController.text.isEmpty && _contentController.text.isEmpty) {
+    if (_titleController.text.trim().isEmpty && _contentController.text.trim().isEmpty) {
       return;
     }
 
     final currentMode = ref.read(appModeProvider);
     final now = DateTime.now();
-    
-    final note = currentNote?.copyWith(
-      title: _titleController.text,
+
+    final note = _currentNote?.copyWith(
+      title: _titleController.text.trim().isEmpty 
+          ? 'Untitled Note' 
+          : _titleController.text.trim(),
       content: _contentController.text,
       updatedAt: now,
+      tags: _tags,
     ) ?? NoteModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: _titleController.text,
+      title: _titleController.text.trim().isEmpty 
+          ? 'Untitled Note' 
+          : _titleController.text.trim(),
       content: _contentController.text,
       mode: currentMode,
       createdAt: now,
       updatedAt: now,
+      tags: _tags,
     );
 
-    try {
-      await ref.read(notesProvider.notifier).saveNote(note);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Note saved successfully')),
-        );
-        context.pop();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving note: $e')),
-        );
-      }
+    await ref.read(notesProvider.notifier).saveNote(note);
+    
+    setState(() {
+      _hasUnsavedChanges = false;
+      _currentNote = note;
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Note saved'),
+          duration: Duration(seconds: 1),
+        ),
+      );
     }
+  }
+
+  Future<bool> _onWillPop() async {
+    if (!_hasUnsavedChanges) return true;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Unsaved Changes'),
+        content: const Text('You have unsaved changes. Do you want to save before leaving?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Discard'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await _saveNote();
+              if (mounted) Navigator.of(context).pop(true);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    return result ?? false;
   }
 
   @override
   void dispose() {
     _titleController.dispose();
     _contentController.dispose();
-    _titleFocus.dispose();
-    _contentFocus.dispose();
+    _titleFocusNode.dispose();
+    _contentFocusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
+    if (_isLoading) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.noteId != null ? 'Edit Note' : 'New Note'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _saveNote,
-          ),
-          if (widget.noteId != null)
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: _showDeleteDialog,
-            ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _titleController,
-              focusNode: _titleFocus,
-              decoration: const InputDecoration(
-                hintText: 'Note title...',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.title),
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        
+        if (await _onWillPop()) {
+          if (context.mounted) {
+            context.pop();
+          }
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_currentNote == null ? 'New Note' : 'Edit Note'),
+          actions: [
+            if (_hasUnsavedChanges)
+              IconButton(
+                icon: const Icon(Icons.save),
+                onPressed: _saveNote,
+                tooltip: 'Save',
               ),
-              style: Theme.of(context).textTheme.titleLarge,
-              textInputAction: TextInputAction.next,
-              onSubmitted: (_) => _contentFocus.requestFocus(),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: TextField(
-                controller: _contentController,
-                focusNode: _contentFocus,
-                decoration: const InputDecoration(
-                  hintText: 'Start writing your note...',
-                  border: OutlineInputBorder(),
-                  alignLabelWithHint: true,
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                switch (value) {
+                  case 'save':
+                    _saveNote();
+                    break;
+                  case 'delete':
+                    if (_currentNote != null) {
+                      _showDeleteDialog();
+                    }
+                    break;
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'save',
+                  child: ListTile(
+                    leading: Icon(Icons.save),
+                    title: Text('Save'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
                 ),
-                maxLines: null,
-                expands: true,
-                textAlignVertical: TextAlignVertical.top,
+                if (_currentNote != null)
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: ListTile(
+                      leading: Icon(Icons.delete, color: Colors.red),
+                      title: Text('Delete', style: TextStyle(color: Colors.red)),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            // Mode Indicator
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              child: Row(
+                children: [
+                  Icon(
+                    ref.watch(appModeProvider) == 'work' ? Icons.work : Icons.home,
+                    size: 16,
+                    color: ref.watch(appModeProvider) == 'work'
+                        ? AppColors.workBlue
+                        : AppColors.personalGreen,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${ref.watch(appModeProvider).toUpperCase()} MODE',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: ref.watch(appModeProvider) == 'work'
+                          ? AppColors.workBlue
+                          : AppColors.personalGreen,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (_hasUnsavedChanges)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.accentOrange,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Text(
+                        'Unsaved',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    // Title Field
+                    TextField(
+                      controller: _titleController,
+                      focusNode: _titleFocusNode,
+                      decoration: InputDecoration(
+                        hintText: 'Note title...',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        prefixIcon: const Icon(Icons.title),
+                      ),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textInputAction: TextInputAction.next,
+                      onSubmitted: (_) => _contentFocusNode.requestFocus(),
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Tags Input
+                    TagInputField(
+                      tags: _tags,
+                      onTagsChanged: (newTags) {
+                        setState(() {
+                          _tags = newTags;
+                          _hasUnsavedChanges = true;
+                        });
+                      },
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Content Field
+                    Expanded(
+                      child: TextField(
+                        controller: _contentController,
+                        focusNode: _contentFocusNode,
+                        maxLines: null,
+                        expands: true,
+                        decoration: InputDecoration(
+                          hintText: 'Start writing your note...',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          alignLabelWithHint: true,
+                        ),
+                        textAlignVertical: TextAlignVertical.top,
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Action Buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              // TODO: Implement AI features
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('AI features coming soon!'),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.auto_awesome),
+                            label: const Text('AI Enhance'),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _hasUnsavedChanges ? _saveNote : null,
+                            icon: const Icon(Icons.save),
+                            label: const Text('Save Note'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -171,25 +363,33 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
   }
 
   void _showDeleteDialog() {
+    if (_currentNote == null) return;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Note'),
-        content: const Text('Are you sure you want to delete this note? This action cannot be undone.'),
+        content: Text('Are you sure you want to delete "${_currentNote!.title}"?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.of(context).pop(),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
-              await ref.read(notesProvider.notifier).deleteNote(widget.noteId!);
+              await ref.read(notesProvider.notifier).deleteNote(_currentNote!.id);
               if (mounted) {
-                context.pop();
+                Navigator.of(context).pop(); // Close dialog
+                context.pop(); // Go back to previous screen
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Note deleted'),
+                  ),
+                );
               }
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
           ),
         ],
       ),
