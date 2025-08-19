@@ -1,7 +1,7 @@
 // lib/presentation/screens/settings_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/constants/app_constants.dart';
+import '../widgets/sync_status_widget.dart';
 import '../providers/app_providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -11,7 +11,9 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     final currentMode = ref.watch(appModeProvider);
-
+    final syncStatus = ref.watch(syncStatusProvider);
+    final userId = ref.watch(userIdProvider);
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -19,83 +21,157 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Theme Section
+          // Sync Settings Section
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Appearance',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    children: [
+                      Icon(Icons.sync, color: Theme.of(context).primaryColor),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Synchronization',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
+                  
+                  // Current sync status
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceVariant,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Current Status'),
+                        const SizedBox(height: 8),
+                        const SyncStatusWidget(showText: true),
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // User ID
                   ListTile(
-                    leading: const Icon(Icons.brightness_6),
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.person_outline),
+                    title: const Text('User ID'),
+                    subtitle: Text(
+                      userId,
+                      style: const TextStyle(fontFamily: 'monospace'),
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.copy),
+                      onPressed: () {
+                        // Copy user ID to clipboard
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('User ID copied!')),
+                        );
+                      },
+                    ),
+                  ),
+                  
+                  // Manual sync button
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: syncStatus.isSyncing ? null : () {
+                        ref.read(syncStatusProvider.notifier).syncNotes();
+                      },
+                      icon: syncStatus.isSyncing
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.sync),
+                      label: Text(syncStatus.isSyncing ? 'Syncing...' : 'Sync Now'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // App Settings Section
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.settings, color: Theme.of(context).primaryColor),
+                      const SizedBox(width: 8),
+                      Text(
+                        'App Settings',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Theme selection
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(
+                      themeMode == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode,
+                    ),
                     title: const Text('Theme'),
-                    subtitle: Text(_getThemeModeText(themeMode)),
-                    trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () => _showThemeDialog(context, ref, themeMode),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          
-          // Default Mode Section
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Note Taking',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    trailing: SegmentedButton<ThemeMode>(
+                      segments: const [
+                        ButtonSegment(
+                          value: ThemeMode.light,
+                          label: Text('Light'),
+                        ),
+                        ButtonSegment(
+                          value: ThemeMode.dark,
+                          label: Text('Dark'),
+                        ),
+                      ],
+                      selected: {themeMode},
+                      onSelectionChanged: (Set<ThemeMode> selection) {
+                        ref.read(themeModeProvider.notifier).setThemeMode(selection.first);
+                      },
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  
+                  // Mode selection
                   ListTile(
-                    leading: const Icon(Icons.mode),
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(
+                      currentMode == 'work' ? Icons.work : Icons.person,
+                    ),
                     title: const Text('Default Mode'),
-                    subtitle: Text(currentMode.toUpperCase()),
-                    trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () => _showModeDialog(context, ref, currentMode),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          
-          // About Section
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'About',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    trailing: SegmentedButton<String>(
+                      segments: const [
+                        ButtonSegment(
+                          value: 'work',
+                          label: Text('Work'),
+                        ),
+                        ButtonSegment(
+                          value: 'personal',
+                          label: Text('Personal'),
+                        ),
+                      ],
+                      selected: {currentMode},
+                      onSelectionChanged: (Set<String> selection) {
+                        ref.read(appModeProvider.notifier).setMode(selection.first);
+                      },
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  ListTile(
-                    leading: const Icon(Icons.info),
-                    title: const Text('Version'),
-                    subtitle: const Text(AppConstants.appVersion),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.rocket_launch),
-                    title: const Text('App Name'),
-                    subtitle: const Text(AppConstants.appName),
                   ),
                 ],
               ),
@@ -105,98 +181,11 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+}
 
-  String _getThemeModeText(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.light:
-        return 'Light';
-      case ThemeMode.dark:
-        return 'Dark';
-      case ThemeMode.system:
-        return 'System';
-    }
-  }
-
-  void _showThemeDialog(BuildContext context, WidgetRef ref, ThemeMode currentMode) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Choose Theme'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RadioListTile<ThemeMode>(
-              title: const Text('Light'),
-              value: ThemeMode.light,
-              groupValue: currentMode,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(themeModeProvider.notifier).setThemeMode(value);
-                  Navigator.pop(context);
-                }
-              },
-            ),
-            RadioListTile<ThemeMode>(
-              title: const Text('Dark'),
-              value: ThemeMode.dark,
-              groupValue: currentMode,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(themeModeProvider.notifier).setThemeMode(value);
-                  Navigator.pop(context);
-                }
-              },
-            ),
-            RadioListTile<ThemeMode>(
-              title: const Text('System'),
-              value: ThemeMode.system,
-              groupValue: currentMode,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(themeModeProvider.notifier).setThemeMode(value);
-                  Navigator.pop(context);
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showModeDialog(BuildContext context, WidgetRef ref, String currentMode) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Choose Default Mode'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RadioListTile<String>(
-              title: const Text('Work'),
-              value: AppConstants.workMode,
-              groupValue: currentMode,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(appModeProvider.notifier).setMode(value);
-                  Navigator.pop(context);
-                }
-              },
-            ),
-            RadioListTile<String>(
-              title: const Text('Personal'),
-              value: AppConstants.personalMode,
-              groupValue: currentMode,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(appModeProvider.notifier).setMode(value);
-                  Navigator.pop(context);
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+// Extension helper for string capitalization
+extension StringCapitalization on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${substring(1)}";
   }
 }
