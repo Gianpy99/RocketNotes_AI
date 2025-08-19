@@ -15,6 +15,75 @@ class ModeCard extends StatelessWidget {
   });
 
   @override
+  State<TagInputField> createState() => _TagInputFieldState();
+}
+
+class _TagInputFieldState extends State<TagInputField> {
+  final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _addTag(String tag) {
+    final trimmedTag = tag.trim().toLowerCase();
+    if (trimmedTag.isNotEmpty && !widget.tags.contains(trimmedTag)) {
+      final newTags = List<String>.from(widget.tags)..add(trimmedTag);
+      widget.onTagsChanged(newTags);
+    }
+    _controller.clear();
+  }
+
+  void _removeTag(String tag) {
+    final newTags = List<String>.from(widget.tags)..remove(tag);
+    widget.onTagsChanged(newTags);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _controller,
+          focusNode: _focusNode,
+          decoration: InputDecoration(
+            hintText: 'Add tags (press Enter)...',
+            prefixIcon: const Icon(Icons.local_offer_outlined),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          onSubmitted: _addTag,
+          textInputAction: TextInputAction.done,
+        ),
+        
+        if (widget.tags.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: widget.tags.map((tag) => Chip(
+              label: Text(
+                tag,
+                style: const TextStyle(fontSize: 12),
+              ),
+              onDeleted: () => _removeTag(tag),
+              deleteIcon: const Icon(Icons.close, size: 16),
+              backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+              side: BorderSide(
+                color: Theme.of(context).primaryColor.withOpacity(0.3),
+              ),
+            )).toList(),
+          ),
+        ],
+      ],
+    );
+  }
   Widget build(BuildContext context) {
     final color = mode == 'work' ? AppColors.workBlue : AppColors.personalGreen;
     
