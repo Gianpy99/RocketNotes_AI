@@ -1,1 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.rocketnotes">
 
+    <!-- NFC permission for reading NFC tags -->
+    <uses-permission android:name="android.permission.NFC" />
+
+    <!-- Internet permission for REST API and sync -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Network state permission for connectivity status -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Allow the app to run foreground services for sync (optional, if you use foreground sync) -->
+    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE" /> -->
+
+    <application
+        android:label="RocketNotes"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:usesCleartextTraffic="true"
+        android:allowBackup="true"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.RocketNotes">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- For deep linking support -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="rocketnotes" android:host="note"/>
+            </intent-filter>
+        </activity>
+
+        <!-- Required for NFC foreground dispatch -->
+        <uses-feature android:name="android.hardware.nfc" android:required="false" />
+
+        <!-- Add other activities or services if needed in the future -->
+
+    </application>
+</manifest>
