@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../data/models/note_model.dart';
 import '../providers/app_providers.dart';
+import '../widgets/sync_status_widget.dart';
 
 class NotesListScreen extends ConsumerStatefulWidget {
   const NotesListScreen({super.key});
@@ -324,5 +325,141 @@ class _NoteListCard extends ConsumerWidget {
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
+  }
+}
+class NotesListScreen extends ConsumerWidget {
+  const NotesListScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notes = ref.watch(notesProvider);
+    final currentMode = ref.watch(appModeProvider);
+    final syncStatus = ref.watch(syncStatusProvider);
+    
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('${currentMode.capitalize()} Notes'),
+        actions: [
+          // Manual sync button
+          IconButton(
+            onPressed: syncStatus.isSyncing ? null : () {
+              ref.read(syncStatusProvider.notifier).syncNotes();
+            },
+            icon: syncStatus.isSyncing 
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.refresh),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Sync status bar
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceVariant,
+              border: Border(
+                bottom: BorderSide(
+                  color: Theme.of(context).dividerColor,
+                  width: 0.5,
+                ),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${notes.length} notes',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SyncStatusWidget(),
+              ],
+            ),
+          ),
+          
+          // Notes list
+          Expanded(
+            child: notes.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.note_add,
+                          size: 64,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No notes yet',
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Tap the + button to create your first note',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: notes.length,
+                    itemBuilder: (context, index) {
+                      final note = notes[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: ListTile(
+                          title: Text(note.title),
+                          subtitle: Text(
+                            note.content,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Show sync status for individual notes if needed
+                              if (note.needsSync ?? false)
+                                Icon(
+                                  Icons.sync,
+                                  size: 16,
+                                  color: Colors.orange,
+                                ),
+                              const SizedBox(width: 8),
+                              Icon(Icons.chevron_right),
+                            ],
+                          ),
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              '/editor',
+                              arguments: note.id,
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/editor');
+        },
+        child: const Icon(Icons.add),
+      ),
+    );
   }
 }
