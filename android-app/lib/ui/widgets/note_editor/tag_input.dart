@@ -1,15 +1,20 @@
 // lib/ui/widgets/note_editor/tag_input.dart
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import 'smart_tag_suggestions.dart';
 
 class TagInput extends StatefulWidget {
   final List<String> tags;
   final Function(List<String>) onTagsChanged;
+  final String? noteContent;
+  final List<String>? recentTags;
 
   const TagInput({
     super.key,
     required this.tags,
     required this.onTagsChanged,
+    this.noteContent,
+    this.recentTags,
   });
 
   @override
@@ -46,6 +51,16 @@ class _TagInputState extends State<TagInput> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Smart Suggestions
+        if (widget.noteContent != null && widget.noteContent!.isNotEmpty)
+          SmartTagSuggestions(
+            content: widget.noteContent!,
+            currentTags: widget.tags,
+            recentTags: widget.recentTags ?? [],
+            onTagsSelected: widget.onTagsChanged,
+          ),
+        
+        // Current Tags
         if (widget.tags.isNotEmpty) ...[
           Wrap(
             spacing: 8,
@@ -62,6 +77,8 @@ class _TagInputState extends State<TagInput> {
           ),
           const SizedBox(height: 12),
         ],
+        
+        // Tag Input Field
         TextField(
           controller: _controller,
           focusNode: _focusNode,

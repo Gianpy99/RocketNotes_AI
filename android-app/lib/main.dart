@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 // App imports
-import 'app/app.dart';
+import 'app/app_simple.dart';
 import 'core/constants/app_constants.dart';
 import 'data/models/note_model.dart';
 import 'data/models/app_settings_model.dart';

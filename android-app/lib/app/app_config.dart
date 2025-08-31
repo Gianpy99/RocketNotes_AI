@@ -53,5 +53,3 @@ abstract class Environment {
   static bool get isStaging => current == 'staging';
   static bool get isProduction => current == 'prod';
 }
-
-import '../data/services/deep_link_service.dart';

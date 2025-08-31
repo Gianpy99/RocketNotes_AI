@@ -1,8 +1,6 @@
 // ==========================================
 // lib/data/services/ai_service.dart
 // ==========================================
-import 'dart:convert';
-import 'dart:math';
 import '../models/note_model.dart';
 
 // Mock AI service for demonstration

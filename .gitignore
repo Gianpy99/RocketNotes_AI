@@ -1,0 +1,110 @@
+# ---- OS & Editor Specific ----
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+*~
+.vscode/
+.idea/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+*.log
+*.pot
+*.mo
+env/
+venv/
+.venv/
+pip-wheel-metadata/
+*.ipynb_checkpoints
+.mypy_cache/
+.pytest_cache/
+.tox/
+.coverage
+coverage.xml
+
+# ---- Node.js ----
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---- Data ----
+data/raw/
+data/interim/
+data/processed/
+data/external/
+*.csv
+*.tsv
+*.jsonl
+*.sqlite
+*.db
+
+# ---- Models ----
+models/checkpoints/
+models/exported/
+*.h5
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.tflite
+*.pb
+
+# ---- Sandbox ----
+sandbox/tmp_code/
+sandbox/discarded/
+sandbox/scratch_notebooks/
+
+# ---- Logs ----
+logs/
+*.log
+
+# ---- Configs & Secrets ----
+configs/credentials/
+*.env
+.env.*
+*.key
+*.pem
+*.pfx
+
+# ---- CI/CD & Deployment ----
+docker-compose.override.yml
+*.bak
+*.old
+
+# ---- Game Assets ----
+assets/game/sprites/
+assets/game/backgrounds/
+assets/game/textures/
+assets/game/animations/
+assets/game/audio/
+assets/game/fonts/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.webp
+*.mp3
+*.wav
+*.ogg
+*.m4a
+*.ttf
+*.otf
+*.woff
+*.woff2
+
+# ---- Misc ----
+*.zip
+*.tar.gz
+*.rar
+*.7z
+*.bak
+*.old

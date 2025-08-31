@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../core/themes/app_theme.dart';
-import '../presentation/providers/app_providers.dart';
-import 'routes.dart';
+import '../presentation/providers/app_providers_simple.dart';
+import 'routes_simple.dart';
 
 class RocketNotesApp extends ConsumerStatefulWidget {
   const RocketNotesApp({super.key});

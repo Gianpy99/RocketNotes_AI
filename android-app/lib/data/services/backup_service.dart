@@ -4,8 +4,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/services.dart';
-import '../models/note_model.dart';
-import '../models/app_settings_model.dart';
 import '../repositories/note_repository.dart';
 import '../repositories/settings_repository.dart';
 

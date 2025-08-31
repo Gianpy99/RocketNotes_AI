@@ -6,7 +6,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../data/services/nfc_service.dart';
 import '../../data/services/deep_link_service.dart';
-import '../providers/app_providers.dart';
+import '../providers/app_providers_simple.dart';
 import '../widgets/mode_card.dart';
 import '../widgets/quick_action_button.dart';
 
@@ -53,23 +53,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     try {
       final uri = await _nfcService.readNfcTag();
-      if (uri != null) {
-        final mode = _nfcService.extractModeFromUri(uri);
-        if (mode != null) {
-          ref.read(appModeProvider.notifier).setMode(mode);
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Switched to $mode mode'),
-                backgroundColor: mode == 'work' 
-                    ? AppColors.workBlue 
-                    : AppColors.personalGreen,
-              ),
-            );
-          }
+      final mode = _nfcService.extractModeFromUri(uri);
+      if (mode != null) {
+        ref.read(appModeProvider.notifier).setMode(mode);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Switched to $mode mode'),
+              backgroundColor: mode == 'work' 
+                  ? AppColors.workBlue 
+                  : AppColors.personalGreen,
+            ),
+          );
         }
       }
-    } catch (e) {
+        } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -88,7 +86,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final currentMode = ref.watch(appModeProvider);
-    final recentNotes = ref.watch(recentNotesProvider);
+    final recentNotes = ref.watch(recentNotesProvider(7)); // Get notes from last 7 days
 
     return Scaffold(
       body: CustomScrollView(

@@ -5,6 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-blue.svg)](https://flutter.dev)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-green.svg)](https://flutter.dev)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Development Status](https://img.shields.io/badge/Status-Core%20Architecture%20Complete-brightgreen.svg)](docs/changelogs/DEVELOPMENT_STATUS.md)
 
 ## 📱 Overview
 
@@ -19,6 +20,16 @@ RocketNotes AI bridges the gap between physical note-taking and digital organiza
 - **🤖 AI Ready:** Prepared for smart suggestions and insights (Phase 2)
 - **🎨 Clean UI:** Material Design with dark mode support
 
+## 📚 Documentation
+
+For comprehensive documentation, please visit the **[docs/](docs/)** directory:
+
+- **[📋 Complete Documentation Index](docs/README.md)** - Navigate all project documentation
+- **[📝 Product Requirements Document](docs/requirements/PRD_ROCKETNOTES_AI.md)** - Detailed feature specifications
+- **[🏗️ Setup Guide](docs/SETUP.md)** - Development environment setup
+- **[📱 Development Status](docs/changelogs/DEVELOPMENT_STATUS.md)** - Current progress and roadmap
+- **[📈 Changelog](docs/changelogs/CHANGELOG.md)** - Version history
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -32,16 +43,21 @@ RocketNotes AI bridges the gap between physical note-taking and digital organiza
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/yourusername/rocketnotes-ai.git
-cd rocketnotes-ai
+git clone https://github.com/Gianpy99/RocketNotes_AI.git
+cd RocketNotes_AI
 ```
 
-2. **Install dependencies:**
+2. **Navigate to the Flutter app:**
+```bash
+cd android-app
+```
+
+3. **Install dependencies:**
 ```bash
 flutter pub get
 ```
 
-3. **Configure platform-specific settings:**
+4. **Configure platform-specific settings:**
 
 **Android:** Ensure minimum SDK 21 in `android-app/android/app/build.gradle`
 ```gradle
@@ -51,7 +67,7 @@ targetSdkVersion 34
 
 **iOS:** Add NFC capability in Xcode project settings
 
-4. **Run the app:**
+5. **Run the app:**
 ```bash
 flutter run
 ```
@@ -59,35 +75,28 @@ flutter run
 ## 🏗️ Project Structure
 
 ```
-rocketnotes_ai/
-├── android-app/
+RocketNotes_AI/
+├── android-app/                     # Flutter mobile application
 │   └── lib/
-│       ├── main.dart                 # App entry point
-│       ├── app/
-│       │   ├── app.dart              # App configuration
-│       │   └── routes.dart           # Navigation routes
-│       ├── core/
-│       │   ├── constants/            # App constants
-│       │   ├── themes/               # Theme definitions
-│       │   └── utils/                # Utility functions
-│       ├── data/
-│       │   ├── models/               # Data models
-│       │   ├── repositories/         # Data repositories
-│       │   └── services/             # External services
-│       ├── domain/
-│       │   ├── entities/             # Business entities
-│       │   └── usecases/             # Business logic
-│       └── presentation/
-│           ├── screens/              # UI screens
-│           ├── widgets/              # Reusable widgets
-│           └── providers/            # State management
-├── assets/
-│   ├── images/                   # Image assets
-│   └── fonts/                    # Custom fonts
-├── test/                         # Unit tests
-├── integration_test/             # Integration tests
-└── pubspec.yaml                  # Dependencies
+│       ├── main.dart                # App entry point
+│       ├── app/                     # App configuration & routing
+│       ├── core/                    # Constants, themes, utilities
+│       ├── data/                    # Models, repositories, services
+│       ├── domain/                  # Business entities & use cases
+│       └── presentation/            # UI screens, widgets, providers
+├── web-app/                         # React web application (future)
+├── backend-api/                     # Node.js API server (future)
+├── docs/                            # 📚 Complete documentation
+│   ├── requirements/                # PRD and specifications
+│   ├── architecture/                # System design documents
+│   ├── changelogs/                  # Version history & status
+│   └── user_guides/                 # End-user documentation
+├── assets/                          # Shared assets and resources
+├── configs/                         # Environment configurations
+├── scripts/                         # Automation and deployment scripts
+└── ARCHIVE/                         # Historical documentation
 ```
+4. **Test** by tapping phone to tags
 
 ## 🏷️ NFC Setup
 
@@ -98,7 +107,6 @@ rocketnotes_ai/
    - Work tag: `rocketnotes://work`
    - Personal tag: `rocketnotes://personal`
 3. **Place tags** on your Rocketbook cover
-4. **Test** by tapping phone to tags
 
 ### Supported URI Schemes
 
@@ -114,6 +122,9 @@ rocketnotes://personal/view?id=xxx  # Views specific note
 ### Running Tests
 
 ```bash
+# Navigate to Flutter app directory
+cd android-app
+
 # Unit tests
 flutter test
 
@@ -163,7 +174,7 @@ flutter pub run build_runner build --delete-conflicting-outputs
 
 ### Environment Variables
 
-Create `.env` file in project root:
+Create `.env` file in `android-app/` directory:
 ```env
 # API Keys (Phase 2)
 OPENAI_API_KEY=your_key_here
@@ -183,32 +194,37 @@ The app requires these permissions:
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
-## 🎯 Roadmap
+## 🎯 Development Status & Roadmap
 
-### ✅ MVP (Current)
-- [x] NFC tag reading
-- [x] Deep link handling
-- [x] Mode switching UI
-- [x] Basic note creation
-- [x] Local storage
+For detailed development progress, see **[Development Status](docs/changelogs/DEVELOPMENT_STATUS.md)**
 
-### 🚧 Phase 2 (In Progress)
-- [ ] Camera integration
-- [ ] OCR functionality
-- [ ] AI suggestions
-- [ ] Search feature
-- [ ] Export options
+### ✅ Core Architecture (Complete)
+- [x] Clean architecture implementation
+- [x] Data models and repositories
+- [x] Service layer (NFC, AI, Search, Backup)
+- [x] State management with Riverpod
+- [x] App structure and routing
+- [x] Local storage with Hive
+- [x] Material 3 theming
 
-### 📋 Phase 3 (Planned)
-- [ ] Cloud sync
-- [ ] Advanced AI features
-- [ ] Calendar integration
-- [ ] Collaboration tools
-- [ ] Analytics dashboard
+### 🚧 Current Phase: UI Implementation
+- [ ] Screen implementations
+- [ ] Widget components
+- [ ] User interaction flows
+- [ ] Testing suite development
+
+### 📋 Future Phases
+- **Phase 2**: Advanced features (Camera, OCR, AI integration)
+- **Phase 3**: Cloud sync and collaboration features
+- **Phase 4**: Multi-platform expansion
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+We welcome contributions! Please see our documentation for details:
+
+- **[Contributing Guidelines](docs/CONTRIBUTING.md)** - How to contribute
+- **[Architecture Overview](docs/architecture/)** - Technical architecture
+- **[Setup Guide](docs/SETUP.md)** - Development environment setup
 
 1. Fork the repository
 2. Create feature branch (`git checkout -b feature/AmazingFeature`)
@@ -220,22 +236,23 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 
 This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## 🆘 Support & Resources
 
-- **Documentation:** [docs.rocketnotes.ai](https://docs.rocketnotes.ai)
-- **Issues:** [GitHub Issues](https://github.com/yourusername/rocketnotes-ai/issues)
-- **Discord:** [Join our community](https://discord.gg/rocketnotes)
-- **Email:** support@rocketnotes.ai
+- **📚 Documentation:** [Complete docs](docs/README.md)
+- **🐛 Issues:** [GitHub Issues](https://github.com/Gianpy99/RocketNotes_AI/issues)
+- **📧 Contact:** Open an issue for questions and support
+- **📈 Status:** [Development Progress](docs/changelogs/DEVELOPMENT_STATUS.md)
 
 ## 🙏 Acknowledgments
 
 - Flutter team for the amazing framework
 - Rocketbook for inspiration
-- NFC Tools for tag programming
-- Our amazing community of contributors
+- NFC Tools for tag programming reference
+- Clean Architecture principles by Uncle Bob
+- Material Design team for UI/UX guidelines
 
 ---
 
-**Made with ❤️ by the RocketNotes AI Team**
+**Made with ❤️ using Flutter**
 
-*Remember: Your notes, your rules, your way!*
+*Transform your note-taking experience with RocketNotes AI!*

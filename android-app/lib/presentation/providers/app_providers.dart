@@ -1,6 +1,7 @@
 // ==========================================
 // lib/presentation/providers/app_providers.dart
 // ==========================================
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
@@ -232,7 +233,8 @@ class NotesNotifier extends StateNotifier<AsyncValue<List<NoteModel>>> {
   Future<void> loadFavoriteNotes() async {
     state = const AsyncValue.loading();
     try {
-      final notes = await _repository.getFavoriteNotes();
+      final allNotes = await _repository.getAllNotes();
+      final notes = allNotes.where((note) => note.isFavorite).toList();
       state = AsyncValue.data(notes);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -242,7 +244,8 @@ class NotesNotifier extends StateNotifier<AsyncValue<List<NoteModel>>> {
   Future<void> loadArchivedNotes() async {
     state = const AsyncValue.loading();
     try {
-      final notes = await _repository.getArchivedNotes();
+      final allNotes = await _repository.getAllNotes();
+      final notes = allNotes.where((note) => note.isArchived).toList();
       state = AsyncValue.data(notes);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -866,10 +869,6 @@ final userIdProvider = Provider<String>((ref) {
   // Generate or retrieve user ID
   final box = Hive.box(AppConstants.settingsBox);
   String? userId = box.get('user_id');
-  if (userId == null) {
-    userId = const Uuid().v4();
-    box.put('user_id', userId);
-  }
   return userId;
 });
 
@@ -975,4 +974,3 @@ class SyncStatusNotifier extends StateNotifier<SyncStatus> {
     super.dispose();
   }
 }
-import '../../data/services/search_service.dart';
