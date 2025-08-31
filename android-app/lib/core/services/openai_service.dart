@@ -27,9 +27,14 @@ class OpenAIService {
   /// Analizza un'immagine di un notebook Rocketbook usando GPT-4 Vision
   Future<RocketbookAnalysis> analyzeRocketbookImage(File imageFile) async {
     try {
+      print('🤖 OPENAI DEBUG: Iniziando analisi immagine ${imageFile.path}');
+      print('🔑 OPENAI DEBUG: API Key configurata: ${_apiKey.substring(0, 10)}...');
+      
       // Comprimi l'immagine per ridurre i costi API
       final compressedImageBytes = await _compressImage(imageFile);
       final base64Image = base64Encode(compressedImageBytes);
+      
+      print('📊 OPENAI DEBUG: Immagine compressa: ${compressedImageBytes.length} bytes');
 
       final response = await _dio.post(
         '$_baseUrl/chat/completions',
@@ -62,9 +67,23 @@ class OpenAIService {
         },
       );
 
+      print('✅ OPENAI DEBUG: Risposta ricevuta da OpenAI');
+      print('📝 OPENAI DEBUG: Status: ${response.statusCode}');
+      
       final content = response.data['choices'][0]['message']['content'];
-      return _parseRocketbookAnalysis(content);
+      print('📄 OPENAI DEBUG: Contenuto analisi: ${content.substring(0, 100)}...');
+      
+      final analysis = _parseRocketbookAnalysis(content);
+      print('🎯 OPENAI DEBUG: Analisi completata con successo');
+      
+      return analysis;
     } catch (e) {
+      print('❌ OPENAI DEBUG: Errore durante analisi: $e');
+      if (e.toString().contains('401')) {
+        print('🔑 OPENAI DEBUG: Errore di autenticazione - verifica API key');
+      } else if (e.toString().contains('quota')) {
+        print('💰 OPENAI DEBUG: Quota API esaurita');
+      }
       throw Exception('Errore durante l\'analisi dell\'immagine: $e');
     }
   }
@@ -149,6 +168,42 @@ Analizza attentamente l'immagine e estrai TUTTE le informazioni visibili.
       return RocketbookAnalysis.fromJson(data);
     } catch (e) {
       throw Exception('Errore nel parsing della risposta AI: $e');
+    }
+  }
+
+  /// Genera testo usando ChatGPT per prompt personalizzati
+  Future<String> generateText(String prompt) async {
+    try {
+      print('🤖 OPENAI DEBUG: Generando testo per prompt personalizzato');
+      
+      final response = await _dio.post(
+        '$_baseUrl/chat/completions',
+        data: {
+          'model': 'gpt-4o', // Modello ottimizzato per testo
+          'messages': [
+            {
+              'role': 'system',
+              'content': 'Sei un assistente AI esperto nell\'analizzare documenti e appunti. Fornisci risposte dettagliate, organizzate e utili.',
+            },
+            {
+              'role': 'user',
+              'content': prompt,
+            }
+          ],
+          'max_tokens': 1500,
+          'temperature': 0.7,
+        },
+      );
+
+      print('✅ OPENAI DEBUG: Risposta ricevuta da OpenAI');
+      
+      final content = response.data['choices'][0]['message']['content'];
+      print('📄 OPENAI DEBUG: Testo generato: ${content.substring(0, 100)}...');
+      
+      return content;
+    } catch (e) {
+      print('❌ OPENAI DEBUG: Errore nella generazione testo: $e');
+      throw Exception('Errore nella generazione testo: $e');
     }
   }
 }

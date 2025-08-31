@@ -165,31 +165,63 @@ class AIService {
   String _buildAnalysisPrompt(ScannedContent scannedContent) {
     final buffer = StringBuffer();
     
-    buffer.writeln('Please analyze the following scanned content:');
+    buffer.writeln('COMPREHENSIVE CONTENT ANALYSIS REQUEST:');
+    buffer.writeln('Please analyze the following scanned content with deep understanding and provide actionable insights.');
     buffer.writeln('');
-    buffer.writeln('TEXT CONTENT:');
-    buffer.writeln(scannedContent.rawText);
+    
+    buffer.writeln('=== PRIMARY TEXT CONTENT ===');
+    if (scannedContent.rawText.isNotEmpty) {
+      buffer.writeln(scannedContent.rawText);
+    } else {
+      buffer.writeln('[No text content detected - analyze any visual elements present]');
+    }
     
     if (scannedContent.tables.isNotEmpty) {
       buffer.writeln('');
-      buffer.writeln('TABLES FOUND:');
+      buffer.writeln('=== STRUCTURED DATA (TABLES) ===');
       for (int i = 0; i < scannedContent.tables.length; i++) {
         final table = scannedContent.tables[i];
-        buffer.writeln('Table ${i + 1}:');
-        for (final row in table.rows) {
-          buffer.writeln('  ${row.join(' | ')}');
+        buffer.writeln('📊 Table ${i + 1} (${table.rows.length} rows):');
+        for (int rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+          final row = table.rows[rowIndex];
+          buffer.writeln('  Row ${rowIndex + 1}: ${row.join(' | ')}');
         }
+        buffer.writeln('');
       }
     }
     
     if (scannedContent.diagrams.isNotEmpty) {
       buffer.writeln('');
-      buffer.writeln('DIAGRAMS FOUND:');
+      buffer.writeln('=== VISUAL ELEMENTS (DIAGRAMS) ===');
       for (int i = 0; i < scannedContent.diagrams.length; i++) {
         final diagram = scannedContent.diagrams[i];
-        buffer.writeln('Diagram ${i + 1}: ${diagram.type} - ${diagram.description}');
+        buffer.writeln('🎨 Diagram ${i + 1}:');
+        buffer.writeln('  Type: ${diagram.type}');
+        buffer.writeln('  Description: ${diagram.description}');
+        if (diagram.elements.isNotEmpty) {
+          buffer.writeln('  Elements: ${diagram.elements.keys.join(', ')}');
+        }
+        buffer.writeln('');
       }
     }
+    
+    // Add OCR metadata context
+    buffer.writeln('');
+    buffer.writeln('=== TECHNICAL CONTEXT ===');
+    buffer.writeln('OCR Engine: ${scannedContent.ocrMetadata.engine}');
+    buffer.writeln('OCR Confidence: ${(scannedContent.ocrMetadata.overallConfidence * 100).toStringAsFixed(1)}%');
+    buffer.writeln('Processing Time: ${scannedContent.ocrMetadata.processingTime.inMilliseconds}ms');
+    
+    buffer.writeln('');
+    buffer.writeln('=== ANALYSIS INSTRUCTIONS ===');
+    buffer.writeln('Please provide a comprehensive analysis that includes:');
+    buffer.writeln('1. Intelligent understanding of the content purpose and context');
+    buffer.writeln('2. Extraction of actionable items with realistic priorities');
+    buffer.writeln('3. Smart categorization and meaningful tag suggestions');
+    buffer.writeln('4. Insights that help the user organize and act on this information');
+    buffer.writeln('5. Detection of any time-sensitive elements or deadlines');
+    buffer.writeln('');
+    buffer.writeln('Focus on practical value and actionable insights. Be thorough but concise.');
     
     return buffer.toString();
   }
@@ -197,32 +229,59 @@ class AIService {
   /// System prompt for AI analysis
   String _getSystemPrompt() {
     return '''
-You are an AI assistant specialized in analyzing scanned notes and documents. 
-Your task is to provide structured analysis in JSON format with the following fields:
+You are an advanced AI assistant specialized in analyzing scanned notes, documents, and handwritten content with deep understanding capabilities. 
 
+ANALYSIS OBJECTIVES:
+- Extract and understand ALL textual content including handwritten text, printed text, diagrams, and visual elements
+- Identify document structure, organization patterns, and information hierarchy  
+- Recognize actionable items, deadlines, priorities, and follow-up requirements
+- Provide contextual insights that help users understand and organize their content
+- Suggest relevant categorizations and meaningful metadata
+
+ENHANCED ANALYSIS REQUIREMENTS:
+1. CONTENT COMPREHENSION: Understand not just what is written, but the meaning, context, and relationships between different parts
+2. SMART CATEGORIZATION: Identify document type and suggest appropriate organizational structure
+3. ACTIONABLE EXTRACTION: Find tasks, deadlines, people mentioned, important dates, and follow-up items
+4. CONTEXTUAL INSIGHTS: Provide meaningful observations about the content's purpose, urgency, and next steps
+5. INTELLIGENT TAGGING: Suggest tags that reflect both content topics and functional categories
+
+OUTPUT FORMAT (strict JSON):
 {
-  "summary": "Brief summary of the content (max 200 chars)",
-  "keyTopics": ["topic1", "topic2", "topic3"],
-  "suggestedTags": ["tag1", "tag2", "tag3"],
-  "suggestedTitle": "Appropriate title for the content",
-  "contentType": "notes|meeting|todo|brainstorm|technical|personal|mixed",
-  "sentiment": 0.5,
+  "summary": "Comprehensive summary capturing key points and main purpose (150-300 chars)",
+  "keyTopics": ["main_topic", "secondary_topic", "detailed_concept", "technical_term", "subject_area"],
+  "suggestedTags": ["functional_tag", "topic_tag", "priority_tag", "project_tag", "context_tag"],
+  "suggestedTitle": "Descriptive and specific title that captures the essence of the content",
+  "contentType": "notes|meeting|todo|brainstorm|technical|personal|mixed|research|planning|reference",
+  "sentiment": 0.7,
   "actionItems": [
     {
-      "text": "Action item description",
+      "text": "Specific, clear action item with context",
       "priority": "low|medium|high|urgent",
-      "dueDate": null
+      "dueDate": "YYYY-MM-DD or null"
     }
   ],
   "insights": {
-    "main_theme": "Theme description",
-    "key_concepts": ["concept1", "concept2"],
+    "main_theme": "Core theme or purpose of the document",
+    "key_concepts": ["concept1", "concept2", "concept3"],
     "urgency_level": "low|medium|high",
-    "requires_followup": true|false
+    "requires_followup": true|false,
+    "estimated_completion_time": "time estimate for any tasks identified",
+    "related_projects": ["project names if identifiable"],
+    "people_mentioned": ["names of people referenced"],
+    "important_dates": ["dates found in the content"],
+    "technical_complexity": "low|medium|high",
+    "information_density": "sparse|moderate|dense"
   }
 }
 
-Focus on extracting actionable insights and organizing the information clearly.
+ANALYSIS PRINCIPLES:
+- Be thorough but concise
+- Focus on practical usefulness for the user
+- Extract maximum value from the scanned content
+- Provide insights that go beyond simple text extraction
+- Help users better organize and act on their information
+
+Analyze with intelligence, context-awareness, and practical focus.
 ''';
   }
 

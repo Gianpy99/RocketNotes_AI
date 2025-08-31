@@ -33,12 +33,7 @@ class AppRouter {
         path: '/home',
         name: 'home',
         builder: (context, state) {
-          final mode = state.uri.queryParameters['mode'];
-          final action = state.uri.queryParameters['action'];
-          return HomeScreen(
-            initialMode: mode,
-            initialAction: action,
-          );
+          return const HomeScreen();
         },
       ),
       
@@ -47,12 +42,7 @@ class AppRouter {
         path: '/notes',
         name: 'notes',
         builder: (context, state) {
-          final mode = state.uri.queryParameters['mode'];
-          final tag = state.uri.queryParameters['tag'];
-          return NotesListScreen(
-            filterMode: mode,
-            filterTag: tag,
-          );
+          return const NotesListScreen();
         },
       ),
       
@@ -62,12 +52,8 @@ class AppRouter {
         name: 'editor',
         builder: (context, state) {
           final noteId = state.uri.queryParameters['id'];
-          final mode = state.uri.queryParameters['mode'];
-          final template = state.uri.queryParameters['template'];
           return NoteEditorScreen(
             noteId: noteId,
-            initialMode: mode,
-            template: template,
           );
         },
       ),
@@ -179,7 +165,7 @@ class AppRouter {
             ),
             const SizedBox(height: 8),
             Text(
-              'The page "${state.location}" does not exist.',
+              'The page "${state.uri.path}" does not exist.',
               textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.grey),
             ),
@@ -197,7 +183,7 @@ class AppRouter {
     // Route redirect logic
     redirect: (context, state) {
       // Handle initial app launch
-      if (state.location == '/') {
+      if (state.uri.path == '/') {
         return '/'; // Show splash screen first
       }
       

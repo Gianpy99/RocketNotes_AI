@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../../core/constants/app_constants.dart';
 import '../../data/models/note_model.dart';
 import '../../data/models/app_settings_model.dart';
@@ -23,6 +24,7 @@ import '../../data/services/sync_service.dart';
 // ==========================================
 // Repository Providers
 // ==========================================
+
 final noteRepositoryProvider = Provider<NoteRepository>((ref) {
   return NoteRepository();
 });
@@ -30,6 +32,25 @@ final noteRepositoryProvider = Provider<NoteRepository>((ref) {
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
   return SettingsRepository();
 });
+
+// ==========================================
+// Mode Provider (Work/Personal)
+// ==========================================
+final appModeProvider = StateNotifierProvider<AppModeNotifier, String>((ref) {
+  return AppModeNotifier();
+});
+
+class AppModeNotifier extends StateNotifier<String> {
+  AppModeNotifier() : super('personal');
+
+  void setMode(String mode) {
+    state = mode;
+  }
+
+  void toggleMode() {
+    state = state == 'work' ? 'personal' : 'work';
+  }
+}
 
 // ==========================================
 // Service Providers
@@ -178,14 +199,21 @@ class AppSettingsNotifier extends StateNotifier<AsyncValue<AppSettingsModel>> {
 }
 
 // Convenience providers for specific settings
-final themeModeProvider = Provider<ThemeMode>((ref) {
-  final settingsAsync = ref.watch(appSettingsProvider);
-  return settingsAsync.when(
-    data: (settings) => settings.flutterThemeMode,
-    loading: () => ThemeMode.system,
-    error: (_, __) => ThemeMode.system,
-  );
+final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
+  return ThemeModeNotifier();
 });
+
+class ThemeModeNotifier extends StateNotifier<ThemeMode> {
+  ThemeModeNotifier() : super(ThemeMode.system);
+
+  void setThemeMode(ThemeMode mode) {
+    state = mode;
+  }
+
+  void toggleTheme() {
+    state = state == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+  }
+}
 
 final currentModeProvider = Provider<String>((ref) {
   final settingsAsync = ref.watch(appSettingsProvider);
@@ -272,6 +300,15 @@ class NotesNotifier extends StateNotifier<AsyncValue<List<NoteModel>>> {
     }
   }
 
+  Future<NoteModel?> getNoteById(String id) async {
+    try {
+      return await _repository.getNoteById(id);
+    } catch (error) {
+      print('Error getting note: $error');
+      return null;
+    }
+  }
+
   Future<void> archiveNote(String id) async {
     try {
       await _repository.archiveNote(id);
@@ -328,6 +365,16 @@ class NotesNotifier extends StateNotifier<AsyncValue<List<NoteModel>>> {
       await loadNotes();
     } catch (error) {
       print('Error archiving multiple notes: $error');
+      rethrow;
+    }
+  }
+
+  Future<void> clearAllNotes() async {
+    try {
+      await _repository.clearAllNotes();
+      await loadNotes();
+    } catch (error) {
+      print('Error clearing all notes: $error');
       rethrow;
     }
   }
@@ -869,16 +916,16 @@ final userIdProvider = Provider<String>((ref) {
   // Generate or retrieve user ID
   final box = Hive.box(AppConstants.settingsBox);
   String? userId = box.get('user_id');
+  if (userId == null) {
+    userId = const Uuid().v4();
+    box.put('user_id', userId);
+  }
   return userId;
 });
 
 final apiServiceProvider = Provider<ApiService>((ref) {
   final userId = ref.watch(userIdProvider);
   return ApiService(userId: userId);
-});
-
-final noteRepositoryProvider = Provider<NoteRepository>((ref) {
-  return NoteRepository();
 });
 
 final syncServiceProvider = Provider<SyncService>((ref) {

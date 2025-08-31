@@ -56,6 +56,15 @@ class NotesNotifier extends StateNotifier<AsyncValue<List<NoteModel>>> {
     }
   }
 
+  Future<void> addNote(NoteModel note) async {
+    try {
+      await _repository.saveNote(note);
+      await loadNotes(); // Reload after saving
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
   Future<void> deleteNote(String id) async {
     try {
       await _repository.deleteNote(id);

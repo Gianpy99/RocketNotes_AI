@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image/image.dart' as img;
@@ -10,13 +10,22 @@ class OCRService {
   static OCRService get instance => _instance ??= OCRService._();
   OCRService._();
 
-  late final TextRecognizer _textRecognizer;
-  late final BarcodeScanner _barcodeScanner;
+  TextRecognizer? _textRecognizer;
+  BarcodeScanner? _barcodeScanner;
 
   /// Initialize the OCR service
   Future<void> initialize() async {
-    _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
-    _barcodeScanner = BarcodeScanner();
+    if (kIsWeb) {
+      // Su web, ML Kit non è supportato - usiamo implementazione mock
+      _textRecognizer = null;
+      _barcodeScanner = null;
+      debugPrint('🌐 OCR: Web mode - using mock implementation');
+    } else {
+      // Su mobile, usiamo Google ML Kit
+      _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+      _barcodeScanner = BarcodeScanner();
+      debugPrint('📱 OCR: Mobile mode - using Google ML Kit');
+    }
   }
 
   /// Process an image and extract all content
@@ -28,56 +37,94 @@ class OCRService {
       final scannedContent = ScannedContent.fromImage(imagePath);
       scannedContent.status = ProcessingStatus.processing;
 
-      // Process the image
-      final inputImage = InputImage.fromFilePath(imagePath);
-      
-      // Extract text
-      final textResult = await _extractText(inputImage);
-      scannedContent.rawText = textResult.text;
-      
-      // Extract tables (basic implementation)
-      final tables = await _extractTables(inputImage, textResult);
-      scannedContent.tables.addAll(tables);
-      
-      // Detect any barcodes/QR codes
-      final barcodes = await _barcodeScanner.processImage(inputImage);
+      if (kIsWeb) {
+        // Web implementation - mock OCR
+        await _processImageWeb(scannedContent, imagePath);
+      } else {
+        // Mobile implementation - Google ML Kit
+        await _processImageMobile(scannedContent, imagePath);
+      }
       
       stopwatch.stop();
-      
-      // Create metadata
-      scannedContent.ocrMetadata = OCRMetadata(
-        engine: 'ml_kit',
-        overallConfidence: _calculateOverallConfidence(textResult),
-        detectedLanguages: ['en'], // ML Kit doesn't provide language detection directly
-        processingTime: stopwatch.elapsed,
-        additionalData: {
-          'barcodes_found': barcodes.length,
-          'text_blocks': textResult.blocks.length,
-          'image_size': await _getImageSize(imagePath),
-        },
-      );
-
+      scannedContent.ocrMetadata.processingTime = stopwatch.elapsed;
       scannedContent.status = ProcessingStatus.completed;
       return scannedContent;
-      
     } catch (e) {
-      debugPrint('OCR processing error: $e');
-      final errorContent = ScannedContent.fromImage(imagePath);
-      errorContent.status = ProcessingStatus.failed;
-      errorContent.ocrMetadata = OCRMetadata(
-        engine: 'ml_kit',
-        overallConfidence: 0.0,
-        detectedLanguages: [],
-        processingTime: stopwatch.elapsed,
-        additionalData: {'error': e.toString()},
-      );
-      return errorContent;
+      debugPrint('❌ OCR Error: $e');
+      final scannedContent = ScannedContent.fromImage(imagePath);
+      scannedContent.status = ProcessingStatus.failed;
+      scannedContent.rawText = 'Error processing image: $e';
+      return scannedContent;
     }
+  }
+
+  /// Web implementation (mock)
+  Future<void> _processImageWeb(ScannedContent scannedContent, String imagePath) async {
+    // Simuliamo l'OCR su web con testo di esempio
+    scannedContent.rawText = '''Sample OCR Text (Web Mode)
+    
+This is a demo text extracted from your image.
+Since we're running on web, Google ML Kit is not available.
+
+• Line 1: Demo content
+• Line 2: More demo content  
+• Line 3: Additional information
+
+In a real implementation, you would:
+1. Send the image to a cloud OCR service
+2. Use a JavaScript OCR library like Tesseract.js
+3. Process the image server-side
+
+Image path: $imagePath
+''';
+
+    scannedContent.ocrMetadata = OCRMetadata(
+      engine: 'web_mock',
+      overallConfidence: 0.85,
+      detectedLanguages: ['en'],
+      processingTime: const Duration(milliseconds: 500),
+      additionalData: {
+        'mode': 'web_demo',
+        'image_path': imagePath,
+      },
+    );
+  }
+
+  /// Mobile implementation (Google ML Kit)
+  Future<void> _processImageMobile(ScannedContent scannedContent, String imagePath) async {
+    final inputImage = InputImage.fromFilePath(imagePath);
+    
+    // Extract text
+    final textResult = await _extractText(inputImage);
+    scannedContent.rawText = textResult.text;
+    
+    // Extract tables (basic implementation)
+    final tables = await _extractTables(inputImage, textResult);
+    scannedContent.tables.addAll(tables);
+    
+    // Detect any barcodes/QR codes
+    final barcodes = await _barcodeScanner?.processImage(inputImage) ?? [];
+    
+    // Create metadata
+    scannedContent.ocrMetadata = OCRMetadata(
+      engine: 'ml_kit',
+      overallConfidence: _calculateOverallConfidence(textResult),
+      detectedLanguages: ['en'], // ML Kit doesn't provide language detection directly
+      processingTime: Duration.zero, // Will be set by caller
+      additionalData: {
+        'barcodes_found': barcodes.length,
+        'text_blocks': textResult.blocks.length,
+        'image_size': await _getImageSize(imagePath),
+      },
+    );
   }
 
   /// Extract text using ML Kit
   Future<RecognizedText> _extractText(InputImage inputImage) async {
-    return await _textRecognizer.processImage(inputImage);
+    if (_textRecognizer == null) {
+      throw Exception('TextRecognizer not initialized - web platform not supported');
+    }
+    return await _textRecognizer!.processImage(inputImage);
   }
 
   /// Basic table extraction (enhanced version would use more sophisticated algorithms)
@@ -102,28 +149,29 @@ class OCRService {
     return tables;
   }
 
-  /// Group text blocks that might form a table
+  /// Group text blocks that might form a table structure
   List<List<TextBlock>> _groupBlocksIntoTables(List<TextBlock> blocks) {
     final tables = <List<TextBlock>>[];
     
     // Sort blocks by vertical position
-    final sortedBlocks = List<TextBlock>.from(blocks)
-      ..sort((a, b) => a.boundingBox.top.compareTo(b.boundingBox.top));
+    final sortedBlocks = List<TextBlock>.from(blocks);
+    sortedBlocks.sort((a, b) => a.boundingBox.top.compareTo(b.boundingBox.top));
     
-    // Group blocks into rows based on Y-coordinate proximity
+    // Group blocks into rows based on Y position proximity
     final rows = <List<TextBlock>>[];
     List<TextBlock> currentRow = [];
     double lastY = -1;
     
     for (final block in sortedBlocks) {
-      final currentY = block.boundingBox.top;
+      final currentY = block.boundingBox.top.toDouble();
       
+      // If this block is roughly on the same line as the previous
       if (lastY == -1 || (currentY - lastY).abs() < 20) {
-        // Same row
         currentRow.add(block);
       } else {
-        // New row
+        // Start a new row
         if (currentRow.isNotEmpty) {
+          // Sort current row by X position
           currentRow.sort((a, b) => a.boundingBox.left.compareTo(b.boundingBox.left));
           rows.add(List.from(currentRow));
         }
@@ -132,88 +180,82 @@ class OCRService {
       lastY = currentY;
     }
     
+    // Add the last row
     if (currentRow.isNotEmpty) {
       currentRow.sort((a, b) => a.boundingBox.left.compareTo(b.boundingBox.left));
       rows.add(currentRow);
     }
     
-    // Check if rows form a table structure
+    // Look for table patterns
     if (rows.length >= 2) {
-      final columnCounts = rows.map((row) => row.length).toSet();
-      if (columnCounts.length <= 2) { // Allow some variation in column count
-        final allBlocks = rows.expand((row) => row).toList();
-        tables.add(allBlocks);
+      final tableBlocks = <TextBlock>[];
+      for (final row in rows) {
+        tableBlocks.addAll(row);
       }
+      tables.add(tableBlocks);
     }
     
     return tables;
   }
 
-  /// Create a TableData object from grouped blocks
+  /// Create a table structure from grouped text blocks
   TableData? _createTableFromBlocks(List<TextBlock> blocks) {
     try {
-      // Group blocks into rows again for table creation
+      // Sort blocks by position to determine table structure
+      final sortedByY = List<TextBlock>.from(blocks);
+      sortedByY.sort((a, b) => a.boundingBox.top.compareTo(b.boundingBox.top));
+      
+      // Group into rows
       final rows = <List<String>>[];
-      
-      // Sort by Y position to get rows
-      final sortedBlocks = List<TextBlock>.from(blocks)
-        ..sort((a, b) => a.boundingBox.top.compareTo(b.boundingBox.top));
-      
       List<TextBlock> currentRowBlocks = [];
       double lastY = -1;
       
-      for (final block in sortedBlocks) {
-        final currentY = block.boundingBox.top;
+      for (final block in sortedByY) {
+        final currentY = block.boundingBox.top.toDouble();
         
         if (lastY == -1 || (currentY - lastY).abs() < 20) {
           currentRowBlocks.add(block);
         } else {
           if (currentRowBlocks.isNotEmpty) {
+            // Sort current row by X position and extract text
             currentRowBlocks.sort((a, b) => a.boundingBox.left.compareTo(b.boundingBox.left));
-            final rowText = currentRowBlocks.map((b) => b.text).toList();
-            rows.add(rowText);
+            final rowTexts = currentRowBlocks.map((b) => b.text.trim()).toList();
+            rows.add(rowTexts);
           }
           currentRowBlocks = [block];
         }
         lastY = currentY;
       }
       
+      // Add the last row
       if (currentRowBlocks.isNotEmpty) {
         currentRowBlocks.sort((a, b) => a.boundingBox.left.compareTo(b.boundingBox.left));
-        final rowText = currentRowBlocks.map((b) => b.text).toList();
-        rows.add(rowText);
+        final rowTexts = currentRowBlocks.map((b) => b.text.trim()).toList();
+        rows.add(rowTexts);
       }
       
-      if (rows.length >= 2) {
-        // Calculate bounding box for the entire table
-        final leftmost = blocks.map((b) => b.boundingBox.left).reduce((a, b) => a < b ? a : b);
-        final rightmost = blocks.map((b) => b.boundingBox.right).reduce((a, b) => a > b ? a : b);
-        final topmost = blocks.map((b) => b.boundingBox.top).reduce((a, b) => a < b ? a : b);
-        final bottommost = blocks.map((b) => b.boundingBox.bottom).reduce((a, b) => a > b ? a : b);
-        
-        final boundingBox = BoundingBox(
-          left: leftmost,
-          top: topmost,
-          width: rightmost - leftmost,
-          height: bottommost - topmost,
-        );
-        
-        return TableData(
-          rows: rows,
-          title: null, // Could be detected from context
-          boundingBox: boundingBox,
-          confidence: 0.8, // Basic confidence score
-        );
-      }
+      if (rows.isEmpty) return null;
       
-      return null;
+      // Create table with headers and data
+      final allRows = rows;
+      
+      return TableData(
+        rows: allRows,
+        boundingBox: BoundingBox(
+          left: 0.0,
+          top: 0.0,
+          width: 100.0,
+          height: 50.0, // Default bounding box for web mock
+        ),
+        confidence: 0.7, // Basic confidence for table detection
+      );
     } catch (e) {
       debugPrint('Error creating table from blocks: $e');
       return null;
     }
   }
 
-  /// Calculate overall confidence from ML Kit result
+  /// Calculate overall confidence from recognized text
   double _calculateOverallConfidence(RecognizedText textResult) {
     if (textResult.blocks.isEmpty) return 0.0;
     
@@ -223,9 +265,10 @@ class OCRService {
     for (final block in textResult.blocks) {
       for (final line in block.lines) {
         for (final element in line.elements) {
-          // ML Kit doesn't provide confidence scores directly
-          // We'll use a heuristic based on text characteristics
-          totalConfidence += _estimateElementConfidence(element.text);
+          // ML Kit doesn't provide confidence, so we estimate based on text quality
+          final text = element.text;
+          double confidence = _estimateTextConfidence(text);
+          totalConfidence += confidence;
           elementCount++;
         }
       }
@@ -234,90 +277,57 @@ class OCRService {
     return elementCount > 0 ? totalConfidence / elementCount : 0.0;
   }
 
-  /// Estimate confidence based on text characteristics
-  double _estimateElementConfidence(String text) {
+  /// Estimate text confidence based on text characteristics
+  double _estimateTextConfidence(String text) {
     if (text.isEmpty) return 0.0;
     
+    // Basic heuristics for text quality
     double confidence = 0.8; // Base confidence
     
-    // Boost confidence for longer text
-    if (text.length > 5) confidence += 0.1;
+    // Penalize very short text
+    if (text.length < 3) confidence -= 0.2;
     
-    // Reduce confidence for very short or single character text
-    if (text.length == 1) confidence -= 0.3;
+    // Penalize text with many special characters
+    final specialCharCount = text.replaceAll(RegExp(r'[a-zA-Z0-9\s]'), '').length;
+    final specialCharRatio = specialCharCount / text.length;
+    if (specialCharRatio > 0.3) confidence -= 0.3;
     
-    // Boost confidence for common words
-    final commonWords = ['the', 'and', 'is', 'in', 'to', 'of', 'a', 'for', 'on', 'with'];
-    if (commonWords.contains(text.toLowerCase())) confidence += 0.1;
-    
-    // Reduce confidence for strings with special characters
-    if (text.contains(RegExp(r'[^\w\s]'))) confidence -= 0.1;
+    // Bonus for common words
+    if (RegExp(r'\b(the|and|or|a|an|in|on|at|to|for|of|with|by)\b', caseSensitive: false).hasMatch(text)) {
+      confidence += 0.1;
+    }
     
     return confidence.clamp(0.0, 1.0);
   }
 
-  /// Get image dimensions
-  Future<Map<String, int>> _getImageSize(String imagePath) async {
+  /// Get image size information
+  Future<Map<String, dynamic>> _getImageSize(String imagePath) async {
     try {
-      final bytes = await File(imagePath).readAsBytes();
+      if (kIsWeb) {
+        return {'width': 0, 'height': 0, 'note': 'Web mode - size not available'};
+      }
+      
+      final file = File(imagePath);
+      final bytes = await file.readAsBytes();
       final image = img.decodeImage(bytes);
-      return {
-        'width': image?.width ?? 0,
-        'height': image?.height ?? 0,
-      };
+      
+      if (image != null) {
+        return {
+          'width': image.width,
+          'height': image.height,
+          'channels': image.numChannels,
+        };
+      }
     } catch (e) {
-      return {'width': 0, 'height': 0};
+      debugPrint('Error getting image size: $e');
     }
+    
+    return {'width': 0, 'height': 0, 'error': 'Could not determine size'};
   }
 
-  /// Dispose of resources
+  /// Clean up resources
   Future<void> dispose() async {
-    await _textRecognizer.close();
-    await _barcodeScanner.close();
-  }
-}
-
-/// OCR processing result
-class OCRResult {
-  final String text;
-  final List<TableData> tables;
-  final List<DiagramData> diagrams;
-  final OCRMetadata metadata;
-  final bool success;
-  final String? error;
-
-  OCRResult({
-    required this.text,
-    required this.tables,
-    required this.diagrams,
-    required this.metadata,
-    required this.success,
-    this.error,
-  });
-
-  factory OCRResult.success({
-    required String text,
-    required List<TableData> tables,
-    required List<DiagramData> diagrams,
-    required OCRMetadata metadata,
-  }) {
-    return OCRResult(
-      text: text,
-      tables: tables,
-      diagrams: diagrams,
-      metadata: metadata,
-      success: true,
-    );
-  }
-
-  factory OCRResult.failure(String error, OCRMetadata metadata) {
-    return OCRResult(
-      text: '',
-      tables: [],
-      diagrams: [],
-      metadata: metadata,
-      success: false,
-      error: error,
-    );
+    await _textRecognizer?.close();
+    await _barcodeScanner?.close();
   }
 }

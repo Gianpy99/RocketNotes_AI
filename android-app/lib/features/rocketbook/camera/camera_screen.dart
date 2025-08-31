@@ -1,13 +1,25 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:camera/camera.dart';
 import 'package:photo_view/photo_view.dart';
 import 'camera_service.dart';
+import 'web_camera_service.dart';
+import '../ocr/ocr_service.dart';
+import '../ai_analysis/ai_service.dart';
+import '../models/scanned_content.dart';
+import '../../../data/models/note_model.dart';
+import '../../../presentation/providers/app_providers_simple.dart';
+import 'package:uuid/uuid.dart';
 
-// Provider per il camera service
-final cameraServiceProvider = Provider<CameraService>((ref) {
-  return CameraService.instance;
+// Provider per il camera service (web o mobile)
+final cameraServiceProvider = Provider<dynamic>((ref) {
+  if (kIsWeb) {
+    return WebCameraService.instance;
+  } else {
+    return CameraService.instance;
+  }
 });
 
 // Provider per lo stato della camera
@@ -17,7 +29,7 @@ final cameraStateProvider = StateNotifierProvider<CameraStateNotifier, CameraSta
 });
 
 class CameraStateNotifier extends StateNotifier<CameraState> {
-  final CameraService _cameraService;
+  final dynamic _cameraService; // Può essere CameraService o WebCameraService
 
   CameraStateNotifier(this._cameraService) : super(const CameraState()) {
     _initializeCamera();
@@ -25,11 +37,16 @@ class CameraStateNotifier extends StateNotifier<CameraState> {
 
   Future<void> _initializeCamera() async {
     try {
-      final success = await _cameraService.initialize();
-      if (success) {
+      // Per web, non c'è bisogno di initialize
+      if (kIsWeb) {
         state = state.copyWith(isInitialized: true, error: null);
       } else {
-        state = state.copyWith(error: 'Failed to initialize camera');
+        final success = await _cameraService.initialize();
+        if (success) {
+          state = state.copyWith(isInitialized: true, error: null);
+        } else {
+          state = state.copyWith(error: 'Failed to initialize camera');
+        }
       }
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -51,22 +68,30 @@ class CameraStateNotifier extends StateNotifier<CameraState> {
   }
 
   Future<void> switchCamera() async {
-    await _cameraService.switchCamera();
+    if (!kIsWeb) {
+      await _cameraService.switchCamera();
+    }
   }
 
   Future<void> setFlashMode(FlashMode flashMode) async {
-    await _cameraService.setFlashMode(flashMode);
-    state = state.copyWith(flashMode: flashMode);
+    if (!kIsWeb) {
+      await _cameraService.setFlashMode(flashMode);
+      state = state.copyWith(flashMode: flashMode);
+    }
   }
 
   Future<void> setZoomLevel(double zoom) async {
-    await _cameraService.setZoomLevel(zoom);
-    state = state.copyWith(zoomLevel: zoom);
+    if (!kIsWeb) {
+      await _cameraService.setZoomLevel(zoom);
+      state = state.copyWith(zoomLevel: zoom);
+    }
   }
 
   @override
   void dispose() {
-    _cameraService.dispose();
+    if (!kIsWeb) {
+      _cameraService.dispose();
+    }
     super.dispose();
   }
 }
@@ -144,10 +169,15 @@ class RocketbookCameraScreen extends ConsumerWidget {
 
   Widget _buildCameraView(
     BuildContext context,
-    CameraService cameraService,
+    dynamic cameraService, // Può essere CameraService o WebCameraService
     CameraStateNotifier notifier,
     CameraState state,
   ) {
+    // Per il web, mostra un placeholder invece della camera preview
+    if (kIsWeb) {
+      return _buildWebCameraView(context, notifier, state);
+    }
+    
     final controller = cameraService.controller;
     if (controller == null) return const _LoadingView();
 
@@ -310,6 +340,105 @@ class RocketbookCameraScreen extends ConsumerWidget {
       const SnackBar(content: Text('Gallery picker coming soon')),
     );
   }
+
+  Widget _buildWebCameraView(
+    BuildContext context,
+    CameraStateNotifier notifier,
+    CameraState state,
+  ) {
+    return Stack(
+      children: [
+        // Placeholder per web
+        Container(
+          width: double.infinity,
+          height: double.infinity,
+          color: Colors.grey[800],
+          child: const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.camera_alt,
+                  size: 100,
+                  color: Colors.white54,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Web Camera Mode',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Click capture to select an image',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+        ),
+        
+        // UI Controls overlay
+        Positioned(
+          bottom: 100,
+          left: 0,
+          right: 0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              // Gallery button
+              Container(
+                decoration: const BoxDecoration(
+                  color: Colors.black45,
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.photo_library, color: Colors.white, size: 30),
+                  onPressed: () => _pickFromGallery(context),
+                ),
+              ),
+              
+              // Capture button
+              GestureDetector(
+                onTap: state.isCapturing ? null : () => _capturePhoto(context, notifier),
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: state.isCapturing ? Colors.grey : Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 4),
+                  ),
+                  child: state.isCapturing 
+                    ? const Center(child: CircularProgressIndicator(color: Colors.grey))
+                    : const Icon(Icons.camera_alt, color: Colors.black, size: 40),
+                ),
+              ),
+              
+              // Settings button placeholder
+              Container(
+                decoration: const BoxDecoration(
+                  color: Colors.black45,
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.settings, color: Colors.white, size: 30),
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Settings coming soon')),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _LoadingView extends StatelessWidget {
@@ -405,13 +534,13 @@ class RocketbookOverlayPainter extends CustomPainter {
 }
 
 // Image preview screen
-class ImagePreviewScreen extends StatelessWidget {
+class ImagePreviewScreen extends ConsumerWidget {
   final String imagePath;
 
   const ImagePreviewScreen({super.key, required this.imagePath});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -453,7 +582,7 @@ class ImagePreviewScreen extends StatelessWidget {
                     ),
                   ),
                   ElevatedButton.icon(
-                    onPressed: () => _processImage(context),
+                    onPressed: () => _processImage(context, ref),
                     icon: const Icon(Icons.check),
                     label: const Text('Process'),
                     style: ElevatedButton.styleFrom(
@@ -470,11 +599,156 @@ class ImagePreviewScreen extends StatelessWidget {
     );
   }
 
-  void _processImage(BuildContext context) {
-    // TODO: Start OCR processing
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Starting OCR processing...')),
+  void _processImage(BuildContext context, WidgetRef ref) async {
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Processing image...'),
+            Text('This may take a few moments', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          ],
+        ),
+      ),
     );
-    Navigator.of(context).popUntil((route) => route.isFirst);
+
+    try {
+      // Initialize and use OCR service
+      final ocrService = OCRService.instance;
+      await ocrService.initialize();
+      
+      // Process image with OCR
+      final scannedContent = await ocrService.processImage(imagePath);
+      
+      if (scannedContent.rawText.isNotEmpty) {
+        // Initialize AI service for analysis
+        final aiService = AIService.instance;
+        
+        // Analyze with AI (using mock mode by default)
+        final aiAnalysis = await aiService.analyzeContent(scannedContent);
+        scannedContent.aiAnalysis = aiAnalysis;
+        
+        // Navigate to results screen or save as note
+        if (context.mounted) {
+          Navigator.of(context).pop(); // Close loading dialog
+          _showResultsDialog(context, ref, scannedContent);
+        }
+      } else {
+        if (context.mounted) {
+          Navigator.of(context).pop(); // Close loading dialog
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No text found in image. Please try again with better lighting.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error processing image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showResultsDialog(BuildContext context, WidgetRef ref, ScannedContent scannedContent) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('📝 Text Extracted'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (scannedContent.aiAnalysis?.suggestedTitle != null)
+                Text(
+                  'Title: ${scannedContent.aiAnalysis!.suggestedTitle}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              const SizedBox(height: 8),
+              Container(
+                constraints: const BoxConstraints(maxHeight: 200),
+                child: SingleChildScrollView(
+                  child: Text(scannedContent.rawText),
+                ),
+              ),
+              if (scannedContent.aiAnalysis?.summary != null) ...[
+                const SizedBox(height: 16),
+                const Text('Summary:', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(scannedContent.aiAnalysis!.summary),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+            child: const Text('Discard'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              _saveAsNote(context, ref, scannedContent);
+            },
+            child: const Text('Save as Note'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _saveAsNote(BuildContext context, WidgetRef ref, ScannedContent scannedContent) async {
+    try {
+      // Create a new note with the extracted content
+      final uuid = const Uuid();
+      final note = NoteModel(
+        id: uuid.v4(),
+        title: scannedContent.aiAnalysis?.suggestedTitle ?? 'Scanned Note',
+        content: scannedContent.rawText,
+        mode: 'personal', // Default mode
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        tags: scannedContent.aiAnalysis?.suggestedTags ?? [],
+        aiSummary: scannedContent.aiAnalysis?.summary,
+        attachments: [scannedContent.imagePath], // Include the original image
+        isFavorite: false,
+        priority: 1, // medium priority
+      );
+
+      // Save the note using the notesProvider
+      final notesNotifier = ref.read(notesProvider.notifier);
+      await notesNotifier.addNote(note);
+      
+      Navigator.of(context).pop(); // Close dialog
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Note saved successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error saving note: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

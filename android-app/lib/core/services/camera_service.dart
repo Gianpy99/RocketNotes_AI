@@ -147,12 +147,27 @@ class ImageAnalysisNotifier extends StateNotifier<ImageAnalysisState> {
 
   /// Analizza un'immagine da path
   Future<void> analyzeImageFromPath(String imagePath) async {
-    final imageFile = File(imagePath);
-    if (await imageFile.exists()) {
-      await analyzeImage(imageFile);
-    } else {
+    try {
+      // Su web, i blob URL non possono essere verificati con File.exists()
+      if (kIsWeb && imagePath.startsWith('blob:')) {
+        // Per blob URL su web, skippiamo l'analisi o implementiamo un fallback
+        state = state.copyWith(
+          error: 'Analisi immagine non supportata per blob URL su web',
+        );
+        return;
+      }
+      
+      final imageFile = File(imagePath);
+      if (await imageFile.exists()) {
+        await analyzeImage(imageFile);
+      } else {
+        state = state.copyWith(
+          error: 'File immagine non trovato: $imagePath',
+        );
+      }
+    } catch (e) {
       state = state.copyWith(
-        error: 'File immagine non trovato: $imagePath',
+        error: 'Errore durante l\'analisi dell\'immagine: $e',
       );
     }
   }

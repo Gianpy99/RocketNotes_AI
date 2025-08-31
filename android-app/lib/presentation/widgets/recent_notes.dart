@@ -114,7 +114,7 @@ class _NoteCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          border: Border.left(color: modeColor, width: 4),
+          border: Border(left: BorderSide(color: modeColor, width: 4)),
           color: Theme.of(context).cardColor,
           borderRadius: const BorderRadius.horizontal(right: Radius.circular(8)),
         ),
@@ -142,7 +142,7 @@ class _NoteCard extends StatelessWidget {
               children: [
                 Text(
                   _formatDate(note.updatedAt),
-                  style: Theme.of(context).textTheme.caption?.copyWith(
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Colors.grey,
                   ),
                 ),

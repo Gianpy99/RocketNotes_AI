@@ -289,7 +289,7 @@ class WebRocketbookCameraScreen extends ConsumerWidget {
 }
 
 // Web Image Preview Screen
-class WebImagePreviewScreen extends StatefulWidget {
+class WebImagePreviewScreen extends ConsumerStatefulWidget {
   final List<String> imagePaths;
   final String title;
 
@@ -300,10 +300,10 @@ class WebImagePreviewScreen extends StatefulWidget {
   });
 
   @override
-  State<WebImagePreviewScreen> createState() => _WebImagePreviewScreenState();
+  ConsumerState<WebImagePreviewScreen> createState() => _WebImagePreviewScreenState();
 }
 
-class _WebImagePreviewScreenState extends State<WebImagePreviewScreen> {
+class _WebImagePreviewScreenState extends ConsumerState<WebImagePreviewScreen> {
   int currentIndex = 0;
 
   @override
@@ -491,18 +491,21 @@ class _WebImagePreviewScreenState extends State<WebImagePreviewScreen> {
         attachments: widget.imagePaths,
       );
 
-      // Navigate back to home and show success message
-      Navigator.of(context).popUntil((route) => route.isFirst);
+      // Save the note using the notesProvider
+      await ref.read(notesProvider.notifier).addNote(note);
       
-      // For now, just show a success message
-      // TODO: Actually save the note - this requires access to the provider
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Foto salvata! (${widget.imagePaths.length} immagine/i)'),
-          duration: const Duration(seconds: 2),
-          backgroundColor: Colors.green,
-        ),
-      );
+      // Navigate back to home and show success message
+      if (context.mounted) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Nota salvata con successo! (${widget.imagePaths.length} immagine/i)'),
+            duration: const Duration(seconds: 2),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

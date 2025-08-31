@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_constants.dart';
 import '../../data/services/nfc_service.dart';
 import '../../data/services/deep_link_service.dart';
+import '../../features/rocketbook/camera/camera_screen.dart';
 import '../providers/app_providers_simple.dart';
 import '../widgets/mode_card.dart';
 import '../widgets/quick_action_button.dart';
@@ -33,6 +33,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       });
     }
     _listenToDeepLinks();
+    
+    // DEBUG TOAST
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🐛 DEBUG: Cerca icona BUG ARANCIONE in alto a destra!'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 4),
+        ),
+      );
+    });
   }
 
   void _listenToDeepLinks() {
@@ -52,22 +63,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
 
     try {
-      final uri = await _nfcService.readNfcTag();
-      final mode = _nfcService.extractModeFromUri(uri);
-      if (mode != null) {
-        ref.read(appModeProvider.notifier).setMode(mode);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Switched to $mode mode'),
-              backgroundColor: mode == 'work' 
-                  ? AppColors.workBlue 
-                  : AppColors.personalGreen,
-            ),
-          );
+      final result = await _nfcService.readNfcTag();
+      if (result.success && result.data != null) {
+        final mode = _nfcService.extractModeFromUri(result.data!);
+        if (mode != null) {
+          ref.read(appModeProvider.notifier).setMode(mode);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Switched to $mode mode'),
+                backgroundColor: mode == 'work' 
+                    ? AppColors.workBlue 
+                    : AppColors.personalGreen,
+              ),
+            );
+          }
         }
       }
-        } catch (e) {
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -120,6 +133,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
             actions: [
+              // DEBUG BUTTON - SUPER VISIBILE
+              IconButton(
+                icon: const Icon(Icons.bug_report, color: Colors.orange, size: 30),
+                onPressed: () async {
+                  // DEBUG: Mostra tutte le note salvate
+                  await _showDebugNotesDialog();
+                },
+              ),
               IconButton(
                 icon: const Icon(Icons.settings),
                 onPressed: () => context.push('/settings'),
@@ -294,50 +315,77 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   const SizedBox(height: 24),
 
                   // Recent Notes
-                  if (recentNotes.isNotEmpty) ...[
-                    Text(
-                      'Recent Notes',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ...recentNotes.take(3).map((note) => Card(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: note.mode == 'work'
-                                  ? AppColors.workBlue
-                                  : AppColors.personalGreen,
-                              child: Icon(
-                                note.mode == 'work' ? Icons.work : Icons.home,
-                                color: Colors.white,
-                                size: 20,
+                  recentNotes.when(
+                    data: (notes) {
+                      if (notes.isNotEmpty) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Recent Notes',
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            title: Text(
-                              note.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Text(
-                              note.content,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            trailing: Text(
-                              _formatDate(note.updatedAt),
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            onTap: () => context.push('/editor?id=${note.id}'),
-                          ),
-                        )),
-                  ],
+                            const SizedBox(height: 16),
+                            ...notes.take(3).map((note) => Card(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  child: ListTile(
+                                    leading: CircleAvatar(
+                                      backgroundColor: note.mode == 'work'
+                                          ? AppColors.workBlue
+                                          : AppColors.personalGreen,
+                                      child: Icon(
+                                        note.mode == 'work' ? Icons.work : Icons.home,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    title: Text(
+                                      note.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    subtitle: Text(
+                                      note.content,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    trailing: Text(
+                                      _formatDate(note.updatedAt),
+                                      style: Theme.of(context).textTheme.bodySmall,
+                                    ),
+                                    onTap: () => context.push('/editor?id=${note.id}'),
+                                  ),
+                                )),
+                          ],
+                        );
+                      } else {
+                        return const SizedBox.shrink();
+                      }
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (error, stack) => const SizedBox.shrink(),
+                  ),
                 ],
               ),
             ),
           ),
         ],
+      ),
+      // FLOATING ACTION BUTTON per camera
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const RocketbookCameraScreen(),
+            ),
+          );
+        },
+        backgroundColor: Colors.deepPurple[700],
+        child: const Icon(Icons.camera_alt, color: Colors.white),
+        tooltip: 'Open Camera',
       ),
     );
   }
@@ -357,5 +405,99 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
+  }
+
+  Future<void> _showDebugNotesDialog() async {
+    final notesAsyncValue = ref.read(notesProvider);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('🐛 DEBUG: Note Salvate'),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 400,
+          child: notesAsyncValue.when(
+            data: (notes) {
+              if (notes.isEmpty) {
+                return const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.note_alt_outlined, size: 64, color: Colors.grey),
+                    SizedBox(height: 16),
+                    Text('Nessuna nota salvata'),
+                    Text('Le note scattate dalla camera dovrebbero apparire qui'),
+                  ],
+                );
+              }
+              
+              return ListView.builder(
+                itemCount: notes.length,
+                itemBuilder: (context, index) {
+                  final note = notes[index];
+                  return Card(
+                    child: ListTile(
+                      title: Text(
+                        note.title.isNotEmpty ? note.title : 'Senza titolo',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            note.content.length > 100 
+                              ? '${note.content.substring(0, 100)}...'
+                              : note.content,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Creata: ${_formatDate(note.createdAt)}',
+                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                          Text(
+                            'ID: ${note.id}',
+                            style: const TextStyle(fontSize: 10, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error, color: Colors.red, size: 48),
+                  const SizedBox(height: 16),
+                  Text('Errore: $error'),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () => ref.read(notesProvider.notifier).loadNotes(),
+                    child: const Text('Riprova'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Chiudi'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await ref.read(notesProvider.notifier).loadNotes();
+              Navigator.of(context).pop();
+              _showDebugNotesDialog(); // Riapri dopo il refresh
+            },
+            child: const Text('🔄 Aggiorna'),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -6,6 +6,7 @@ import '../../core/constants/app_colors.dart';
 import '../../data/models/note_model.dart';
 import '../providers/app_providers.dart';
 import '../widgets/tag_input_field.dart';
+import '../../widgets/ocr_widget.dart';
 
 class NoteEditorScreen extends ConsumerStatefulWidget {
   final String? noteId;
@@ -305,6 +306,29 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                     
                     const SizedBox(height: 16),
                     
+                    // OCR Tools Row
+                    Row(
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: _showOCRPanel,
+                          icon: const Icon(Icons.text_fields),
+                          label: const Text('Extract Text'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.purple,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        OutlinedButton.icon(
+                          onPressed: _quickOCR,
+                          icon: const Icon(Icons.camera_alt),
+                          label: const Text('Quick OCR'),
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
                     // Content Field
                     Expanded(
                       child: TextField(
@@ -358,6 +382,112 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showOCRPanel() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.8,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(top: 12),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                'OCR Text Extraction',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _selectImageForOCR,
+                      icon: const Icon(Icons.image),
+                      label: const Text('Select Image for OCR'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 50),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Select an image to extract text from it and add to your note.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _selectImageForOCR() async {
+    Navigator.of(context).pop(); // Chiudi il modal
+    
+    // Qui implementeremo la selezione immagine e OCR
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Coming Soon'),
+        content: const Text('Image selection and OCR processing will be implemented next.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _quickOCR() async {
+    // Implementazione rapida per catturare e processare immagine
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Quick OCR'),
+        content: const Text('Quick OCR feature will allow instant text extraction from camera or clipboard.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _showOCRPanel();
+            },
+            child: const Text('Open OCR Panel'),
+          ),
+        ],
       ),
     );
   }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/services/camera_service.dart';
 import '../core/services/openai_service.dart';
+import '../data/models/note_model.dart';
+import '../main_simple.dart';
 
 class AIAnalysisScreen extends ConsumerWidget {
   final List<String>? preloadedImages;
@@ -562,14 +564,100 @@ class AIAnalysisScreen extends ConsumerWidget {
     }
   }
 
-  void _saveAsNote(BuildContext context, WidgetRef ref, RocketbookAnalysis analysis) {
-    // TODO: Implementa il salvataggio come nota
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Funzione di salvataggio in sviluppo'),
-        backgroundColor: Colors.blue,
-      ),
-    );
+  void _saveAsNote(BuildContext context, WidgetRef ref, RocketbookAnalysis analysis) async {
+    try {
+      final analysisState = ref.read(imageAnalysisProvider);
+      final currentImage = analysisState.currentImage;
+      
+      // Crea una nota con l'analisi AI
+      final noteId = DateTime.now().millisecondsSinceEpoch.toString();
+      final note = NoteModel(
+        id: noteId,
+        title: analysis.title.isNotEmpty ? analysis.title : 'Analisi Rocketbook ${DateTime.now().day}/${DateTime.now().month}',
+        content: _buildNoteContent(analysis),
+        mode: 'personal',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        tags: ['rocketbook', 'ai'], // Tags semplici
+        attachments: currentImage != null ? [currentImage.path] : [], // Aggiungi l'immagine
+      );
+      
+      // Salva la nota
+      await ref.read(notesProvider.notifier).addNote(note);
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Nota AI salvata con successo!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        
+        // Torna alla home
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Errore nel salvare la nota: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+  
+  String _buildNoteContent(RocketbookAnalysis analysis) {
+    final buffer = StringBuffer();
+    
+    // Aggiungi il contenuto principale
+    if (analysis.content.isNotEmpty) {
+      buffer.writeln('📝 **Contenuto:**');
+      buffer.writeln(analysis.content);
+      buffer.writeln();
+    }
+    
+    // Aggiungi le sezioni
+    if (analysis.sections.isNotEmpty) {
+      buffer.writeln('📑 **Sezioni:**');
+      for (final section in analysis.sections) {
+        buffer.writeln('• ${section.type} (${section.position}): ${section.content}');
+      }
+      buffer.writeln();
+    }
+    
+    // Aggiungi i simboli Rocketbook rilevati
+    buffer.writeln('🔗 **Destinazioni Rocketbook:**');
+    final symbols = analysis.symbols;
+    if (symbols.email) buffer.writeln('• ✉️ Email: Attivo');
+    if (symbols.googleDrive) buffer.writeln('• 📁 Google Drive: Attivo');
+    if (symbols.dropbox) buffer.writeln('• 📦 Dropbox: Attivo');
+    if (symbols.evernote) buffer.writeln('• 📓 Evernote: Attivo');
+    if (symbols.slack) buffer.writeln('• 💬 Slack: Attivo');
+    if (symbols.icloud) buffer.writeln('• ☁️ iCloud: Attivo');
+    if (symbols.onedrive) buffer.writeln('• 📄 OneDrive: Attivo');
+    buffer.writeln();
+    
+    // Aggiungi metadati
+    buffer.writeln('ℹ️ **Metadati:**');
+    buffer.writeln('• Qualità pagina: ${analysis.metadata.pageQuality}');
+    buffer.writeln('• Leggibilità scrittura: ${analysis.metadata.handwritingLegibility}');
+    buffer.writeln('• Contiene diagrammi: ${analysis.metadata.containsDiagrams ? 'Sì' : 'No'}');
+    buffer.writeln('• Lingua: ${analysis.metadata.language}');
+    buffer.writeln();
+    
+    // Aggiungi azioni suggerite
+    if (analysis.actions.isNotEmpty) {
+      buffer.writeln('⚡ **Azioni suggerite:**');
+      for (final action in analysis.actions) {
+        buffer.writeln('• ${action.type} (${action.priority}): ${action.content}');
+      }
+    }
+    
+    return buffer.toString();
   }
 }
 

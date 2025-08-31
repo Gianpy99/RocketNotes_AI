@@ -6,7 +6,9 @@ import 'screens/note_editor_screen.dart';
 import 'screens/search_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/ai_analysis_screen.dart';
-import 'features/rocketbook/camera/web_camera_screen.dart';
+import 'screens/quick_capture_screen.dart';
+import 'screens/camera_debug_screen.dart';
+import 'core/utils/web_image_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,10 +22,18 @@ void main() async {
       Hive.registerAdapter(NoteModelAdapter());
     }
 
-    // Open box
-    await Hive.openBox('notes');
+    // Open box safely (check if already open)
+    if (!Hive.isBoxOpen('notes')) {
+      await Hive.openBox<NoteModel>('notes');
+    }
+    
+    if (!Hive.isBoxOpen('settings')) {
+      await Hive.openBox<dynamic>('settings');
+    }
+    
+    print('✅ Hive initialized successfully');
   } catch (e) {
-    print('Error initializing Hive: $e');
+    print('❌ Error initializing Hive: $e');
   }
 
   runApp(const ProviderScope(child: RocketNotesApp()));
@@ -41,7 +51,7 @@ class NotesNotifier extends StateNotifier<List<NoteModel>> {
 
   void _loadNotes() {
     try {
-      final box = Hive.box('notes');
+      final box = Hive.box<NoteModel>('notes');
       final notes = box.values.cast<NoteModel>().toList();
       notes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
       state = notes;
@@ -54,7 +64,7 @@ class NotesNotifier extends StateNotifier<List<NoteModel>> {
 
   Future<void> addNote(NoteModel note) async {
     try {
-      final box = Hive.box('notes');
+      final box = Hive.box<NoteModel>('notes');
       await box.put(note.id, note);
       _loadNotes();
     } catch (e) {
@@ -64,7 +74,7 @@ class NotesNotifier extends StateNotifier<List<NoteModel>> {
 
   Future<void> updateNote(NoteModel note) async {
     try {
-      final box = Hive.box('notes');
+      final box = Hive.box<NoteModel>('notes');
       await box.put(note.id, note);
       _loadNotes();
     } catch (e) {
@@ -74,7 +84,7 @@ class NotesNotifier extends StateNotifier<List<NoteModel>> {
 
   Future<void> deleteNote(String id) async {
     try {
-      final box = Hive.box('notes');
+      final box = Hive.box<NoteModel>('notes');
       await box.delete(id);
       _loadNotes();
     } catch (e) {
@@ -120,6 +130,17 @@ class HomeScreen extends ConsumerWidget {
         ? allNotes 
         : allNotes.where((note) => note.mode == filter).toList();
 
+    // Mostra toast di debug all'avvio
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🐛 App avviata! Cerca il bottone DEBUG ARANCIONE in basso a destra'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('🚀 RocketNotes AI'),
@@ -139,6 +160,15 @@ class HomeScreen extends ConsumerWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.bug_report, color: Colors.orange),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CameraDebugScreen()),
               );
             },
           ),
@@ -227,13 +257,26 @@ class HomeScreen extends ConsumerWidget {
           child: const Icon(Icons.auto_awesome, color: Colors.white),
         ),
         const SizedBox(height: 12),
+        // DEBUG FAB - MOLTO VISIBILE
+        FloatingActionButton(
+          heroTag: "debug",
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const CameraDebugScreen()),
+            );
+          },
+          backgroundColor: Colors.orange,
+          child: const Icon(Icons.bug_report, color: Colors.white, size: 30),
+        ),
+        const SizedBox(height: 12),
         // Camera FAB
         FloatingActionButton(
           heroTag: "scan",
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const WebRocketbookCameraScreen()),
+              MaterialPageRoute(builder: (context) => const QuickCaptureScreen()),
             );
           },
           backgroundColor: Colors.deepPurple[700],
@@ -385,6 +428,44 @@ class NoteCard extends ConsumerWidget {
                   style: Theme.of(context).textTheme.bodyMedium,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
+                ),
+              ],
+              // Mostra preview immagini se presenti
+              if (note.attachments.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.image, size: 16, color: Colors.grey[600]),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${note.attachments.length} immagine/i',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Mostra preview della prima immagine
+                    if (note.attachments.isNotEmpty)
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: WebImageHandler.createWebCompatibleImage(
+                            note.attachments.first,
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover, // Per thumbnail mantieni crop
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ],
               if (note.tags.isNotEmpty) ...[

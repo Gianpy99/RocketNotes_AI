@@ -28,9 +28,7 @@ class SearchService {
       }
 
       List<NoteModel> notes = includeArchived
-          ? (await _noteRepository.exportAllNotes())
-              .map((json) => NoteModel.fromJson(json))
-              .toList()
+          ? await _noteRepository.exportAllNotes()
           : await _noteRepository.getAllNotes();
 
       // Apply filters

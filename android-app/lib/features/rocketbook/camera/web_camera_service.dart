@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import '../../../core/services/storage_manager.dart';
 
 class WebCameraService {
   static WebCameraService? _instance;
@@ -29,16 +30,17 @@ class WebCameraService {
         // For web, return the path directly
         return image.path;
       } else {
-        // For mobile, copy to app directory
-        final Directory appDir = await getApplicationDocumentsDirectory();
-        final String scansDir = path.join(appDir.path, 'rocketbook_scans');
+        // For mobile, copy to app directory and cleanup old files
+        await StorageManager.cleanOldImages(); // Pulisci file vecchi
         
-        await Directory(scansDir).create(recursive: true);
+        final Directory scansDir = await StorageManager.getScansDirectory();
         
         final String fileName = 'scan_${DateTime.now().millisecondsSinceEpoch}.jpg';
-        final String filePath = path.join(scansDir, fileName);
+        final String filePath = path.join(scansDir.path, fileName);
 
         final File savedFile = await File(image.path).copy(filePath);
+        print('📱 CAMERA: Immagine salvata in ${savedFile.path}');
+        
         return savedFile.path;
       }
     } catch (e) {

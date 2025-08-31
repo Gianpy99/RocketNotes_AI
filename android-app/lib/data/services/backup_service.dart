@@ -3,9 +3,9 @@
 // ==========================================
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/services.dart';
 import '../repositories/note_repository.dart';
 import '../repositories/settings_repository.dart';
+import '../models/note_model.dart';
 
 class BackupService {
   final NoteRepository _noteRepository;
@@ -27,7 +27,7 @@ class BackupService {
       return BackupData(
         version: '1.0',
         timestamp: timestamp,
-        notes: notes,
+        notes: notes.map((note) => note.toJson()).toList(),
         settings: settings,
         notesCount: notes.length,
       );
@@ -59,7 +59,8 @@ class BackupService {
 
       // Import notes
       if (backup.notes.isNotEmpty) {
-        await _noteRepository.importNotes(backup.notes);
+        final noteModels = backup.notes.map((json) => NoteModel.fromJson(json)).toList();
+        await _noteRepository.importNotes(noteModels);
       }
 
       // Import settings
