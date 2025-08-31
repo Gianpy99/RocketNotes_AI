@@ -47,7 +47,7 @@ class OCRService {
       }
       
       stopwatch.stop();
-      scannedContent.ocrMetadata?.processingTime = stopwatch.elapsed;
+      scannedContent.ocrMetadata.processingTime = stopwatch.elapsed;
       scannedContent.status = ProcessingStatus.completed;
       return scannedContent;
     } catch (e) {

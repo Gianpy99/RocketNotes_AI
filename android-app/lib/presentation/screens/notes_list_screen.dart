@@ -172,7 +172,7 @@ class _NotesListScreenState extends ConsumerState<NotesListScreen>
               _searchQuery.isNotEmpty
                   ? 'No notes found'
                   : mode != null
-                      ? 'No ${mode} notes yet'
+                      ? 'No $mode notes yet'
                       : 'No notes yet',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 color: Colors.grey,

@@ -52,7 +52,7 @@ class EditorToolbar extends StatelessWidget {
           showQuote: true,
           showLink: true,
           multiRowsDisplay: false,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.transparent,
           ),
           buttonOptions: quill.QuillSimpleToolbarButtonOptions(

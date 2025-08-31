@@ -169,7 +169,7 @@ class NoteStatistics extends ConsumerWidget {
     final weekAgo = now.subtract(const Duration(days: 7));
     
     final notesThisWeek = notes.where((note) {
-      return note.createdAt?.isAfter(weekAgo) ?? false;
+      return note.createdAt.isAfter(weekAgo) ?? false;
     }).length;
     
     final allTags = <String>[];
@@ -289,13 +289,13 @@ class _ActivityPreview extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         
-        Container(
+        SizedBox(
           height: 60,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: activityData.map((dayData) {
-              final maxHeight = 40.0;
+              const maxHeight = 40.0;
               final height = dayData.count == 0 
                 ? 4.0 
                 : (dayData.count / activityData.map((d) => d.count).reduce((a, b) => a > b ? a : b) * maxHeight).clamp(4.0, maxHeight);
@@ -343,8 +343,7 @@ class _ActivityPreview extends StatelessWidget {
       
       final notesCount = notes.where((note) {
         final createdAt = note.createdAt;
-        return createdAt != null &&
-               createdAt.isAfter(dayStart) &&
+        return createdAt.isAfter(dayStart) &&
                createdAt.isBefore(dayEnd);
       }).length;
       

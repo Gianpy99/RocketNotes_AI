@@ -44,7 +44,7 @@ class _OCRWidgetState extends State<OCRWidget> {
       final result = await OCRService.extractTextFromImage(widget.imagePath);
       debugPrint('🔍 OCR_WIDGET: Risultato - Success: ${result.isSuccess}');
       if (result.isSuccess) {
-        final preview = result.text.length > 50 ? result.text.substring(0, 50) + '...' : result.text;
+        final preview = result.text.length > 50 ? '${result.text.substring(0, 50)}...' : result.text;
         debugPrint('🔍 OCR_WIDGET: Testo estratto: $preview');
       } else {
         debugPrint('🔍 OCR_WIDGET: Errore: ${result.error}');
@@ -645,7 +645,7 @@ class OCRResultDetailWidget extends StatelessWidget {
                   ],
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),

@@ -31,7 +31,7 @@ class _RocketNotesAppState extends ConsumerState<RocketNotesApp> {
     final initAsync = ref.watch(appInitializationProvider);
     
     return initAsync.when(
-      loading: () => MaterialApp(
+      loading: () => const MaterialApp(
         home: Scaffold(
           body: Center(
             child: Column(
@@ -42,10 +42,10 @@ class _RocketNotesAppState extends ConsumerState<RocketNotesApp> {
                   size: 64,
                   color: Colors.blue,
                 ),
-                const SizedBox(height: 16),
-                const CircularProgressIndicator(),
-                const SizedBox(height: 16),
-                const Text('Initializing RocketNotes...'),
+                SizedBox(height: 16),
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Initializing RocketNotes...'),
               ],
             ),
           ),

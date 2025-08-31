@@ -236,14 +236,14 @@ Fornisci analisi approfondita:
     return '''
 🚀 ROCKETBOOK FUSION PLUS - ANALISI INTELLIGENTE
 
-${templatePrompt}
+$templatePrompt
 
-${modePrompt}
+$modePrompt
 
 📊 INFORMAZIONI RILEVAMENTO:
 • Template: ${detection.template.name}
 • Categoria: ${detection.template.category}
-• Confidenza: ${confidence}%
+• Confidenza: $confidence%
 • Caratteristiche: $features
 
 ${userPrompt != null ? '''

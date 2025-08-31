@@ -14,13 +14,13 @@ class AdvancedImageViewer extends StatefulWidget {
   final String? title;
   
   const AdvancedImageViewer({
-    Key? key,
+    super.key,
     required this.imagePath,
     this.width,
     this.height,
     this.showControls = true,
     this.title,
-  }) : super(key: key);
+  });
 
   @override
   _AdvancedImageViewerState createState() => _AdvancedImageViewerState();
@@ -256,10 +256,10 @@ class FullscreenImageDialog extends StatelessWidget {
   final String? title;
   
   const FullscreenImageDialog({
-    Key? key,
+    super.key,
     required this.imagePath,
     this.title,
-  }) : super(key: key);
+  });
   
   static void show(BuildContext context, String imagePath, {String? title}) {
     showDialog(

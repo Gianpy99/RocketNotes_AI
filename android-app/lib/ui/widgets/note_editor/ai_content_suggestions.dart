@@ -85,7 +85,7 @@ class _AIContentSuggestionsState extends ConsumerState<AIContentSuggestions> {
     
     // Grammar/spelling suggestions
     if (content.contains('recieve')) {
-      suggestions.add(ContentSuggestion(
+      suggestions.add(const ContentSuggestion(
         id: 'grammar_1',
         type: SuggestionType.correction,
         title: 'Spelling correction',
@@ -98,7 +98,7 @@ class _AIContentSuggestionsState extends ConsumerState<AIContentSuggestions> {
     
     // Content completion
     if (content.toLowerCase().contains('meeting') && !content.contains('action items')) {
-      suggestions.add(ContentSuggestion(
+      suggestions.add(const ContentSuggestion(
         id: 'completion_1',
         type: SuggestionType.completion,
         title: 'Add action items',
@@ -111,7 +111,7 @@ class _AIContentSuggestionsState extends ConsumerState<AIContentSuggestions> {
     
     // Structure improvements
     if (content.length > 200 && !content.contains('#') && !content.contains('**')) {
-      suggestions.add(ContentSuggestion(
+      suggestions.add(const ContentSuggestion(
         id: 'improvement_1',
         type: SuggestionType.improvement,
         title: 'Add structure',
@@ -124,7 +124,7 @@ class _AIContentSuggestionsState extends ConsumerState<AIContentSuggestions> {
     
     // Enhancement suggestions
     if (content.toLowerCase().contains('idea') && !content.contains('💡')) {
-      suggestions.add(ContentSuggestion(
+      suggestions.add(const ContentSuggestion(
         id: 'enhancement_1',
         type: SuggestionType.enhancement,
         title: 'Add visual cues',

@@ -45,7 +45,7 @@ class SyncStatusWidget extends ConsumerWidget {
         ],
         if (syncStatus.error != null) ...[
           const SizedBox(width: 8),
-          Icon(
+          const Icon(
             Icons.error_outline,
             color: Colors.red,
             size: 16,

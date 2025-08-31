@@ -6,7 +6,6 @@ import '../../core/constants/app_colors.dart';
 import '../../data/models/note_model.dart';
 import '../providers/app_providers.dart';
 import '../widgets/tag_input_field.dart';
-import '../../widgets/ocr_widget.dart';
 
 class NoteEditorScreen extends ConsumerStatefulWidget {
   final String? noteId;

@@ -384,8 +384,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           );
         },
         backgroundColor: Colors.deepPurple[700],
-        child: const Icon(Icons.camera_alt, color: Colors.white),
         tooltip: 'Open Camera',
+        child: const Icon(Icons.camera_alt, color: Colors.white),
       ),
     );
   }

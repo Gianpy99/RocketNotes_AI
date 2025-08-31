@@ -74,7 +74,7 @@ class OCRService {
       blocks: [],
       lines: [],
       words: [],
-      processingTime: Duration(milliseconds: 100),
+      processingTime: const Duration(milliseconds: 100),
       imagePath: blobUrl,
       isWebFallback: true,
     );

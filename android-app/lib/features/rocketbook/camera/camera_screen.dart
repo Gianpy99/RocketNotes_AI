@@ -58,7 +58,12 @@ class CameraStateNotifier extends StateNotifier<CameraState> {
 
     state = state.copyWith(isCapturing: true);
     try {
-      final imagePath = await _cameraService.capturePhoto();
+      String? imagePath;
+      if (kIsWeb) {
+        imagePath = await _cameraService.capturePhotoWithData();
+      } else {
+        imagePath = await _cameraService.capturePhoto();
+      }
       state = state.copyWith(isCapturing: false);
       return imagePath;
     } catch (e) {
@@ -148,9 +153,9 @@ class RocketbookCameraScreen extends ConsumerWidget {
             size: 64,
           ),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             'Camera Error',
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -478,7 +483,7 @@ class RocketbookOverlayPainter extends CustomPainter {
     );
 
     // Draw corner brackets
-    final cornerLength = 30.0;
+    const cornerLength = 30.0;
     
     // Top-left corner
     canvas.drawLine(
@@ -559,11 +564,31 @@ class ImagePreviewScreen extends ConsumerWidget {
       body: Column(
         children: [
           Expanded(
-            child: PhotoView(
-              imageProvider: FileImage(File(imagePath)),
-              minScale: PhotoViewComputedScale.contained,
-              maxScale: PhotoViewComputedScale.covered * 3,
-              backgroundDecoration: const BoxDecoration(color: Colors.black),
+            child: FutureBuilder<ImageProvider?>(
+              future: _getImageProvider(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  );
+                }
+                
+                if (snapshot.hasError || !snapshot.hasData) {
+                  return const Center(
+                    child: Text(
+                      'Error loading image',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  );
+                }
+
+                return PhotoView(
+                  imageProvider: snapshot.data!,
+                  minScale: PhotoViewComputedScale.contained,
+                  maxScale: PhotoViewComputedScale.covered * 3,
+                  backgroundDecoration: const BoxDecoration(color: Colors.black),
+                );
+              },
             ),
           ),
           Container(
@@ -714,7 +739,14 @@ class ImagePreviewScreen extends ConsumerWidget {
   void _saveAsNote(BuildContext context, WidgetRef ref, ScannedContent scannedContent) async {
     try {
       // Create a new note with the extracted content
-      final uuid = const Uuid();
+      const uuid = Uuid();
+      
+      // For web images, don't include the web:// path in attachments
+      List<String> attachments = [];
+      if (!kIsWeb || !scannedContent.imagePath.startsWith('web://')) {
+        attachments = [scannedContent.imagePath];
+      }
+      
       final note = NoteModel(
         id: uuid.v4(),
         title: scannedContent.aiAnalysis?.suggestedTitle ?? 'Scanned Note',
@@ -724,7 +756,7 @@ class ImagePreviewScreen extends ConsumerWidget {
         updatedAt: DateTime.now(),
         tags: scannedContent.aiAnalysis?.suggestedTags ?? [],
         aiSummary: scannedContent.aiAnalysis?.summary,
-        attachments: [scannedContent.imagePath], // Include the original image
+        attachments: attachments,
         isFavorite: false,
         priority: 1, // medium priority
       );
@@ -749,6 +781,22 @@ class ImagePreviewScreen extends ConsumerWidget {
           backgroundColor: Colors.red,
         ),
       );
+    }
+  }
+
+  /// Get the appropriate ImageProvider based on platform
+  Future<ImageProvider?> _getImageProvider() async {
+    if (kIsWeb && imagePath.startsWith('web://')) {
+      // For web images, get bytes from WebCameraService
+      final webService = WebCameraService.instance;
+      final bytes = await webService.getLastImageBytes();
+      if (bytes != null) {
+        return MemoryImage(bytes);
+      }
+      return null;
+    } else {
+      // For mobile images, use FileImage
+      return FileImage(File(imagePath));
     }
   }
 }

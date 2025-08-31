@@ -300,7 +300,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.error_outline_rounded,
               size: 64,
               color: AppColors.error,
@@ -539,7 +539,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _exportAllData(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => ConfirmationDialog(
+      builder: (context) => const ConfirmationDialog(
         title: 'Export All Data',
         content: 'This will create a backup file with all your notes and settings. Continue?',
         confirmText: 'Export',
@@ -569,7 +569,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _clearCache(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => ConfirmationDialog(
+      builder: (context) => const ConfirmationDialog(
         title: 'Clear Cache',
         content: 'This will clear temporary files and cached data. Your notes will not be affected.',
         confirmText: 'Clear',
@@ -600,7 +600,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _resetSettings(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => ConfirmationDialog(
+      builder: (context) => const ConfirmationDialog(
         title: 'Reset Settings',
         content: 'This will reset all settings to their default values. Your notes will not be affected.',
         confirmText: 'Reset',

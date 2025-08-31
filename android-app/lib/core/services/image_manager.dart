@@ -54,7 +54,7 @@ class ImageManager {
         final File file = File(photo.path);
         final int fileSize = await file.length();
         final String fileName = photo.name;
-        final String? extension = photo.path.split('.').last.toLowerCase();
+        final String extension = photo.path.split('.').last.toLowerCase();
         
         debugPrint('📸 IMAGE_MANAGER: Dimensione: $fileSize bytes');
         
@@ -117,7 +117,7 @@ class ImageManager {
       final File file = File(image.path);
       final int fileSize = await file.length();
       final String fileName = image.name;
-      final String? extension = image.path.split('.').last.toLowerCase();
+      final String extension = image.path.split('.').last.toLowerCase();
       
       // Verifica dimensione
       if (fileSize > maxImageSize) {

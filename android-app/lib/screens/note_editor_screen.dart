@@ -873,11 +873,11 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      const Row(
                         children: [
-                          const Icon(Icons.auto_awesome, color: Colors.purple),
-                          const SizedBox(width: 8),
-                          const Text(
+                          Icon(Icons.auto_awesome, color: Colors.purple),
+                          SizedBox(width: 8),
+                          Text(
                             'Analisi Rocketbook AI',
                             style: TextStyle(
                               fontSize: 16,

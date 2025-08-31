@@ -442,7 +442,7 @@ class ChatGptPromptDialog extends StatelessWidget {
       spacing: 8,
       children: [
         Chip(
-          label: Text('${request.template.name}'),
+          label: Text(request.template.name),
           backgroundColor: Colors.blue.shade100,
         ),
         Chip(

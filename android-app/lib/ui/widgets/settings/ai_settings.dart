@@ -153,7 +153,7 @@ class _AISettingsState extends ConsumerState<AISettings> {
                   aiEnabled: value,
                 );
               },
-              activeColor: AppColors.primary,
+              activeThumbColor: AppColors.primary,
             ),
           ),
           
@@ -461,7 +461,7 @@ class _FeatureTile extends StatelessWidget {
           Switch(
             value: enabled,
             onChanged: onChanged,
-            activeColor: AppColors.primary,
+            activeThumbColor: AppColors.primary,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         ],

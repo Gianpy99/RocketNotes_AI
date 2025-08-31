@@ -504,7 +504,7 @@ class _NoteListScreenState extends ConsumerState<NoteListScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.error_outline_rounded,
               size: 64,
               color: AppColors.error,
@@ -629,11 +629,11 @@ class _NoteListScreenState extends ConsumerState<NoteListScreen>
               },
             ),
             ListTile(
-              leading: Icon(
+              leading: const Icon(
                 Icons.delete_rounded,
                 color: AppColors.error,
               ),
-              title: Text(
+              title: const Text(
                 'Delete',
                 style: TextStyle(color: AppColors.error),
               ),

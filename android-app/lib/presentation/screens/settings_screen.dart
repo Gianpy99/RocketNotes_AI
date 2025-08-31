@@ -52,9 +52,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Card(
             child: Column(
               children: [
-                ListTile(
-                  leading: const Icon(Icons.rocket_launch),
-                  title: const Text(AppConstants.appName),
+                const ListTile(
+                  leading: Icon(Icons.rocket_launch),
+                  title: Text(AppConstants.appName),
                   subtitle: Text('Version ${AppConstants.appVersion}'),
                 ),
                 const Divider(),

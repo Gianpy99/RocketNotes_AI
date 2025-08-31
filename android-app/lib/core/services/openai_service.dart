@@ -96,7 +96,7 @@ class OpenAIService {
     if (image == null) throw Exception('Impossibile decodificare l\'immagine');
     
     // Ridimensiona se troppo grande (usa config)
-    final maxSize = OpenAIConfig.maxImageSize;
+    const maxSize = OpenAIConfig.maxImageSize;
     final resized = image.width > maxSize || image.height > maxSize
         ? img.copyResize(image, width: maxSize)
         : image;

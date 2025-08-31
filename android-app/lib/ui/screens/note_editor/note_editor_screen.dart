@@ -283,7 +283,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
         currentTags: _tags,
         onTagsSelected: (selectedTags) {
           setState(() {
-            _tags = [..._tags, ...selectedTags].toSet().toList();
+            _tags = <dynamic>{..._tags, ...selectedTags}.toList();
             _hasUnsavedChanges = true;
           });
         },
@@ -296,7 +296,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => ConfirmationDialog(
+      builder: (context) => const ConfirmationDialog(
         title: 'Delete Note',
         content: 'Are you sure you want to delete this note? This action cannot be undone.',
         confirmText: 'Delete',
@@ -581,7 +581,7 @@ Tags: ${_tags.join(', ')}
                   return FilledButton.icon(
                     onPressed: _isSaving ? null : () => _saveNote(),
                     icon: _isSaving
-                      ? SizedBox(
+                      ? const SizedBox(
                           width: 16,
                           height: 16,
                           child: CircularProgressIndicator(

@@ -66,7 +66,7 @@ class WebRocketbookCameraScreen extends ConsumerWidget {
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(
+        title: const Text(
           kIsWeb ? 'Carica Rocketbook' : 'Scansiona Rocketbook',
         ),
         centerTitle: true,
@@ -135,11 +135,11 @@ class WebRocketbookCameraScreen extends ConsumerWidget {
             const SizedBox(height: 32),
             
             // Titolo
-            Text(
+            const Text(
               kIsWeb 
                 ? 'Carica le tue pagine Rocketbook' 
                 : 'Scansiona le tue pagine Rocketbook',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
@@ -178,10 +178,10 @@ class WebRocketbookCameraScreen extends ConsumerWidget {
                 height: 56,
                 child: ElevatedButton.icon(
                   onPressed: () => _capturePhoto(context, notifier),
-                  icon: Icon(kIsWeb ? Icons.photo : Icons.camera_alt),
-                  label: Text(
+                  icon: const Icon(kIsWeb ? Icons.photo : Icons.camera_alt),
+                  label: const Text(
                     kIsWeb ? 'Seleziona Immagine' : 'Scatta Foto',
-                    style: const TextStyle(fontSize: 18),
+                    style: TextStyle(fontSize: 18),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple,
@@ -202,13 +202,13 @@ class WebRocketbookCameraScreen extends ConsumerWidget {
                 child: OutlinedButton.icon(
                   onPressed: () => _captureMultiplePhotos(context, notifier),
                   icon: const Icon(Icons.photo_library),
-                  label: Text(
+                  label: const Text(
                     kIsWeb ? 'Seleziona Multiple' : 'Scansione Multipla',
-                    style: const TextStyle(fontSize: 18),
+                    style: TextStyle(fontSize: 18),
                   ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.deepPurple,
-                    side: BorderSide(color: Colors.deepPurple, width: 2),
+                    side: const BorderSide(color: Colors.deepPurple, width: 2),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

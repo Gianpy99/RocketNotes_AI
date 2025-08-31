@@ -9,7 +9,7 @@ class AppTheme {
         seedColor: AppColors.primary,
         brightness: Brightness.light,
       ),
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.surfaceLight,
         foregroundColor: AppColors.textPrimaryLight,
         elevation: 0,
@@ -35,16 +35,16 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.textSecondaryLight),
+          borderSide: const BorderSide(color: AppColors.textSecondaryLight),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.primary, width: 2),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         filled: true,
         fillColor: AppColors.surfaceLight,
       ),
-      textTheme: TextTheme(
+      textTheme: const TextTheme(
         displayLarge: TextStyle(color: AppColors.textPrimaryLight),
         displayMedium: TextStyle(color: AppColors.textPrimaryLight),
         displaySmall: TextStyle(color: AppColors.textPrimaryLight),
@@ -71,7 +71,7 @@ class AppTheme {
         seedColor: AppColors.primary,
         brightness: Brightness.dark,
       ),
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.surfaceDark,
         foregroundColor: AppColors.textPrimaryDark,
         elevation: 0,
@@ -97,16 +97,16 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.textSecondaryDark),
+          borderSide: const BorderSide(color: AppColors.textSecondaryDark),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.primary, width: 2),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         filled: true,
         fillColor: AppColors.surfaceDark,
       ),
-      textTheme: TextTheme(
+      textTheme: const TextTheme(
         displayLarge: TextStyle(color: AppColors.textPrimaryDark),
         displayMedium: TextStyle(color: AppColors.textPrimaryDark),
         displaySmall: TextStyle(color: AppColors.textPrimaryDark),

@@ -200,7 +200,7 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
                   autoBackup: value,
                 );
               },
-              activeColor: AppColors.primary,
+              activeThumbColor: AppColors.primary,
             ),
           ),
           
@@ -213,7 +213,7 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
             trailing: Switch(
               value: settings?.cloudSync ?? false,
               onChanged: null, // Disabled for now
-              activeColor: AppColors.primary,
+              activeThumbColor: AppColors.primary,
             ),
           ),
           

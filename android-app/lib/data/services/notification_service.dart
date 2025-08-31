@@ -1,7 +1,6 @@
 // ==========================================
 // lib/data/services/notification_service.dart
 // ==========================================
-import 'package:flutter/foundation.dart';
 import '../models/note_model.dart';
 
 class NotificationService {

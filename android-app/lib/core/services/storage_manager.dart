@@ -34,7 +34,7 @@ class StorageManager {
       // Ordina per data di modifica (più vecchi prima)
       imageFiles.sort((a, b) => a.lastModifiedSync().compareTo(b.lastModifiedSync()));
       
-      final DateTime cutoffDate = DateTime.now().subtract(Duration(days: MAX_DAYS_KEEP));
+      final DateTime cutoffDate = DateTime.now().subtract(const Duration(days: MAX_DAYS_KEEP));
       int deletedCount = 0;
       
       // Elimina file più vecchi di MAX_DAYS_KEEP giorni

@@ -321,7 +321,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.error_outline_rounded,
               size: 64,
               color: AppColors.error,

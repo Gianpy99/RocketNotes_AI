@@ -2,7 +2,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive/hive.dart';
 import '../../data/models/note_model.dart';
 import '../../data/repositories/note_repository.dart';
 

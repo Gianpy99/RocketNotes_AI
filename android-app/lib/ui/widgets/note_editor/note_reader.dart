@@ -27,7 +27,7 @@ class _NoteReaderState extends State<NoteReader>
     with SingleTickerProviderStateMixin {
   late quill.QuillController _controller;
   late AnimationController _fabAnimationController;
-  bool _showFab = true;
+  final bool _showFab = true;
 
   @override
   void initState() {
@@ -305,20 +305,18 @@ class _MetadataSection extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (note.createdAt != null)
-                      Text(
-                        'Created: ${_formatDate(note.createdAt!)}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDarkMode 
-                            ? AppColors.textSecondaryDark
-                            : AppColors.textSecondaryLight,
-                        ),
+                    Text(
+                      'Created: ${_formatDate(note.createdAt!)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDarkMode 
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                       ),
-                    if (note.updatedAt != null && 
-                        note.updatedAt != note.createdAt)
+                    ),
+                    if (note.updatedAt != note.createdAt)
                       Text(
-                        'Updated: ${_formatDate(note.updatedAt!)}',
+                        'Updated: ${_formatDate(note.updatedAt)}',
                         style: TextStyle(
                           fontSize: 12,
                           color: isDarkMode 

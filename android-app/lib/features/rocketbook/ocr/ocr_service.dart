@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image/image.dart' as img;
 import '../models/scanned_content.dart';
+import '../camera/web_camera_service.dart';
 
 class OCRService {
   static OCRService? _instance;
@@ -38,8 +39,12 @@ class OCRService {
       scannedContent.status = ProcessingStatus.processing;
 
       if (kIsWeb) {
-        // Web implementation - mock OCR
-        await _processImageWeb(scannedContent, imagePath);
+        // Web implementation - check if it's a web image
+        if (imagePath.startsWith('web://')) {
+          await _processImageWebWithBytes(scannedContent, imagePath);
+        } else {
+          await _processImageWeb(scannedContent, imagePath);
+        }
       } else {
         // Mobile implementation - Google ML Kit
         await _processImageMobile(scannedContent, imagePath);
@@ -55,6 +60,56 @@ class OCRService {
       scannedContent.status = ProcessingStatus.failed;
       scannedContent.rawText = 'Error processing image: $e';
       return scannedContent;
+    }
+  }
+
+  /// Process web image with bytes from WebCameraService
+  Future<void> _processImageWebWithBytes(ScannedContent scannedContent, String imagePath) async {
+    try {
+      // Get image bytes from WebCameraService
+      final bytes = await WebCameraService.instance.getLastImageBytes();
+      
+      if (bytes != null) {
+        // For now, we'll still use mock OCR but indicate we have the real image
+        final fileName = imagePath.replaceFirst('web://', '');
+        scannedContent.rawText = '''OCR Processing Complete (Web)
+        
+Image: $fileName
+Size: ${bytes.length} bytes
+
+Sample extracted text (using mock OCR):
+• This is sample text from your uploaded image
+• Line detection and text extraction would happen here
+• In production, this would use a web OCR service
+
+To implement real OCR on web, consider:
+1. Tesseract.js for client-side OCR
+2. Google Cloud Vision API
+3. AWS Textract
+4. Azure Computer Vision
+
+Image successfully loaded and ready for processing.
+''';
+
+        scannedContent.ocrMetadata = OCRMetadata(
+          engine: 'web_with_image',
+          overallConfidence: 0.75,
+          detectedLanguages: ['en'],
+          processingTime: const Duration(milliseconds: 800),
+          additionalData: {
+            'mode': 'web_real_image',
+            'image_path': imagePath,
+            'image_size_bytes': bytes.length,
+          },
+        );
+      } else {
+        // Fallback to basic mock
+        await _processImageWeb(scannedContent, imagePath);
+      }
+    } catch (e) {
+      debugPrint('Error processing web image with bytes: $e');
+      // Fallback to basic mock
+      await _processImageWeb(scannedContent, imagePath);
     }
   }
 
