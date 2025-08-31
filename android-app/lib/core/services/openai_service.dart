@@ -2,17 +2,18 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:image/image.dart' as img;
+import 'openai_config.dart';
 
 class OpenAIService {
   static const String _baseUrl = 'https://api.openai.com/v1';
   late final Dio _dio;
   
-  // AGGIUNGI QUI LA TUA API KEY
-  static const String _apiKey = 'YOUR_OPENAI_API_KEY_HERE';
+  // API Key da file di configurazione separato (ignorato da git)
+  static String get _apiKey => OpenAIConfig.apiKey;
 
   // Metodo per controllare se l'API key è configurata
   static bool isApiKeyMissing() {
-    return _apiKey == 'YOUR_OPENAI_API_KEY_HERE';
+    return _apiKey == 'your-openai-api-key-here' || _apiKey.isEmpty;
   }
   
   OpenAIService() {
@@ -33,7 +34,7 @@ class OpenAIService {
       final response = await _dio.post(
         '$_baseUrl/chat/completions',
         data: {
-          'model': 'gpt-4o-mini', // Modello più economico con supporto visione
+          'model': OpenAIConfig.model, // Modello da configurazione
           'messages': [
             {
               'role': 'system',
@@ -56,8 +57,8 @@ class OpenAIService {
               ]
             }
           ],
-          'max_tokens': 1000,
-          'temperature': 0.1, // Temperatura bassa per analisi precisa
+          'max_tokens': OpenAIConfig.maxTokens,
+          'temperature': OpenAIConfig.temperature, // Temperatura da configurazione
         },
       );
 
@@ -75,13 +76,14 @@ class OpenAIService {
     
     if (image == null) throw Exception('Impossibile decodificare l\'immagine');
     
-    // Ridimensiona se troppo grande
-    final resized = image.width > 1024 || image.height > 1024
-        ? img.copyResize(image, width: 1024)
+    // Ridimensiona se troppo grande (usa config)
+    final maxSize = OpenAIConfig.maxImageSize;
+    final resized = image.width > maxSize || image.height > maxSize
+        ? img.copyResize(image, width: maxSize)
         : image;
     
-    // Comprimi come JPEG con qualità 80%
-    return img.encodeJpg(resized, quality: 80);
+    // Comprimi come JPEG con qualità da configurazione
+    return img.encodeJpg(resized, quality: OpenAIConfig.compressionQuality);
   }
 
   /// Prompt di sistema per l'analisi di Rocketbook

@@ -74,6 +74,14 @@ configs/credentials/
 *.pem
 *.pfx
 
+# ---- API Keys & Sensitive Files ----
+# OpenAI Service Keys
+android-app/lib/core/services/openai_service.dart
+# Alternative: create openai_config.dart for keys
+**/openai_config.dart
+**/api_keys.dart
+**/secrets.dart
+
 # ---- CI/CD & Deployment ----
 docker-compose.override.yml
 *.bak
