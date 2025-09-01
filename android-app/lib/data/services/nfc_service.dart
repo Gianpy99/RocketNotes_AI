@@ -1,12 +1,10 @@
 // ==========================================
 // lib/data/services/nfc_service.dart
 // ==========================================
-import 'package:flutter/services.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import '../../core/constants/app_constants.dart';
 
 class NfcService {
-  static const MethodChannel _channel = MethodChannel('nfc_channel');
   
   // Check NFC availability
   Future<NFCAvailability> checkAvailability() async {

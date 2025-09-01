@@ -18,63 +18,60 @@ class EditorToolbar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: isDarkMode 
-          ? AppColors.surfaceDark.withOpacity(0.8)
-          : AppColors.surfaceLight.withOpacity(0.8),
+          ? AppColors.surfaceDark.withValues(alpha: 0.8)
+          : AppColors.surfaceLight.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: (isDarkMode 
             ? AppColors.textSecondaryDark
-            : AppColors.textSecondaryLight).withOpacity(0.2),
+            : AppColors.textSecondaryLight).withValues(alpha: 0.2),
         ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: quill.QuillSimpleToolbar(
-        controller: controller,
-        configurations: quill.QuillSimpleToolbarConfigurations(
-          showCodeBlock: false,
-          showInlineCode: true,
-          showColorButton: false,
-          showBackgroundColorButton: false,
-          showListCheck: true,
-          showListBullets: true,
-          showListNumbers: true,
-          showIndent: true,
-          showDirection: false,
-          showHeaderStyle: true,
-          showBoldButton: true,
-          showItalicButton: true,
-          showUnderLineButton: true,
-          showStrikeThrough: true,
-          showClearFormat: true,
-          showAlignmentButtons: false,
-          showSubscript: false,
-          showSuperscript: false,
-          showQuote: true,
-          showLink: true,
-          multiRowsDisplay: false,
-          decoration: const BoxDecoration(
-            color: Colors.transparent,
-          ),
-          buttonOptions: quill.QuillSimpleToolbarButtonOptions(
-            base: quill.QuillToolbarBaseButtonOptions(
-              iconTheme: quill.QuillIconTheme(
-                iconButtonSelectedData: IconButtonThemeData(
-                  style: IconButton.styleFrom(
-                    backgroundColor: isDarkMode 
-                      ? AppColors.primaryBlue.withOpacity(0.2)
-                      : AppColors.primaryBlue.withOpacity(0.1),
-                  ),
-                ),
-                iconButtonUnselectedData: IconButtonThemeData(
-                  style: IconButton.styleFrom(
-                    foregroundColor: isDarkMode 
-                      ? AppColors.textPrimaryDark
-                      : AppColors.textPrimaryLight,
-                  ),
-                ),
-              ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            IconButton(
+              onPressed: () => controller.formatSelection(quill.Attribute.bold),
+              icon: const Icon(Icons.format_bold),
             ),
-          ),
+            IconButton(
+              onPressed: () => controller.formatSelection(quill.Attribute.italic),
+              icon: const Icon(Icons.format_italic),
+            ),
+            IconButton(
+              onPressed: () => controller.formatSelection(quill.Attribute.underline),
+              icon: const Icon(Icons.format_underlined),
+            ),
+            IconButton(
+              onPressed: () => controller.formatSelection(quill.Attribute.strikeThrough),
+              icon: const Icon(Icons.strikethrough_s),
+            ),
+            const SizedBox(width: 8),
+            // Header styles - simplified
+            IconButton(
+              onPressed: () => controller.formatSelection(quill.Attribute.h1),
+              icon: const Text('H1', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            IconButton(
+              onPressed: () => controller.formatSelection(quill.Attribute.h2),
+              icon: const Text('H2', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              onPressed: () => controller.formatSelection(quill.Attribute.ol),
+              icon: const Icon(Icons.format_list_numbered),
+            ),
+            IconButton(
+              onPressed: () => controller.formatSelection(quill.Attribute.ul),
+              icon: const Icon(Icons.format_list_bulleted),
+            ),
+            IconButton(
+              onPressed: () => controller.formatSelection(quill.Attribute.blockQuote),
+              icon: const Icon(Icons.format_quote),
+            ),
+          ],
         ),
       ),
     );

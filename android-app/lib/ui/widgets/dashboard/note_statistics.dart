@@ -23,13 +23,13 @@ class NoteStatistics extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDarkMode 
-          ? AppColors.surfaceDark.withOpacity(0.7)
-          : AppColors.surfaceLight.withOpacity(0.7),
+          ? AppColors.surfaceDark.withValues(alpha: 0.7)
+          : AppColors.surfaceLight.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDarkMode 
-            ? AppColors.textSecondaryDark.withOpacity(0.2)
-            : AppColors.textSecondaryLight.withOpacity(0.2),
+            ? AppColors.textSecondaryDark.withValues(alpha: 0.2)
+            : AppColors.textSecondaryLight.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -112,10 +112,10 @@ class NoteStatistics extends ConsumerWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: AppColors.primary.withOpacity(0.3),
+                      color: AppColors.primary.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(
@@ -169,7 +169,7 @@ class NoteStatistics extends ConsumerWidget {
     final weekAgo = now.subtract(const Duration(days: 7));
     
     final notesThisWeek = notes.where((note) {
-      return note.createdAt.isAfter(weekAgo) ?? false;
+      return note.createdAt.isAfter(weekAgo);
     }).length;
     
     final allTags = <String>[];
@@ -221,10 +221,10 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -308,8 +308,8 @@ class _ActivityPreview extends StatelessWidget {
                     height: height,
                     decoration: BoxDecoration(
                       color: dayData.count > 0 
-                        ? AppColors.primary.withOpacity(0.8)
-                        : Colors.grey.withOpacity(0.3),
+                        ? AppColors.primary.withValues(alpha: 0.8)
+                        : Colors.grey.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),

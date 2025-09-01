@@ -166,8 +166,8 @@ class ImageManager {
         }
         
         // Verifica formato
-        String? extension = file.extension?.toLowerCase();
-        if (extension == null || !supportedFormats.contains(extension)) {
+        String extension = (file.extension?.toLowerCase()) ?? '';
+        if (extension.isEmpty || !supportedFormats.contains(extension)) {
           debugPrint('❌ IMAGE_MANAGER: Formato non supportato: $extension');
           return ImageResult.error('Formato non supportato. Formati consentiti: ${supportedFormats.join(", ")}');
         }

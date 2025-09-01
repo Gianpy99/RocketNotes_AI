@@ -322,13 +322,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
   void _shareNote() {
     if (_originalNote == null) return;
     
-    final shareText = '''
-${_originalNote!.title}
-
-${_originalNote!.content}
-
-Tags: ${_tags.join(', ')}
-    ''';
+    // TODO: Implement share functionality
     
     // TODO: Implement share functionality
     // Share.share(shareText, subject: _originalNote!.title);

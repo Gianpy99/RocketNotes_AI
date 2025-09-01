@@ -70,7 +70,7 @@ class _TagInputState extends State<TagInput> {
                 label: Text(tag),
                 deleteIcon: const Icon(Icons.close, size: 18),
                 onDeleted: () => _removeTag(tag),
-                backgroundColor: AppColors.primary.withOpacity(0.1),
+                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                 deleteIconColor: AppColors.primary,
               );
             }).toList(),

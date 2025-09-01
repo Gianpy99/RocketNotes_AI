@@ -126,12 +126,12 @@ class _AdvancedSearchBarState extends State<AdvancedSearchBar>
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDarkMode 
-          ? AppColors.surfaceDark.withOpacity(0.9)
-          : AppColors.surfaceLight.withOpacity(0.9),
+          ? AppColors.surfaceDark.withValues(alpha: 0.9)
+          : AppColors.surfaceLight.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -187,7 +187,7 @@ class _AdvancedSearchBarState extends State<AdvancedSearchBar>
                   ),
                   style: IconButton.styleFrom(
                     backgroundColor: _hasActiveFilters 
-                      ? AppColors.primary.withOpacity(0.1)
+                      ? AppColors.primary.withValues(alpha: 0.1)
                       : null,
                   ),
                 ),
@@ -247,7 +247,7 @@ class _AdvancedSearchBarState extends State<AdvancedSearchBar>
                             });
                             _performSearch();
                           },
-                          selectedColor: AppColors.primary.withOpacity(0.2),
+                          selectedColor: AppColors.primary.withValues(alpha: 0.2),
                           checkmarkColor: AppColors.primary,
                         );
                       }).toList(),

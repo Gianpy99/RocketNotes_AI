@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../data/services/deep_link_service.dart';
-import '../../data/services/nfc_service.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -21,7 +20,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late Animation<double> _scaleAnimation;
 
   final DeepLinkService _deepLinkService = DeepLinkService();
-  final NfcService _nfcService = NfcService();
 
   @override
   void initState() {

@@ -31,9 +31,9 @@ void main() async {
       await Hive.openBox<dynamic>('settings');
     }
     
-    print('✅ Hive initialized successfully');
+    debugPrint('✅ Hive initialized successfully');
   } catch (e) {
-    print('❌ Error initializing Hive: $e');
+    debugPrint('❌ Error initializing Hive: $e');
   }
 
   runApp(const ProviderScope(child: RocketNotesApp()));
@@ -56,7 +56,7 @@ class NotesNotifier extends StateNotifier<List<NoteModel>> {
       notes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
       state = notes;
     } catch (e) {
-      print('Error loading notes: $e');
+      debugPrint('Error loading notes: $e');
     }
   }
 
@@ -68,7 +68,7 @@ class NotesNotifier extends StateNotifier<List<NoteModel>> {
       await box.put(note.id, note);
       _loadNotes();
     } catch (e) {
-      print('Error adding note: $e');
+      debugPrint('Error adding note: $e');
     }
   }
 
@@ -78,7 +78,7 @@ class NotesNotifier extends StateNotifier<List<NoteModel>> {
       await box.put(note.id, note);
       _loadNotes();
     } catch (e) {
-      print('Error updating note: $e');
+      debugPrint('Error updating note: $e');
     }
   }
 
@@ -88,7 +88,7 @@ class NotesNotifier extends StateNotifier<List<NoteModel>> {
       await box.delete(id);
       _loadNotes();
     } catch (e) {
-      print('Error deleting note: $e');
+      debugPrint('Error deleting note: $e');
     }
   }
 }

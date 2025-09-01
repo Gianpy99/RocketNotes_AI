@@ -27,7 +27,6 @@ class _NoteReaderState extends State<NoteReader>
     with SingleTickerProviderStateMixin {
   late quill.QuillController _controller;
   late AnimationController _fabAnimationController;
-  final bool _showFab = true;
 
   @override
   void initState() {
@@ -155,8 +154,7 @@ class _NoteReaderState extends State<NoteReader>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Metadata
-                  if (widget.note.createdAt != null ||
-                      widget.note.updatedAt != null ||
+                  if (widget.note.updatedAt != null ||
                       widget.note.tags.isNotEmpty) ...[
                     _MetadataSection(note: widget.note),
                     const SizedBox(height: 24),
@@ -168,24 +166,19 @@ class _NoteReaderState extends State<NoteReader>
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: isDarkMode 
-                        ? AppColors.surfaceDark.withOpacity(0.5)
-                        : AppColors.surfaceLight.withOpacity(0.5),
+                        ? AppColors.surfaceDark.withValues(alpha: 0.5)
+                        : AppColors.surfaceLight.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isDarkMode 
-                          ? AppColors.textSecondaryDark.withOpacity(0.2)
-                          : AppColors.textSecondaryLight.withOpacity(0.2),
+                          ? AppColors.textSecondaryDark.withValues(alpha: 0.2)
+                          : AppColors.textSecondaryLight.withValues(alpha: 0.2),
                       ),
                     ),
                     child: quill.QuillEditor(
                       controller: _controller,
                       scrollController: ScrollController(),
-                      scrollable: false,
                       focusNode: FocusNode(),
-                      autoFocus: false,
-                      readOnly: true,
-                      expands: false,
-                      padding: EdgeInsets.zero,
                     ),
                   ),
                   
@@ -231,8 +224,8 @@ class _MetadataSection extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDarkMode 
-          ? AppColors.surfaceDark.withOpacity(0.3)
-          : AppColors.surfaceLight.withOpacity(0.3),
+          ? AppColors.surfaceDark.withValues(alpha: 0.3)
+          : AppColors.surfaceLight.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -270,10 +263,10 @@ class _MetadataSection extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: AppColors.primary.withOpacity(0.3),
+                      color: AppColors.primary.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Text(

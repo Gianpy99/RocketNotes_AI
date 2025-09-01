@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import '../data/models/user_profile.dart';
@@ -22,12 +23,12 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
       
       if (profileData != null && profileData is UserProfile) {
         state = profileData;
-        print('✅ User profile loaded: ${profileData.displayName}');
+        debugPrint('✅ User profile loaded: ${profileData.displayName}');
       } else {
-        print('ℹ️ No user profile found, user needs to login');
+        debugPrint('ℹ️ No user profile found, user needs to login');
       }
     } catch (e) {
-      print('❌ Error loading user profile: $e');
+      debugPrint('❌ Error loading user profile: $e');
     }
   }
 

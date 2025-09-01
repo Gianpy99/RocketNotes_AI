@@ -16,9 +16,9 @@ class GlobalErrorHandler {
 
   static void _handleError(ProviderContainer container, Object error, StackTrace? stack) {
     // Log error
-    print('Global Error: $error');
+    debugPrint('Global Error: $error');
     if (stack != null) {
-      print('Stack Trace: $stack');
+      debugPrint('Stack Trace: $stack');
     }
 
     // Show error to user

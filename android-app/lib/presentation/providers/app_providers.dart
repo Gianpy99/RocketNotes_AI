@@ -285,7 +285,7 @@ class NotesNotifier extends StateNotifier<AsyncValue<List<NoteModel>>> {
       await _repository.saveNote(note);
       await loadNotes();
     } catch (error) {
-      print('Error saving note: $error');
+      debugPrint('Error saving note: $error');
       rethrow;
     }
   }
@@ -295,7 +295,7 @@ class NotesNotifier extends StateNotifier<AsyncValue<List<NoteModel>>> {
       await _repository.deleteNote(id);
       await loadNotes();
     } catch (error) {
-      print('Error deleting note: $error');
+      debugPrint('Error deleting note: $error');
       rethrow;
     }
   }
@@ -304,7 +304,7 @@ class NotesNotifier extends StateNotifier<AsyncValue<List<NoteModel>>> {
     try {
       return await _repository.getNoteById(id);
     } catch (error) {
-      print('Error getting note: $error');
+      debugPrint('Error getting note: $error');
       return null;
     }
   }
@@ -314,7 +314,7 @@ class NotesNotifier extends StateNotifier<AsyncValue<List<NoteModel>>> {
       await _repository.archiveNote(id);
       await loadNotes();
     } catch (error) {
-      print('Error archiving note: $error');
+      debugPrint('Error archiving note: $error');
       rethrow;
     }
   }
@@ -324,7 +324,7 @@ class NotesNotifier extends StateNotifier<AsyncValue<List<NoteModel>>> {
       await _repository.toggleFavorite(id);
       await loadNotes();
     } catch (error) {
-      print('Error toggling favorite: $error');
+      debugPrint('Error toggling favorite: $error');
       rethrow;
     }
   }
@@ -354,7 +354,7 @@ class NotesNotifier extends StateNotifier<AsyncValue<List<NoteModel>>> {
       await _repository.deleteMultipleNotes(ids);
       await loadNotes();
     } catch (error) {
-      print('Error deleting multiple notes: $error');
+      debugPrint('Error deleting multiple notes: $error');
       rethrow;
     }
   }
@@ -364,7 +364,7 @@ class NotesNotifier extends StateNotifier<AsyncValue<List<NoteModel>>> {
       await _repository.archiveMultipleNotes(ids);
       await loadNotes();
     } catch (error) {
-      print('Error archiving multiple notes: $error');
+      debugPrint('Error archiving multiple notes: $error');
       rethrow;
     }
   }
@@ -374,7 +374,7 @@ class NotesNotifier extends StateNotifier<AsyncValue<List<NoteModel>>> {
       await _repository.clearAllNotes();
       await loadNotes();
     } catch (error) {
-      print('Error clearing all notes: $error');
+      debugPrint('Error clearing all notes: $error');
       rethrow;
     }
   }
@@ -906,7 +906,7 @@ final appInitializationProvider = FutureProvider<bool>((ref) async {
     
     return true;
   } catch (e) {
-    print('App initialization error: $e');
+    debugPrint('App initialization error: $e');
     return false;
   }
 });

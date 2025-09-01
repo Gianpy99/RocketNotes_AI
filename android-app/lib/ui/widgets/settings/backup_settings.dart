@@ -158,13 +158,13 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDarkMode 
-          ? AppColors.surfaceDark.withOpacity(0.7)
-          : AppColors.surfaceLight.withOpacity(0.7),
+          ? AppColors.surfaceDark.withValues(alpha: 0.7)
+          : AppColors.surfaceLight.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDarkMode 
-            ? AppColors.textSecondaryDark.withOpacity(0.2)
-            : AppColors.textSecondaryLight.withOpacity(0.2),
+            ? AppColors.textSecondaryDark.withValues(alpha: 0.2)
+            : AppColors.textSecondaryLight.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -224,10 +224,10 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
+                color: Colors.green.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: Colors.green.withOpacity(0.3),
+                  color: Colors.green.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -352,8 +352,8 @@ class _SettingsTile extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDarkMode 
-          ? Colors.grey[800]?.withOpacity(0.3)
-          : Colors.grey[100]?.withOpacity(0.7),
+          ? Colors.grey[800]?.withValues(alpha: 0.3)
+          : Colors.grey[100]?.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -397,8 +397,8 @@ class _StorageInfo extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDarkMode 
-          ? Colors.grey[800]?.withOpacity(0.3)
-          : Colors.grey[100]?.withOpacity(0.7),
+          ? Colors.grey[800]?.withValues(alpha: 0.3)
+          : Colors.grey[100]?.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(

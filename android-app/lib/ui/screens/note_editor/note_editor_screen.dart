@@ -4,15 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
-import '../../../core/constants/app_colors.dart';
-import '../../../data/models/note_model.dart';
-import '../../../presentation/providers/app_providers.dart';
-import '../../widgets/common/gradient_background.dart';
-import '../../widgets/note_editor/editor_toolbar.dart';
-import '../../widgets/note_editor/tag_input.dart';
-import '../../widgets/note_editor/ai_suggestions.dart';
-import '../../widgets/note_editor/ai_content_suggestions.dart';
-import '../../widgets/common/confirmation_dialog.dart';
+import 'package:rocket_notes_ai/core/constants/app_colors.dart';
+import 'package:rocket_notes_ai/data/models/note_model.dart';
+import 'package:rocket_notes_ai/presentation/providers/app_providers.dart';
+import 'package:rocket_notes_ai/ui/widgets/common/gradient_background.dart';
+import 'package:rocket_notes_ai/ui/widgets/note_editor/editor_toolbar.dart';
+import 'package:rocket_notes_ai/ui/widgets/note_editor/tag_input.dart';
+import 'package:rocket_notes_ai/ui/widgets/note_editor/ai_suggestions.dart';
+import 'package:rocket_notes_ai/ui/widgets/note_editor/ai_content_suggestions.dart';
+import 'package:rocket_notes_ai/ui/widgets/common/confirmation_dialog.dart';
 
 class NoteEditorScreen extends ConsumerStatefulWidget {
   final String? noteId;
@@ -169,17 +169,26 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
     
     return await showDialog<bool>(
       context: context,
-      builder: (context) => ConfirmationDialog(
-        title: 'Unsaved Changes',
-        content: 'You have unsaved changes. Do you want to save them before leaving?',
-        confirmText: 'Save & Leave',
-        cancelText: 'Discard',
-        neutralText: 'Keep Editing',
-        isDestructive: false,
-        onConfirmed: () async {
-          await _saveNote(showSnackBar: false);
-          return true;
-        },
+      builder: (context) => AlertDialog(
+        title: const Text('Unsaved Changes'),
+        content: const Text('You have unsaved changes. Do you want to save them before leaving?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Discard'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(null), // Keep editing
+            child: const Text('Keep Editing'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              await _saveNote(showSnackBar: false);
+              Navigator.of(context).pop(true);
+            },
+            child: const Text('Save & Leave'),
+          ),
+        ],
       ),
     ) ?? false;
   }
@@ -202,13 +211,11 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
 
     try {
       final noteRepository = ref.read(noteRepositoryProvider);
-      final contentJson = _contentController.document.toDelta().toJson();
       
       final note = Note(
         id: _originalNote?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
         title: title.isEmpty ? 'Untitled' : title,
         content: contentPlain,
-        contentJson: contentJson,
         tags: _tags,
         createdAt: _originalNote?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
@@ -217,9 +224,9 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
       );
 
       if (_originalNote != null) {
-        await noteRepository.updateNote(note);
+        await noteRepository.saveNote(note);
       } else {
-        await noteRepository.createNote(note);
+        await noteRepository.saveNote(note);
       }
 
       // Trigger AI suggestions if enabled
@@ -253,7 +260,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
   Future<void> _generateAISuggestions(Note note) async {
     try {
       final aiService = ref.read(aiServiceProvider);
-      final suggestions = await aiService.generateTagSuggestions(note.content);
+      final suggestions = await aiService.suggestTags(note.content);
       
       if (suggestions.isNotEmpty && mounted) {
         // Show AI suggestions bottom sheet
@@ -275,7 +282,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
         currentTags: _tags,
         onTagsSelected: (selectedTags) {
           setState(() {
-            _tags = <dynamic>{..._tags, ...selectedTags}.toList();
+            _tags = <String>{..._tags, ...selectedTags}.toList();
             _hasUnsavedChanges = true;
           });
         },
@@ -313,14 +320,6 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
 
   void _shareNote() {
     if (_originalNote == null) return;
-    
-    final shareText = '''
-${_originalNote!.title}
-
-${_originalNote!.content}
-
-Tags: ${_tags.join(', ')}
-    ''';
     
     // TODO: Implement share functionality
     // Share.share(shareText, subject: _originalNote!.title);
@@ -399,7 +398,7 @@ Tags: ${_tags.join(', ')}
                               hintStyle: TextStyle(
                                 color: (isDarkMode 
                                   ? AppColors.textSecondaryDark
-                                  : AppColors.textSecondaryLight).withOpacity(0.6),
+                                  : AppColors.textSecondaryLight).withValues(alpha: 0.6),
                               ),
                             ),
                             maxLines: null,
@@ -416,7 +415,7 @@ Tags: ${_tags.join(', ')}
                                   Colors.transparent,
                                   (isDarkMode 
                                     ? AppColors.textSecondaryDark
-                                    : AppColors.textSecondaryLight).withOpacity(0.3),
+                                    : AppColors.textSecondaryLight).withValues(alpha: 0.3),
                                   Colors.transparent,
                                 ],
                               ),
@@ -441,12 +440,12 @@ Tags: ${_tags.join(', ')}
                                     decoration: BoxDecoration(
                                       color: (isDarkMode 
                                         ? AppColors.surfaceDark
-                                        : AppColors.surfaceLight).withOpacity(0.5),
+                                        : AppColors.surfaceLight).withValues(alpha: 0.5),
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
                                         color: (isDarkMode 
                                           ? AppColors.textSecondaryDark
-                                          : AppColors.textSecondaryLight).withOpacity(0.2),
+                                          : AppColors.textSecondaryLight).withValues(alpha: 0.2),
                                       ),
                                     ),
                                     padding: const EdgeInsets.all(16),

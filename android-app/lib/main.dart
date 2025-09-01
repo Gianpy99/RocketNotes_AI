@@ -35,11 +35,11 @@ Future<void> main() async {
     await Hive.openBox<NoteModel>(AppConstants.notesBox);
     await Hive.openBox<AppSettingsModel>(AppConstants.settingsBox);
 
-    print('✅ Hive initialized successfully');
+    debugPrint('✅ Hive initialized successfully');
   } catch (e) {
     // If Hive fails, log it but let the app continue
     // The UI should be able to handle missing storage gracefully
-    print('❌ Error initializing Hive: $e');
+    debugPrint('❌ Error initializing Hive: $e');
   }
 
   // ------------------------------------------

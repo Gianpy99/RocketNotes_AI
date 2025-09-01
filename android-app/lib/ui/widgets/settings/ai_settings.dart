@@ -111,13 +111,13 @@ class _AISettingsState extends ConsumerState<AISettings> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDarkMode 
-          ? AppColors.surfaceDark.withOpacity(0.7)
-          : AppColors.surfaceLight.withOpacity(0.7),
+          ? AppColors.surfaceDark.withValues(alpha: 0.7)
+          : AppColors.surfaceLight.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDarkMode 
-            ? AppColors.textSecondaryDark.withOpacity(0.2)
-            : AppColors.textSecondaryLight.withOpacity(0.2),
+            ? AppColors.textSecondaryDark.withValues(alpha: 0.2)
+            : AppColors.textSecondaryLight.withValues(alpha: 0.2),
         ),
       ),
       child: Column(

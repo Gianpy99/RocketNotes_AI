@@ -1,16 +1,17 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
 class StorageManager {
-  static const String SCANS_FOLDER = 'rocketbook_scans';
-  static const int MAX_DAYS_KEEP = 30; // Mantieni le immagini per 30 giorni
-  static const int MAX_FILES_KEEP = 100; // Massimo 100 file
+  static const String scansFolder = 'rocketbook_scans';
+  static const int maxDaysKeep = 30; // Mantieni le immagini per 30 giorni
+  static const int maxFilesKeep = 100; // Massimo 100 file
   
   /// Ottieni la directory di scansione
   static Future<Directory> getScansDirectory() async {
     final Directory appDir = await getApplicationDocumentsDirectory();
-    final String scansDir = path.join(appDir.path, SCANS_FOLDER);
+    final String scansDir = path.join(appDir.path, scansFolder);
     final Directory scansDirObj = Directory(scansDir);
     
     if (!await scansDirObj.exists()) {
@@ -34,7 +35,7 @@ class StorageManager {
       // Ordina per data di modifica (più vecchi prima)
       imageFiles.sort((a, b) => a.lastModifiedSync().compareTo(b.lastModifiedSync()));
       
-      final DateTime cutoffDate = DateTime.now().subtract(const Duration(days: MAX_DAYS_KEEP));
+      final DateTime cutoffDate = DateTime.now().subtract(const Duration(days: maxDaysKeep));
       int deletedCount = 0;
       
       // Elimina file più vecchi di MAX_DAYS_KEEP giorni
@@ -47,17 +48,17 @@ class StorageManager {
       
       // Se ci sono ancora troppi file, elimina i più vecchi
       final remainingFiles = await _getRemainingImageFiles();
-      if (remainingFiles.length > MAX_FILES_KEEP) {
-        final filesToDelete = remainingFiles.length - MAX_FILES_KEEP;
+      if (remainingFiles.length > maxFilesKeep) {
+        final filesToDelete = remainingFiles.length - maxFilesKeep;
         for (int i = 0; i < filesToDelete; i++) {
           await remainingFiles[i].delete();
           deletedCount++;
         }
       }
       
-      print('🧹 STORAGE: Puliti $deletedCount file vecchi');
+      debugPrint('🧹 STORAGE: Puliti $deletedCount file vecchi');
     } catch (e) {
-      print('❌ STORAGE: Errore durante pulizia: $e');
+      debugPrint('❌ STORAGE: Errore durante pulizia: $e');
     }
   }
   
@@ -83,7 +84,7 @@ class StorageManager {
             : null,
       );
     } catch (e) {
-      print('❌ STORAGE: Errore durante calcolo info: $e');
+      debugPrint('❌ STORAGE: Errore durante calcolo info: $e');
       return StorageInfo(totalFiles: 0, totalSizeBytes: 0, totalSizeMB: 0);
     }
   }
@@ -95,10 +96,10 @@ class StorageManager {
       if (await scansDir.exists()) {
         await scansDir.delete(recursive: true);
         await scansDir.create(recursive: true);
-        print('🗑️ STORAGE: Pulita tutta la directory scansioni');
+        debugPrint('🗑️ STORAGE: Pulita tutta la directory scansioni');
       }
     } catch (e) {
-      print('❌ STORAGE: Errore durante reset: $e');
+      debugPrint('❌ STORAGE: Errore durante reset: $e');
     }
   }
   

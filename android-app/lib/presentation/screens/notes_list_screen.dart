@@ -35,7 +35,6 @@ class _NotesListScreenState extends ConsumerState<NotesListScreen>
   @override
   Widget build(BuildContext context) {
     final allNotes = ref.watch(notesProvider);
-    final currentMode = ref.watch(appModeProvider);
 
     return Scaffold(
       appBar: AppBar(
