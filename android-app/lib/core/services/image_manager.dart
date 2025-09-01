@@ -125,7 +125,7 @@ class ImageManager {
       }
       
       // Verifica formato
-      if (extension == null || !supportedFormats.contains(extension)) {
+      if (!supportedFormats.contains(extension)) {
         return ImageResult.error('Formato non supportato. Formati consentiti: ${supportedFormats.join(", ")}');
       }
       

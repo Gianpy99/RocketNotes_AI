@@ -306,7 +306,7 @@ class _MetadataSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Created: ${_formatDate(note.createdAt!)}',
+                      'Created: ${_formatDate(note.createdAt)}',
                       style: TextStyle(
                         fontSize: 12,
                         color: isDarkMode 
