@@ -30,3 +30,17 @@
 # Don't obfuscate plugin classes
 -keep class * extends io.flutter.plugin.common.MethodCallHandler { *; }
 -keep class * extends io.flutter.plugin.common.StreamHandler { *; }
+
+# Keep R8 from removing used classes
+-dontwarn com.google.android.play.core.**
+-dontwarn com.google.mlkit.vision.text.chinese.**
+-dontwarn com.google.mlkit.vision.text.devanagari.**
+-dontwarn com.google.mlkit.vision.text.japanese.**
+-dontwarn com.google.mlkit.vision.text.korean.**
+
+# Keep all classes that are referenced but might be removed by R8
+-keepnames class ** { *; }
+
+# Additional rules to prevent R8 issues
+-keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
+-keep,allowobfuscation,allowshrinking class * extends com.google.gson.reflect.TypeToken

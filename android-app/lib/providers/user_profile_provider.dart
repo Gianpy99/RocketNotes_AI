@@ -23,12 +23,12 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
       
       if (profileData != null && profileData is UserProfile) {
         state = profileData;
-        debugdebugPrint('✅ User profile loaded: ${profileData.displayName}');
+        debugPrint('✅ User profile loaded: ${profileData.displayName}');
       } else {
-        debugdebugPrint('ℹ️ No user profile found, user needs to login');
+        debugPrint('ℹ️ No user profile found, user needs to login');
       }
     } catch (e) {
-      debugdebugPrint('❌ Error loading user profile: $e');
+      debugPrint('❌ Error loading user profile: $e');
     }
   }
 

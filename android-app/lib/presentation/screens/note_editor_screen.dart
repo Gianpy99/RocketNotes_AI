@@ -164,9 +164,9 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
 
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        
+
         _onWillPop().then((shouldPop) {
           if (shouldPop && context.mounted) {
             context.pop();
