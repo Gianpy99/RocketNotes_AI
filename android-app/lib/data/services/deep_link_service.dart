@@ -2,6 +2,7 @@
 // lib/data/services/deep_link_service.dart
 // ==========================================
 import 'package:app_links/app_links.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 import '../../core/constants/app_constants.dart';
 
@@ -17,12 +18,12 @@ class DeepLinkService {
     try {
       // TODO: Fix AppLinks API - getInitialLink method not available
       // For now, return null to allow compilation
-      print('getInitialLink temporarily disabled due to API incompatibility');
+      debugPrint('getInitialLink temporarily disabled due to API incompatibility');
       return null;
       
       // return await _appLinks.getInitialLink();
     } catch (e) {
-      print('Error getting initial link: $e');
+      debugPrint('Error getting initial link: $e');
       return null;
     }
   }
@@ -33,7 +34,7 @@ class DeepLinkService {
     _linkSubscription = linkStream.listen(
       onLinkReceived,
       onError: (error) {
-        print('Deep link error: $error');
+        debugPrint('Deep link error: $error');
       },
     );
   }
@@ -56,7 +57,7 @@ class DeepLinkService {
       }
       return null;
     } catch (e) {
-      print('Error extracting mode from URI: $e');
+      debugPrint('Error extracting mode from URI: $e');
       return null;
     }
   }
@@ -70,7 +71,7 @@ class DeepLinkService {
       }
       return null;
     } catch (e) {
-      print('Error extracting action from URI: $e');
+      debugPrint('Error extracting action from URI: $e');
       return null;
     }
   }
@@ -80,7 +81,7 @@ class DeepLinkService {
     try {
       return uri.queryParameters;
     } catch (e) {
-      print('Error extracting parameters from URI: $e');
+      debugPrint('Error extracting parameters from URI: $e');
       return {};
     }
   }
@@ -103,7 +104,7 @@ class DeepLinkService {
         rawUri: uri.toString(),
       );
     } catch (e) {
-      print('Error parsing deep link: $e');
+      debugPrint('Error parsing deep link: $e');
       return null;
     }
   }
@@ -114,7 +115,7 @@ class DeepLinkService {
       return uri.scheme == AppConstants.uriScheme &&
              (uri.host == AppConstants.workMode || uri.host == AppConstants.personalMode);
     } catch (e) {
-      print('Error validating deep link: $e');
+      debugPrint('Error validating deep link: $e');
       return false;
     }
   }
@@ -142,7 +143,7 @@ class DeepLinkService {
       
       return buffer.toString();
     } catch (e) {
-      print('Error generating deep link: $e');
+      debugPrint('Error generating deep link: $e');
       return '${AppConstants.uriScheme}://$mode';
     }
   }

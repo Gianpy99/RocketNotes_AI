@@ -1,7 +1,6 @@
 // lib/ui/widgets/notes/note_list_filters.dart
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
-import '../note_list_screen.dart';
+import '../../screens/notes/note_list_screen.dart';
 
 class NoteListFilters extends StatelessWidget {
   final Set<String> selectedTags;

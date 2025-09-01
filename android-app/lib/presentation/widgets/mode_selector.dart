@@ -78,9 +78,9 @@ class _ModeButton extends StatelessWidget {
         duration: AppConstants.shortAnimation,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.1) : Colors.transparent,
+          color: isSelected ? color.withValues(alpha: 0.1) : Colors.transparent,
           border: Border.all(
-            color: isSelected ? color : Colors.grey.withOpacity(0.3),
+            color: isSelected ? color : Colors.grey.withValues(alpha: 0.3),
             width: 2,
           ),
           borderRadius: BorderRadius.circular(12),

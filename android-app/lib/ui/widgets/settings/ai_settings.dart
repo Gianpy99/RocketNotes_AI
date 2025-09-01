@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../providers/settings_provider.dart';
+import '../../../screens/settings_screen.dart';
 
 class AISettings extends ConsumerStatefulWidget {
   const AISettings({super.key});
@@ -31,7 +31,7 @@ class _AISettingsState extends ConsumerState<AISettings> {
 
   void _loadApiKey() {
     final settings = ref.read(settingsProvider);
-    _apiKeyController.text = settings?.aiApiKey ?? '';
+    _apiKeyController.text = settings.aiApiKey;
   }
 
   Future<void> _testConnection() async {
@@ -89,9 +89,7 @@ class _AISettingsState extends ConsumerState<AISettings> {
   }
 
   void _saveApiKey() {
-    ref.read(settingsProvider.notifier).updateSettings(
-      aiApiKey: _apiKeyController.text.trim(),
-    );
+    ref.read(settingsProvider.notifier).setAiApiKey(_apiKeyController.text.trim());
     
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -147,11 +145,9 @@ class _AISettingsState extends ConsumerState<AISettings> {
             title: 'Enable AI Assistant',
             subtitle: 'Get intelligent suggestions and improvements',
             trailing: Switch(
-              value: settings?.aiEnabled ?? false,
+              value: settings.aiEnabled,
               onChanged: (value) {
-                ref.read(settingsProvider.notifier).updateSettings(
-                  aiEnabled: value,
-                );
+                ref.read(settingsProvider.notifier).setAiEnabled(value);
               },
               activeThumbColor: AppColors.primary,
             ),
@@ -164,7 +160,7 @@ class _AISettingsState extends ConsumerState<AISettings> {
             title: 'AI Provider',
             subtitle: 'Choose your preferred AI service',
             trailing: DropdownButton<String>(
-              value: settings?.aiProvider ?? 'openai',
+              value: settings.aiProvider,
               items: const [
                 DropdownMenuItem(value: 'openai', child: Text('OpenAI')),
                 DropdownMenuItem(value: 'gemini', child: Text('Google Gemini')),
@@ -172,9 +168,7 @@ class _AISettingsState extends ConsumerState<AISettings> {
               ],
               onChanged: (value) {
                 if (value != null) {
-                  ref.read(settingsProvider.notifier).updateSettings(
-                    aiProvider: value,
-                  );
+                  ref.read(settingsProvider.notifier).setAiProvider(value);
                 }
               },
               underline: const SizedBox(),
@@ -260,11 +254,9 @@ class _AISettingsState extends ConsumerState<AISettings> {
           _FeatureTile(
             title: 'Smart Suggestions',
             subtitle: 'Get writing suggestions while typing',
-            enabled: settings?.aiSmartSuggestions ?? true,
+            enabled: settings.aiSmartSuggestions,
             onChanged: (value) {
-              ref.read(settingsProvider.notifier).updateSettings(
-                aiSmartSuggestions: value,
-              );
+              ref.read(settingsProvider.notifier).setAiSmartSuggestions(value);
             },
           ),
           
@@ -273,11 +265,9 @@ class _AISettingsState extends ConsumerState<AISettings> {
           _FeatureTile(
             title: 'Auto Tag Generation',
             subtitle: 'Automatically suggest relevant tags',
-            enabled: settings?.aiAutoTags ?? true,
+            enabled: settings.aiAutoTags,
             onChanged: (value) {
-              ref.read(settingsProvider.notifier).updateSettings(
-                aiAutoTags: value,
-              );
+              ref.read(settingsProvider.notifier).setAiAutoTags(value);
             },
           ),
           
@@ -286,11 +276,9 @@ class _AISettingsState extends ConsumerState<AISettings> {
           _FeatureTile(
             title: 'Grammar Correction',
             subtitle: 'Detect and suggest grammar fixes',
-            enabled: settings?.aiGrammarCheck ?? true,
+            enabled: settings.aiGrammarCheck,
             onChanged: (value) {
-              ref.read(settingsProvider.notifier).updateSettings(
-                aiGrammarCheck: value,
-              );
+              ref.read(settingsProvider.notifier).setAiGrammarCheck(value);
             },
           ),
           
@@ -299,11 +287,9 @@ class _AISettingsState extends ConsumerState<AISettings> {
           _FeatureTile(
             title: 'Content Enhancement',
             subtitle: 'Suggest content improvements',
-            enabled: settings?.aiContentEnhancement ?? false,
+            enabled: settings.aiContentEnhancement,
             onChanged: (value) {
-              ref.read(settingsProvider.notifier).updateSettings(
-                aiContentEnhancement: value,
-              );
+              ref.read(settingsProvider.notifier).setAiContentEnhancement(value);
             },
           ),
           
@@ -313,10 +299,10 @@ class _AISettingsState extends ConsumerState<AISettings> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
+              color: Colors.blue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: Colors.blue.withOpacity(0.3),
+                color: Colors.blue.withValues(alpha: 0.3),
               ),
             ),
             child: Row(
@@ -380,8 +366,8 @@ class _SettingsTile extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDarkMode 
-          ? Colors.grey[800]?.withOpacity(0.3)
-          : Colors.grey[100]?.withOpacity(0.7),
+          ? Colors.grey[800]?.withValues(alpha: 0.3)
+          : Colors.grey[100]?.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

@@ -4,12 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/note_model.dart';
-import '../../../providers/app_providers.dart';
+import '../../../presentation/providers/app_providers.dart';
 import '../../widgets/common/gradient_background.dart';
 import '../../widgets/notes/note_card.dart';
 import '../../widgets/notes/note_list_filters.dart';
 import '../../widgets/common/search_bar.dart';
-import '../../widgets/common/sort_selector.dart';
 
 enum NoteViewMode { list, grid }
 enum NoteSortBy { 

@@ -269,7 +269,7 @@ class AIAnalysisScreen extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -279,7 +279,7 @@ class AIAnalysisScreen extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(12),
                 topRight: Radius.circular(12),
@@ -323,7 +323,7 @@ class AIAnalysisScreen extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.purple.withOpacity(0.3)),
+        border: Border.all(color: Colors.purple.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -333,7 +333,7 @@ class AIAnalysisScreen extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.purple.withOpacity(0.1),
+              color: Colors.purple.withValues(alpha: 0.1),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(12),
                 topRight: Radius.circular(12),
@@ -360,7 +360,7 @@ class AIAnalysisScreen extends ConsumerWidget {
               runSpacing: 8,
               children: activeSymbols.map((symbol) => Chip(
                 label: Text(symbol),
-                backgroundColor: Colors.purple.withOpacity(0.1),
+                backgroundColor: Colors.purple.withValues(alpha: 0.1),
               )).toList(),
             ),
           ),
@@ -373,7 +373,7 @@ class AIAnalysisScreen extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -383,7 +383,7 @@ class AIAnalysisScreen extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.1),
+              color: Colors.orange.withValues(alpha: 0.1),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(12),
                 topRight: Radius.circular(12),
@@ -417,7 +417,7 @@ class AIAnalysisScreen extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.teal.withOpacity(0.3)),
+        border: Border.all(color: Colors.teal.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -427,7 +427,7 @@ class AIAnalysisScreen extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.teal.withOpacity(0.1),
+              color: Colors.teal.withValues(alpha: 0.1),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(12),
                 topRight: Radius.circular(12),
@@ -461,7 +461,7 @@ class AIAnalysisScreen extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -471,7 +471,7 @@ class AIAnalysisScreen extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(12),
                 topRight: Radius.circular(12),
@@ -555,12 +555,12 @@ class AIAnalysisScreen extends ConsumerWidget {
   Color _getQualityColor(String quality) {
     switch (quality) {
       case 'good':
-      case 'high': return Colors.green.withOpacity(0.2);
+      case 'high': return Colors.green.withValues(alpha: 0.2);
       case 'fair':
-      case 'medium': return Colors.orange.withOpacity(0.2);
+      case 'medium': return Colors.orange.withValues(alpha: 0.2);
       case 'poor':
-      case 'low': return Colors.red.withOpacity(0.2);
-      default: return Colors.grey.withOpacity(0.2);
+      case 'low': return Colors.red.withValues(alpha: 0.2);
+      default: return Colors.grey.withValues(alpha: 0.2);
     }
   }
 

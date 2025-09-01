@@ -74,7 +74,7 @@ class _AISuggestionsState extends State<AISuggestions> {
                     }
                   });
                 },
-                selectedColor: AppColors.primary.withOpacity(0.2),
+                selectedColor: AppColors.primary.withValues(alpha: 0.2),
                 checkmarkColor: AppColors.primary,
               );
             }).toList(),

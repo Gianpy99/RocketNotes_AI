@@ -1,4 +1,5 @@
 import '../services/rocketbook_template_service.dart';
+import 'package:flutter/foundation.dart';
 
 /// Servizio per il riconoscimento di template nelle immagini del Rocketbook
 class ImageTemplateRecognition {
@@ -242,17 +243,17 @@ class TemplateRecognitionDebug {
   /// Stampa statistiche di riconoscimento per debugging
   static void printRecognitionStats() {
     final stats = RocketbookTemplateService.getTemplateStats();
-    print('=== ROCKETBOOK TEMPLATE RECOGNITION STATS ===');
-    print('Total Templates: ${stats['totalTemplates']}');
-    print('Total Pages: ${stats['totalPages']}');
-    print('Categories: ${stats['categoriesBreakdown']}');
-    print('Available Templates: ${stats['templates']}');
+    debugPrint('=== ROCKETBOOK TEMPLATE RECOGNITION STATS ===');
+    debugPrint('Total Templates: ${stats['totalTemplates']}');
+    debugPrint('Total Pages: ${stats['totalPages']}');
+    debugPrint('Categories: ${stats['categoriesBreakdown']}');
+    debugPrint('Available Templates: ${stats['templates']}');
     
     final testResults = runTestCases();
-    print('\n=== TEST RESULTS ===');
+    debugPrint('\n=== TEST RESULTS ===');
     for (final entry in testResults.entries) {
       final result = entry.value;
-      print('${entry.key}: ${result.template.name} (${(result.confidence * 100).toStringAsFixed(1)}%)');
+      debugPrint('${entry.key}: ${result.template.name} (${(result.confidence * 100).toStringAsFixed(1)}%)');
     }
   }
 }

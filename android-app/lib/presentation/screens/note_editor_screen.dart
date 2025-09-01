@@ -164,14 +164,14 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (didPop) {
         if (didPop) return;
         
-        if (await _onWillPop()) {
-          if (context.mounted) {
+        _onWillPop().then((shouldPop) {
+          if (shouldPop && context.mounted) {
             context.pop();
           }
-        }
+        });
       },
       child: Scaffold(
         appBar: AppBar(
@@ -224,7 +224,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
               child: Row(
                 children: [
                   Icon(

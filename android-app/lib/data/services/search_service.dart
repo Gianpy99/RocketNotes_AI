@@ -1,6 +1,7 @@
 // ==========================================
 // lib/data/services/search_service.dart
 // ==========================================
+import 'package:flutter/foundation.dart';
 import '../models/note_model.dart';
 import '../repositories/note_repository.dart';
 import '../../core/constants/app_constants.dart';
@@ -182,7 +183,7 @@ class SearchService {
 
       return suggestions.take(10).toList();
     } catch (e) {
-      print('Error getting search suggestions: $e');
+      debugPrint('Error getting search suggestions: $e');
       return [];
     }
   }

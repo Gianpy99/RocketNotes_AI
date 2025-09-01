@@ -2,6 +2,7 @@
 // lib/data/services/ai_service.dart
 // ==========================================
 import '../models/note_model.dart';
+import 'package:flutter/foundation.dart';
 
 // Mock AI service for demonstration
 // In a real app, this would integrate with OpenAI, Claude, or other AI APIs
@@ -28,7 +29,7 @@ class AiService {
       
       return summary.isEmpty ? null : summary;
     } catch (e) {
-      print('Error generating AI summary: $e');
+      debugPrint('Error generating AI summary: $e');
       return null;
     }
   }
@@ -62,7 +63,7 @@ class AiService {
       
       return suggestions;
     } catch (e) {
-      print('Error suggesting tags: $e');
+      debugPrint('Error suggesting tags: $e');
       return [];
     }
   }
@@ -97,7 +98,7 @@ class AiService {
         return NoteSentiment.neutral;
       }
     } catch (e) {
-      print('Error analyzing sentiment: $e');
+      debugPrint('Error analyzing sentiment: $e');
       return NoteSentiment.neutral;
     }
   }
@@ -126,7 +127,7 @@ class AiService {
       
       return actionItems;
     } catch (e) {
-      print('Error extracting action items: $e');
+      debugPrint('Error extracting action items: $e');
       return [];
     }
   }
@@ -155,7 +156,7 @@ class AiService {
       
       return relatedNoteIds.take(5).toList();
     } catch (e) {
-      print('Error suggesting related notes: $e');
+      debugPrint('Error suggesting related notes: $e');
       return [];
     }
   }

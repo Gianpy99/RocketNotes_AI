@@ -2,6 +2,7 @@
 // lib/data/services/nfc_service.dart
 // ==========================================
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
+import 'package:flutter/foundation.dart';
 import '../../core/constants/app_constants.dart';
 
 class NfcService {
@@ -11,7 +12,7 @@ class NfcService {
     try {
       return await FlutterNfcKit.nfcAvailability;
     } catch (e) {
-      print('Error checking NFC availability: $e');
+      debugPrint('Error checking NFC availability: $e');
       return NFCAvailability.not_supported;
     }
   }
@@ -22,7 +23,7 @@ class NfcService {
       final availability = await checkAvailability();
       return availability == NFCAvailability.available;
     } catch (e) {
-      print('Error checking if NFC is enabled: $e');
+      debugPrint('Error checking if NFC is enabled: $e');
       return false;
     }
   }
@@ -56,7 +57,7 @@ class NfcService {
               uriData = String.fromCharCodes(record.payload!);
             }
           } catch (e) {
-            print('Error extracting URI from payload: $e');
+            debugPrint('Error extracting URI from payload: $e');
           }
           
           if (uriData != null && uriData.startsWith('${AppConstants.uriScheme}://')) {
@@ -71,7 +72,7 @@ class NfcService {
               textData = String.fromCharCodes(record.payload!);
             }
           } catch (e) {
-            print('Error extracting text from payload: $e');
+            debugPrint('Error extracting text from payload: $e');
           }
           
           if (textData != null && textData.startsWith('${AppConstants.uriScheme}://')) {
@@ -92,7 +93,7 @@ class NfcService {
         await FlutterNfcKit.finish(iosErrorMessage: "Failed to read tag");
       } catch (_) {}
       
-      print('Error reading NFC tag: $e');
+      debugPrint('Error reading NFC tag: $e');
       return NfcReadResult.error('${AppConstants.errorNfcRead}: $e');
     }
   }
@@ -117,7 +118,7 @@ class NfcService {
       if (tag.ndefWritable == true) {
         // TODO: Fix NFC writing - NDEFRecord API incompatibility
         // For now, skip actual writing to allow compilation
-        print('NFC writing temporarily disabled due to API incompatibility');
+        debugPrint('NFC writing temporarily disabled due to API incompatibility');
         
         await FlutterNfcKit.finish(iosAlertMessage: "Data written successfully!");
         return NfcWriteResult.success();
@@ -142,7 +143,7 @@ class NfcService {
         await FlutterNfcKit.finish(iosErrorMessage: "Failed to write to tag");
       } catch (_) {}
       
-      print('Error writing NFC tag: $e');
+      debugPrint('Error writing NFC tag: $e');
       return NfcWriteResult.error('Failed to write to tag: $e');
     }
   }
@@ -157,7 +158,7 @@ class NfcService {
       }
       return null;
     } catch (e) {
-      print('Error extracting mode from URI: $e');
+      debugPrint('Error extracting mode from URI: $e');
       return null;
     }
   }
@@ -172,7 +173,7 @@ class NfcService {
       }
       return null;
     } catch (e) {
-      print('Error extracting action from URI: $e');
+      debugPrint('Error extracting action from URI: $e');
       return null;
     }
   }
@@ -196,7 +197,7 @@ class NfcService {
       
       return buffer.toString();
     } catch (e) {
-      print('Error generating URI: $e');
+      debugPrint('Error generating URI: $e');
       return '${AppConstants.uriScheme}://$mode';
     }
   }
@@ -206,7 +207,7 @@ class NfcService {
     try {
       await FlutterNfcKit.finish();
     } catch (e) {
-      print('Error stopping NFC: $e');
+      debugPrint('Error stopping NFC: $e');
     }
   }
 }

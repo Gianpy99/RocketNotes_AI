@@ -1,5 +1,6 @@
 // lib/data/services/sync_service.dart
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'api_service.dart';
 import '../models/note_model.dart';
 import '../repositories/note_repository.dart';
@@ -37,9 +38,9 @@ class SyncService {
         await noteRepository.saveNote(note);
       }
       
-      print('Sync completed successfully');
+      debugPrint('Sync completed successfully');
     } catch (e) {
-      print('Sync failed: $e');
+      debugPrint('Sync failed: $e');
       rethrow;
     }
   }
@@ -65,7 +66,7 @@ class SyncService {
         try {
           await apiService.updateNote(localNote);
         } catch (e) {
-          print('Failed to upload note ${localNote.id}: $e');
+          debugPrint('Failed to upload note ${localNote.id}: $e');
         }
       }
     }
@@ -82,7 +83,7 @@ class SyncService {
       try {
         await apiService.createNote(note);
       } catch (e) {
-        print('Failed to sync new note: $e');
+        debugPrint('Failed to sync new note: $e');
         // Note is still saved locally
       }
     }
@@ -97,7 +98,7 @@ class SyncService {
       try {
         await apiService.updateNote(note);
       } catch (e) {
-        print('Failed to sync updated note: $e');
+        debugPrint('Failed to sync updated note: $e');
       }
     }
   }
@@ -111,7 +112,7 @@ class SyncService {
       try {
         await apiService.deleteNote(noteId);
       } catch (e) {
-        print('Failed to sync note deletion: $e');
+        debugPrint('Failed to sync note deletion: $e');
       }
     }
   }

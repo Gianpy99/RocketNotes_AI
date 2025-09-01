@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../providers/settings_provider.dart';
+import '../../../screens/settings_screen.dart';
 
 class BackupSettings extends ConsumerStatefulWidget {
   const BackupSettings({super.key});
@@ -194,11 +194,9 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
             title: 'Auto Backup',
             subtitle: 'Automatically backup notes daily',
             trailing: Switch(
-              value: settings?.autoBackup ?? false,
+              value: settings.autoBackup,
               onChanged: (value) {
-                ref.read(settingsProvider.notifier).updateSettings(
-                  autoBackup: value,
-                );
+                ref.read(settingsProvider.notifier).setAutoBackup(value);
               },
               activeThumbColor: AppColors.primary,
             ),
@@ -211,7 +209,7 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
             title: 'Cloud Sync',
             subtitle: 'Sync notes across devices (coming soon)',
             trailing: Switch(
-              value: settings?.cloudSync ?? false,
+              value: settings.cloudSync,
               onChanged: null, // Disabled for now
               activeThumbColor: AppColors.primary,
             ),

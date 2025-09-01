@@ -50,7 +50,7 @@ class WebCameraService {
         final String filePath = path.join(scansDir.path, fileName);
 
         final File savedFile = await File(image.path).copy(filePath);
-        print('📱 CAMERA: Immagine salvata in ${savedFile.path}');
+        debugPrint('📱 CAMERA: Immagine salvata in ${savedFile.path}');
         
         return savedFile.path;
       }
@@ -89,7 +89,7 @@ class WebCameraService {
         final String filePath = path.join(scansDir.path, fileName);
 
         final File savedFile = await File(image.path).copy(filePath);
-        print('📱 CAMERA: Immagine salvata in ${savedFile.path}');
+        debugPrint('📱 CAMERA: Immagine salvata in ${savedFile.path}');
         
         return savedFile.path;
       }

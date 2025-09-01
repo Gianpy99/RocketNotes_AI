@@ -23,7 +23,7 @@ class ModeCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.1) : Theme.of(context).cardColor,
+          color: isSelected ? color.withValues(alpha: 0.1) : Theme.of(context).cardColor,
           border: Border.all(
             color: isSelected ? color : Theme.of(context).dividerColor,
             width: isSelected ? 2 : 1,
@@ -32,7 +32,7 @@ class ModeCard extends StatelessWidget {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: color.withOpacity(0.2),
+                    color: color.withValues(alpha: 0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -45,7 +45,7 @@ class ModeCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isSelected ? color : color.withOpacity(0.2),
+                color: isSelected ? color : color.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(

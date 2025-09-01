@@ -21,7 +21,7 @@ class SettingTile extends StatelessWidget {
     this.enabled = true,
   });
 
-  const SettingTile.toggle({
+  SettingTile.toggle({
     super.key,
     required this.title,
     this.subtitle,

@@ -23,12 +23,12 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
       
       if (profileData != null && profileData is UserProfile) {
         state = profileData;
-        debugPrint('✅ User profile loaded: ${profileData.displayName}');
+        debugdebugPrint('✅ User profile loaded: ${profileData.displayName}');
       } else {
-        debugPrint('ℹ️ No user profile found, user needs to login');
+        debugdebugPrint('ℹ️ No user profile found, user needs to login');
       }
     } catch (e) {
-      debugPrint('❌ Error loading user profile: $e');
+      debugdebugPrint('❌ Error loading user profile: $e');
     }
   }
 
@@ -61,10 +61,10 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
       // Update state
       state = profile;
       
-      print('✅ User logged in: ${profile.displayName}');
+      debugPrint('✅ User logged in: ${profile.displayName}');
       return true;
     } catch (e) {
-      print('❌ Error logging in user: $e');
+      debugPrint('❌ Error logging in user: $e');
       return false;
     }
   }
@@ -81,10 +81,10 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
       // Update state
       state = profile;
       
-      print('✅ Anonymous user created: ${profile.userId}');
+      debugPrint('✅ Anonymous user created: ${profile.userId}');
       return true;
     } catch (e) {
-      print('❌ Error creating anonymous user: $e');
+      debugPrint('❌ Error creating anonymous user: $e');
       return false;
     }
   }
@@ -99,9 +99,9 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
       // Clear state
       state = null;
       
-      print('✅ User logged out');
+      debugPrint('✅ User logged out');
     } catch (e) {
-      print('❌ Error logging out: $e');
+      debugPrint('❌ Error logging out: $e');
     }
   }
 
@@ -136,9 +136,9 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
       // Update state
       state = updatedProfile;
       
-      print('✅ User profile updated');
+      debugPrint('✅ User profile updated');
     } catch (e) {
-      print('❌ Error updating profile: $e');
+      debugPrint('❌ Error updating profile: $e');
     }
   }
 

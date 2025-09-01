@@ -13,12 +13,34 @@ class AppSettings {
   final String defaultMode;
   final bool enableAI;
   final bool autoSave;
+  
+  // AI Settings
+  final String aiApiKey;
+  final bool aiEnabled;
+  final String aiProvider;
+  final bool aiSmartSuggestions;
+  final bool aiAutoTags;
+  final bool aiGrammarCheck;
+  final bool aiContentEnhancement;
+  
+  // Backup Settings
+  final bool autoBackup;
+  final bool cloudSync;
 
   AppSettings({
     this.darkMode = false,
     this.defaultMode = 'personal',
     this.enableAI = true,
     this.autoSave = true,
+    this.aiApiKey = '',
+    this.aiEnabled = true,
+    this.aiProvider = 'openai',
+    this.aiSmartSuggestions = true,
+    this.aiAutoTags = true,
+    this.aiGrammarCheck = false,
+    this.aiContentEnhancement = false,
+    this.autoBackup = false,
+    this.cloudSync = false,
   });
 
   AppSettings copyWith({
@@ -26,12 +48,30 @@ class AppSettings {
     String? defaultMode,
     bool? enableAI,
     bool? autoSave,
+    String? aiApiKey,
+    bool? aiEnabled,
+    String? aiProvider,
+    bool? aiSmartSuggestions,
+    bool? aiAutoTags,
+    bool? aiGrammarCheck,
+    bool? aiContentEnhancement,
+    bool? autoBackup,
+    bool? cloudSync,
   }) {
     return AppSettings(
       darkMode: darkMode ?? this.darkMode,
       defaultMode: defaultMode ?? this.defaultMode,
       enableAI: enableAI ?? this.enableAI,
       autoSave: autoSave ?? this.autoSave,
+      aiApiKey: aiApiKey ?? this.aiApiKey,
+      aiEnabled: aiEnabled ?? this.aiEnabled,
+      aiProvider: aiProvider ?? this.aiProvider,
+      aiSmartSuggestions: aiSmartSuggestions ?? this.aiSmartSuggestions,
+      aiAutoTags: aiAutoTags ?? this.aiAutoTags,
+      aiGrammarCheck: aiGrammarCheck ?? this.aiGrammarCheck,
+      aiContentEnhancement: aiContentEnhancement ?? this.aiContentEnhancement,
+      autoBackup: autoBackup ?? this.autoBackup,
+      cloudSync: cloudSync ?? this.cloudSync,
     );
   }
 }
@@ -53,6 +93,48 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   void toggleAutoSave() {
     state = state.copyWith(autoSave: !state.autoSave);
+  }
+
+  void updateSettings(AppSettings newSettings) {
+    state = newSettings;
+  }
+
+  // AI Settings methods
+  void setAiApiKey(String apiKey) {
+    state = state.copyWith(aiApiKey: apiKey);
+  }
+
+  void setAiEnabled(bool enabled) {
+    state = state.copyWith(aiEnabled: enabled);
+  }
+
+  void setAiProvider(String provider) {
+    state = state.copyWith(aiProvider: provider);
+  }
+
+  void setAiSmartSuggestions(bool enabled) {
+    state = state.copyWith(aiSmartSuggestions: enabled);
+  }
+
+  void setAiAutoTags(bool enabled) {
+    state = state.copyWith(aiAutoTags: enabled);
+  }
+
+  void setAiGrammarCheck(bool enabled) {
+    state = state.copyWith(aiGrammarCheck: enabled);
+  }
+
+  void setAiContentEnhancement(bool enabled) {
+    state = state.copyWith(aiContentEnhancement: enabled);
+  }
+
+  // Backup Settings methods
+  void setAutoBackup(bool enabled) {
+    state = state.copyWith(autoBackup: enabled);
+  }
+
+  void setCloudSync(bool enabled) {
+    state = state.copyWith(cloudSync: enabled);
   }
 }
 

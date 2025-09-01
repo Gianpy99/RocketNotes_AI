@@ -154,8 +154,7 @@ class _NoteReaderState extends State<NoteReader>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Metadata
-                  if (widget.note.updatedAt != null ||
-                      widget.note.tags.isNotEmpty) ...[
+                  if (widget.note.tags.isNotEmpty) ...[
                     _MetadataSection(note: widget.note),
                     const SizedBox(height: 24),
                   ],

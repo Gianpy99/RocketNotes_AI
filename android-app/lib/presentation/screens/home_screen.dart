@@ -119,8 +119,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: currentMode == 'work'
-                        ? [AppColors.workBlue, AppColors.workBlue.withOpacity(0.8)]
-                        : [AppColors.personalGreen, AppColors.personalGreen.withOpacity(0.8)],
+                        ? [AppColors.workBlue, AppColors.workBlue.withValues(alpha: 0.8)]
+                        : [AppColors.personalGreen, AppColors.personalGreen.withValues(alpha: 0.8)],
                   ),
                 ),
                 child: const Center(
@@ -159,8 +159,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: currentMode == 'work'
-                          ? AppColors.workBlue.withOpacity(0.1)
-                          : AppColors.personalGreen.withOpacity(0.1),
+                          ? AppColors.workBlue.withValues(alpha: 0.1)
+                          : AppColors.personalGreen.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: currentMode == 'work'

@@ -2,6 +2,7 @@
 // lib/data/services/notification_service.dart
 // ==========================================
 import '../models/note_model.dart';
+import 'package:flutter/foundation.dart';
 
 class NotificationService {
   static const String channelId = 'rocketnotes_reminders';
@@ -15,7 +16,7 @@ class NotificationService {
       // This would require adding flutter_local_notifications dependency
       return true;
     } catch (e) {
-      print('Error initializing notifications: $e');
+      debugPrint('Error initializing notifications: $e');
       return false;
     }
   }
@@ -26,7 +27,7 @@ class NotificationService {
       // TODO: Request notification permissions
       return true;
     } catch (e) {
-      print('Error requesting notification permissions: $e');
+      debugPrint('Error requesting notification permissions: $e');
       return false;
     }
   }
@@ -40,10 +41,10 @@ class NotificationService {
       if (scheduledDate.isBefore(DateTime.now())) return;
 
       // TODO: Schedule notification using flutter_local_notifications
-      print('Scheduling reminder for note: ${note.title} at $scheduledDate');
+      debugPrint('Scheduling reminder for note: ${note.title} at $scheduledDate');
       
     } catch (e) {
-      print('Error scheduling reminder: $e');
+      debugPrint('Error scheduling reminder: $e');
     }
   }
 
@@ -51,9 +52,9 @@ class NotificationService {
   Future<void> cancelReminder(String noteId) async {
     try {
       // TODO: Cancel scheduled notification
-      print('Cancelling reminder for note: $noteId');
+      debugPrint('Cancelling reminder for note: $noteId');
     } catch (e) {
-      print('Error cancelling reminder: $e');
+      debugPrint('Error cancelling reminder: $e');
     }
   }
 
@@ -65,9 +66,9 @@ class NotificationService {
   }) async {
     try {
       // TODO: Show immediate notification
-      print('Showing notification: $title - $body');
+      debugPrint('Showing notification: $title - $body');
     } catch (e) {
-      print('Error showing notification: $e');
+      debugPrint('Error showing notification: $e');
     }
   }
 
@@ -77,7 +78,7 @@ class NotificationService {
       // TODO: Get list of pending notifications
       return [];
     } catch (e) {
-      print('Error getting pending notifications: $e');
+      debugPrint('Error getting pending notifications: $e');
       return [];
     }
   }
@@ -86,9 +87,9 @@ class NotificationService {
   Future<void> cancelAllNotifications() async {
     try {
       // TODO: Cancel all notifications
-      print('Cancelling all notifications');
+      debugPrint('Cancelling all notifications');
     } catch (e) {
-      print('Error cancelling all notifications: $e');
+      debugPrint('Error cancelling all notifications: $e');
     }
   }
 }

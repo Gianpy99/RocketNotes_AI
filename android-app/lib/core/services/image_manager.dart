@@ -70,7 +70,7 @@ class ImageManager {
           path: photo.path,
           name: fileName,
           size: fileSize,
-          extension: extension ?? 'jpg',
+          extension: extension,
           bytes: bytes,
         );
       } else {
