@@ -4,8 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_constants.dart';
-import '../../../providers/app_providers.dart';
+import '../../../presentation/providers/app_providers.dart';
 import '../../widgets/common/gradient_background.dart';
 import '../../widgets/settings/setting_section.dart';
 import '../../widgets/settings/setting_tile.dart';
@@ -20,7 +19,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   PackageInfo? _packageInfo;
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -360,8 +358,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _updateSetting(String key, dynamic value) async {
     try {
-      setState(() => _isLoading = true);
-      
       final settingsRepo = ref.read(settingsRepositoryProvider);
       await settingsRepo.updateSetting(key, value);
       
@@ -377,10 +373,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             backgroundColor: AppColors.error,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
       }
     }
   }
@@ -551,18 +543,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     try {
       // TODO: Implement data export
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Data export coming soon!'),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Data export coming soon!'),
+          ),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Export failed: ${e.toString()}'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export failed: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 
@@ -581,19 +577,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     try {
       // TODO: Implement cache clearing
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cache cleared successfully'),
-          backgroundColor: AppColors.success,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cache cleared successfully'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to clear cache: ${e.toString()}'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to clear cache: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 
@@ -616,19 +616,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       await settingsRepo.resetToDefaults();
       ref.invalidate(appSettingsProvider);
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Settings reset to defaults'),
-          backgroundColor: AppColors.success,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Settings reset to defaults'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to reset settings: ${e.toString()}'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to reset settings: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 

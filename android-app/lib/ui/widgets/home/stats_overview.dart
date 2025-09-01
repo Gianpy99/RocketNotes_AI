@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../providers/app_providers.dart';
+import '../../../presentation/providers/app_providers.dart';
 
 class StatsOverview extends ConsumerWidget {
   const StatsOverview({super.key});

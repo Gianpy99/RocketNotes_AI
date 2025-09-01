@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../providers/app_providers.dart';
+import '../../../presentation/providers/app_providers.dart';
 import '../../widgets/common/gradient_background.dart';
 import '../../widgets/home/note_grid.dart';
 import '../../widgets/home/quick_actions.dart';
@@ -51,7 +51,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     _refreshController.forward();
     
     try {
-      await ref.read(notesProvider.notifier).refreshNotes();
+      await ref.read(notesProvider.notifier).loadNotes();
       await Future.delayed(const Duration(milliseconds: 500)); // Smooth UX
     } catch (e) {
       if (mounted) {
@@ -181,7 +181,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                   : AppColors.textPrimaryLight,
                               ),
                             ),
-                            if (!searchQuery.isEmpty)
+                            if (searchQuery.isNotEmpty)
                               TextButton(
                                 onPressed: () {
                                   ref.read(searchQueryProvider.notifier).state = '';
@@ -264,7 +264,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               size: 80,
               color: (isDarkMode 
                 ? AppColors.textSecondaryDark 
-                : AppColors.textSecondaryLight).withOpacity(0.5),
+                : AppColors.textSecondaryLight).withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -394,12 +394,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void _handleNfcScan() async {
     try {
       final nfcService = ref.read(nfcServiceProvider);
-      final result = await nfcService.startReading();
+      final result = await nfcService.readNfcTag();
       
-      if (result != null && mounted) {
+      if (result.success && mounted) {
         Navigator.of(context).pushNamed(
           '/note-editor',
-          arguments: {'nfcData': result},
+          arguments: {'nfcData': result.data},
         );
       }
     } catch (e) {

@@ -5,9 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../data/models/note_model.dart';
-import '../../../providers/app_providers.dart';
+import '../../../presentation/providers/app_providers.dart';
 import '../../widgets/common/gradient_background.dart';
 import '../../widgets/note_editor/editor_toolbar.dart';
 import '../../widgets/note_editor/tag_input.dart';
@@ -109,20 +108,13 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
           _originalNote = note;
           _titleController.text = note.title;
           
-          // Handle content loading
-          if (note.contentJson.isNotEmpty) {
-            try {
-              _contentController.document = quill.Document.fromJson(note.contentJson);
-            } catch (e) {
-              // Fallback to plain text if JSON parsing fails
-              _contentController.document = quill.Document.fromJson([
-                {'insert': note.content + '\n'}
-              ]);
-            }
-          } else {
+          // Handle content loading - use plain text content
+          if (note.content.isNotEmpty) {
             _contentController.document = quill.Document.fromJson([
-              {'insert': note.content + '\n'}
+              {'insert': '${note.content}\n'}
             ]);
+          } else {
+            _contentController.document = quill.Document();
           }
           
           _tags = List.from(note.tags);

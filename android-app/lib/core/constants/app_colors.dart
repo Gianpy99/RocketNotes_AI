@@ -21,6 +21,20 @@ class AppColors {
   static const Color textSecondary = Color(0xFF757575);
   static const Color textHint = Color(0xFF9E9E9E);
   
+  // Dark/Light theme specific colors
+  static const Color textPrimaryDark = Color(0xFFFFFFFF);
+  static const Color textPrimaryLight = Color(0xFF212121);
+  static const Color textSecondaryDark = Color(0xFFB0B0B0);
+  static const Color textSecondaryLight = Color(0xFF757575);
+  
+  // Surface colors
+  static const Color surfaceDark = Color(0xFF1E1E1E);
+  static const Color surfaceLight = Color(0xFFFFFFFF);
+  static const Color surface = Color(0xFFFFFFFF);
+  
+  // Primary color
+  static const Color primary = Color(0xFF2196F3);
+  
   // Status colors
   static const Color success = Color(0xFF4CAF50);
   static const Color warning = Color(0xFFFF9800);
@@ -41,5 +55,16 @@ class AppColors {
   static const List<Color> personalGradient = [
     Color(0xFF4CAF50),
     Color(0xFF81C784),
+  ];
+  
+  // Dark/Light gradients
+  static const List<Color> darkGradient = [
+    Color(0xFF1976D2),
+    Color(0xFF42A5F5),
+  ];
+  
+  static const List<Color> lightGradient = [
+    Color(0xFF2196F3),
+    Color(0xFF21CBF3),
   ];
 }

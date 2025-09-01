@@ -3,9 +3,9 @@
 // ==========================================
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../core/themes/app_theme.dart';
 import '../presentation/providers/app_providers_simple.dart';
+import '../presentation/providers/app_providers.dart' as complex_providers;
 import 'routes_simple.dart';
 
 class RocketNotesApp extends ConsumerStatefulWidget {
@@ -21,14 +21,14 @@ class _RocketNotesAppState extends ConsumerState<RocketNotesApp> {
     super.initState();
     // Initialize app
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(appInitializationProvider);
+      ref.read(complex_providers.appInitializationProvider);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
-    final initAsync = ref.watch(appInitializationProvider);
+    final initAsync = ref.watch(complex_providers.appInitializationProvider);
     
     return initAsync.when(
       loading: () => const MaterialApp(
@@ -63,7 +63,7 @@ class _RocketNotesAppState extends ConsumerState<RocketNotesApp> {
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
-                    ref.invalidate(appInitializationProvider);
+                    ref.invalidate(complex_providers.appInitializationProvider);
                   },
                   child: const Text('Retry'),
                 ),
@@ -83,8 +83,8 @@ class _RocketNotesAppState extends ConsumerState<RocketNotesApp> {
           // Global error boundary and loading overlay
           return Consumer(
             builder: (context, ref, _) {
-              final globalError = ref.watch(globalErrorProvider);
-              final isLoading = ref.watch(globalLoadingProvider);
+              final globalError = ref.watch(complex_providers.globalErrorProvider);
+              final isLoading = ref.watch(complex_providers.globalLoadingProvider);
               
               return Stack(
                 children: [
@@ -122,7 +122,7 @@ class _RocketNotesAppState extends ConsumerState<RocketNotesApp> {
                               ),
                               IconButton(
                                 onPressed: () {
-                                  ref.read(globalErrorProvider.notifier).state = null;
+                                  ref.read(complex_providers.globalErrorProvider.notifier).state = null;
                                 },
                                 icon: const Icon(Icons.close, color: Colors.white),
                               ),

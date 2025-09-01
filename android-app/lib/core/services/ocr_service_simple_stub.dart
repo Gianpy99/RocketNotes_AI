@@ -1,14 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-/// Classe stub per blocchi OCR
-class OCRBlock {
-  final String text;
-  final double confidence;
-  
-  OCRBlock(this.text, this.confidence);
-}
-
 /// Servizio OCR semplificato - STUB temporaneo
 /// TODO: Sostituire con implementazione completa quando si aggiunge google_mlkit_text_recognition
 class OCRService {
@@ -24,9 +16,9 @@ class OCRService {
       text: "OCR temporaneamente disabilitato.\nAggiungere google_mlkit_text_recognition al pubspec.yaml per abilitare l'estrazione testo.",
       confidence: 0.0,
       language: 'it',
-      blocks: [OCRBlock("Testo di esempio", 0.5)],
-      lines: ["OCR temporaneamente disabilitato"],
-      words: ["OCR", "temporaneamente", "disabilitato"],
+      blocks: [],
+      lines: [],
+      words: [],
       processingTime: const Duration(milliseconds: 500),
       imagePath: imagePath,
     );
@@ -43,12 +35,11 @@ class OCRResult {
   final String text;
   final double confidence;
   final String language;
-  final List<OCRBlock> blocks;
+  final List<String> blocks;
   final List<String> lines;
   final List<String> words;
   final Duration processingTime;
   final String imagePath;
-  final String? error;
 
   OCRResult({
     required this.text,
@@ -59,7 +50,6 @@ class OCRResult {
     required this.words,
     required this.processingTime,
     required this.imagePath,
-    this.error,
   });
 
   OCRResult.error(String errorMessage)
@@ -70,21 +60,8 @@ class OCRResult {
         lines = [],
         words = [],
         processingTime = Duration.zero,
-        imagePath = errorMessage,
-        error = errorMessage;
+        imagePath = errorMessage;
 
   bool get hasText => text.isNotEmpty;
   bool get isEmpty => text.isEmpty;
-  bool get isSuccess => error == null;
-  bool get hasError => error != null;
-  bool get isWebFallback => false; // Stub sempre false
-  
-  // Statistics stub
-  Map<String, dynamic> get statistics => {
-    'wordCount': words.length,
-    'lineCount': lines.length,
-    'blockCount': blocks.length,
-    'confidence': confidence,
-    'processingTime': processingTime.inMilliseconds,
-  };
 }

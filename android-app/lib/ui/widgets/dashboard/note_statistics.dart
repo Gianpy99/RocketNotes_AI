@@ -72,7 +72,7 @@ class NoteStatistics extends ConsumerWidget {
               _StatCard(
                 title: 'This Week',
                 value: stats.notesThisWeek.toString(),
-                icon: Icons.calendar_week_rounded,
+                icon: Icons.calendar_today, // Sostituisce calendar_week_rounded che non esiste
                 color: Colors.green,
               ),
               _StatCard(

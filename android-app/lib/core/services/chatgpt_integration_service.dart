@@ -110,49 +110,7 @@ class ChatGptIntegrationService {
     }
   }
 
-  /// Estrae suggerimenti dalla risposta
-  static List<String> _extractSuggestions(String response) {
-    // Logica semplice per estrarre suggerimenti
-    final suggestions = <String>[];
-    final lines = response.split('\n');
-    
-    for (var line in lines) {
-      if (line.toLowerCase().contains('suggerimento') || 
-          line.toLowerCase().contains('consiglio') ||
-          line.toLowerCase().contains('raccomandazione')) {
-        suggestions.add(line.trim());
-      }
-    }
-    
-    return suggestions.isEmpty ? ['Contenuto analizzato con successo'] : suggestions;
-  }
 
-  /// Estrae action items dalla risposta  
-  static List<String> _extractActionItems(String response) {
-    final actionItems = <String>[];
-    final lines = response.split('\n');
-    
-    for (var line in lines) {
-      if (line.toLowerCase().contains('azione') || 
-          line.toLowerCase().contains('compito') ||
-          line.toLowerCase().contains('todo') ||
-          line.startsWith('- ') ||
-          line.startsWith('• ')) {
-        actionItems.add(line.trim());
-      }
-    }
-    
-    return actionItems.isEmpty ? ['Rivedi il contenuto generato'] : actionItems;
-  }
-
-  /// Estrae riassunto dalla risposta
-  static String _extractSummary(String response) {
-    final lines = response.split('\n');
-    
-    // Prendi le prime 2-3 frasi come riassunto
-    final summary = lines.take(3).join(' ').trim();
-    return summary.isEmpty ? 'Contenuto processato da ChatGPT' : summary;
-  }
 
   /// Ottiene prompt specifico per modalità
   static String _getModePrompt(ChatGptMode mode, RocketbookTemplate template) {

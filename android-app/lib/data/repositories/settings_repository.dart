@@ -109,6 +109,50 @@ class SettingsRepository {
     }
   }
 
+  // Generic setting update method
+  Future<void> updateSetting(String key, dynamic value) async {
+    try {
+      final settings = await getSettings();
+      AppSettingsModel updatedSettings;
+      
+      switch (key) {
+        case 'defaultMode':
+          updatedSettings = settings.copyWith(defaultMode: value as String);
+          break;
+        case 'themeMode':
+          updatedSettings = settings.copyWith(themeMode: value as int);
+          break;
+        case 'enableNotifications':
+          updatedSettings = settings.copyWith(enableNotifications: value as bool);
+          break;
+        case 'enableNfc':
+          updatedSettings = settings.copyWith(enableNfc: value as bool);
+          break;
+        case 'autoBackup':
+          updatedSettings = settings.copyWith(autoBackup: value as bool);
+          break;
+        case 'enableAi':
+          updatedSettings = settings.copyWith(enableAi: value as bool);
+          break;
+        case 'fontSize':
+          updatedSettings = settings.copyWith(fontSize: value as double);
+          break;
+        case 'enableBiometric':
+          updatedSettings = settings.copyWith(enableBiometric: value as bool);
+          break;
+        case 'showStats':
+          updatedSettings = settings.copyWith(showStats: value as bool);
+          break;
+        default:
+          throw Exception('Unknown setting key: $key');
+      }
+      
+      await saveSettings(updatedSettings);
+    } catch (e) {
+      throw Exception('Failed to update setting $key: $e');
+    }
+  }
+
   // Reset to defaults
   Future<void> resetToDefaults() async {
     try {

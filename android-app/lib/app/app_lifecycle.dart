@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../presentation/providers/app_providers.dart';
 import '../data/services/deep_link_service.dart';
-import '../data/services/notification_service.dart';
+import 'routes.dart';
 
 class AppLifecycleManager extends ConsumerStatefulWidget {
   final Widget child;

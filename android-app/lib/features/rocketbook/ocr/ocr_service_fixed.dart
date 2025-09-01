@@ -240,8 +240,8 @@ Image path: $imagePath
       final data = rows.length > 1 ? rows.skip(1).toList() : <List<String>>[];
       
       return TableData(
-        headers: headers,
-        rows: data,
+        rows: [headers, ...data],
+        boundingBox: BoundingBox(left: 0, top: 0, width: 100, height: 100), // Default bounding box
         confidence: 0.7, // Basic confidence for table detection
       );
     } catch (e) {

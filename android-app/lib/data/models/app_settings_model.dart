@@ -40,6 +40,9 @@ class AppSettingsModel extends HiveObject {
   
   @HiveField(10)
   List<String> pinnedTags;
+  
+  @HiveField(11)
+  bool showStats;
 
   AppSettingsModel({
     this.defaultMode = 'work',
@@ -53,6 +56,7 @@ class AppSettingsModel extends HiveObject {
     this.fontSize = 14.0,
     this.enableBiometric = false,
     this.pinnedTags = const [],
+    this.showStats = true,
   });
 
   // Factory constructor with defaults
@@ -67,6 +71,7 @@ class AppSettingsModel extends HiveObject {
       fontSize: 14.0,
       enableBiometric: false,
       pinnedTags: [],
+      showStats: true,
     );
   }
 
@@ -83,6 +88,7 @@ class AppSettingsModel extends HiveObject {
     double? fontSize,
     bool? enableBiometric,
     List<String>? pinnedTags,
+    bool? showStats,
   }) {
     return AppSettingsModel(
       defaultMode: defaultMode ?? this.defaultMode,
@@ -96,6 +102,7 @@ class AppSettingsModel extends HiveObject {
       fontSize: fontSize ?? this.fontSize,
       enableBiometric: enableBiometric ?? this.enableBiometric,
       pinnedTags: pinnedTags ?? this.pinnedTags,
+      showStats: showStats ?? this.showStats,
     );
   }
 
@@ -111,6 +118,9 @@ class AppSettingsModel extends HiveObject {
     }
   }
 
+  // Alias for compatibility
+  bool get aiEnabled => enableAi;
+
   // JSON serialization
   Map<String, dynamic> toJson() {
     return {
@@ -125,6 +135,7 @@ class AppSettingsModel extends HiveObject {
       'fontSize': fontSize,
       'enableBiometric': enableBiometric,
       'pinnedTags': pinnedTags,
+      'showStats': showStats,
     };
   }
 
@@ -143,6 +154,7 @@ class AppSettingsModel extends HiveObject {
       fontSize: (json['fontSize'] as num?)?.toDouble() ?? 14.0,
       enableBiometric: json['enableBiometric'] as bool? ?? false,
       pinnedTags: List<String>.from(json['pinnedTags'] as List? ?? []),
+      showStats: json['showStats'] as bool? ?? true,
     );
   }
 }
