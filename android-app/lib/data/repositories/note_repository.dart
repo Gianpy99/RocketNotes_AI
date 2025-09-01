@@ -1,6 +1,7 @@
 // lib/data/repositories/note_repository.dart
 import 'package:hive/hive.dart';
 import '../models/note_model.dart';
+import '../../core/debug/debug_logger.dart';
 import '../../core/constants/app_constants.dart';
 
 class NoteRepository {
@@ -22,7 +23,26 @@ class NoteRepository {
   }
 
   Future<void> saveNote(NoteModel note) async {
-    await notesBox.put(note.id, note);
+    try {
+      DebugLogger().log('🔄 Repository: Saving note ${note.id} to Hive box...');
+      DebugLogger().log('📦 Box status: isOpen=${notesBox.isOpen}, length=${notesBox.length}');
+      
+      await notesBox.put(note.id, note);
+      
+      DebugLogger().log('✅ Repository: Note saved successfully. Box now has ${notesBox.length} notes.');
+      
+      // Verify the note was saved
+      final savedNote = notesBox.get(note.id);
+      if (savedNote != null) {
+        DebugLogger().log('🔍 Repository: Verification successful - note found in box');
+      } else {
+        DebugLogger().log('⚠️ Repository: Warning - note not found after save');
+      }
+    } catch (e, stackTrace) {
+      DebugLogger().log('❌ Repository: Error saving note: $e');
+      DebugLogger().log('Stack trace: $stackTrace');
+      rethrow;
+    }
   }
 
   Future<void> deleteNote(String id) async {

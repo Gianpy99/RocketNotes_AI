@@ -7,10 +7,10 @@ import 'package:photo_view/photo_view.dart';
 import 'camera_service.dart';
 import 'web_camera_service.dart';
 import '../ocr/ocr_service.dart';
-import '../ai_analysis/ai_service.dart';
 import '../models/scanned_content.dart';
 import '../../../data/models/note_model.dart';
 import '../../../presentation/providers/app_providers_simple.dart';
+import '../../../core/debug/debug_logger.dart';
 import 'package:uuid/uuid.dart';
 
 // Provider per il camera service (web o mobile)
@@ -594,26 +594,48 @@ class ImagePreviewScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(24),
             child: SafeArea(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close),
+                        label: const Text('Retake'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey[800],
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () => _processImage(context, ref),
+                        icon: const Icon(Icons.text_fields),
+                        label: const Text('OCR'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
                   ElevatedButton.icon(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close),
-                    label: const Text('Retake'),
+                    onPressed: () => _processImageDirectAI(context, ref),
+                    icon: const Icon(Icons.smart_toy),
+                    label: const Text('Direct AI Analysis (Skip OCR)'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[800],
+                      backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
+                      minimumSize: const Size(250, 45),
                     ),
                   ),
-                  ElevatedButton.icon(
-                    onPressed: () => _processImage(context, ref),
-                    icon: const Icon(Icons.check),
-                    label: const Text('Process'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      foregroundColor: Colors.white,
-                    ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Direct AI: Faster, analyzes image directly',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
@@ -643,20 +665,26 @@ class ImagePreviewScreen extends ConsumerWidget {
     );
 
     try {
+      DebugLogger().log('📷 Starting image processing...');
+      
       // Initialize and use OCR service
       final ocrService = OCRService.instance;
       await ocrService.initialize();
+      DebugLogger().log('📝 OCR Service initialized');
       
       // Process image with OCR
       final scannedContent = await ocrService.processImage(imagePath);
+      DebugLogger().log('📝 OCR processing complete. Text length: ${scannedContent.rawText.length}');
       
       if (scannedContent.rawText.isNotEmpty) {
-        // Initialize AI service for analysis
-        final aiService = AIService.instance;
+        // Get AI service from provider (already initialized)
+        final aiService = ref.read(aiServiceProvider);
+        DebugLogger().log('🤖 Using AI Service from provider');
         
-        // Analyze with AI (using mock mode by default)
+        // Analyze with AI
         final aiAnalysis = await aiService.analyzeContent(scannedContent);
         scannedContent.aiAnalysis = aiAnalysis;
+        DebugLogger().log('🤖 AI Analysis complete. Title: ${aiAnalysis.suggestedTitle}');
         
         // Navigate to results screen or save as note
         if (context.mounted) {
@@ -680,6 +708,60 @@ class ImagePreviewScreen extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error processing image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _processImageDirectAI(BuildContext context, WidgetRef ref) async {
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Analyzing image with AI...'),
+            Text('Skipping OCR for faster processing', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      DebugLogger().log('🤖 Starting Direct AI processing...');
+      
+      // Create ScannedContent without OCR processing
+      final scannedContent = ScannedContent.fromImage(imagePath);
+      scannedContent.rawText = '[Image sent directly to AI for analysis]';
+      scannedContent.status = ProcessingStatus.completed;
+      DebugLogger().log('📷 Scanned content created for direct AI analysis');
+      
+      // Initialize AI service for direct image analysis
+      final aiService = ref.read(aiServiceProvider);
+      DebugLogger().log('🤖 Using AI Service from provider for direct analysis');
+      
+      // Analyze image directly with AI
+      final aiAnalysis = await aiService.analyzeContent(scannedContent);
+      scannedContent.aiAnalysis = aiAnalysis;
+      DebugLogger().log('🤖 Direct AI Analysis complete. Title: ${aiAnalysis.suggestedTitle}');
+      
+      // Navigate to results screen
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        _showDirectAIResultsDialog(context, ref, scannedContent);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error analyzing image: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -736,8 +818,76 @@ class ImagePreviewScreen extends ConsumerWidget {
     );
   }
 
+  void _showDirectAIResultsDialog(BuildContext context, WidgetRef ref, ScannedContent scannedContent) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('🤖 AI Analysis Results'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (scannedContent.aiAnalysis?.suggestedTitle != null)
+                Text(
+                  'Title: ${scannedContent.aiAnalysis!.suggestedTitle}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              const SizedBox(height: 8),
+              const Text(
+                'AI analyzed this image directly (without OCR)',
+                style: TextStyle(fontSize: 12, color: Colors.blue, fontStyle: FontStyle.italic),
+              ),
+              const SizedBox(height: 12),
+              if (scannedContent.aiAnalysis?.summary != null) ...[
+                const Text('Analysis:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Container(
+                  constraints: const BoxConstraints(maxHeight: 200),
+                  child: SingleChildScrollView(
+                    child: Text(scannedContent.aiAnalysis!.summary),
+                  ),
+                ),
+              ] else ...[
+                const Text('No AI analysis available'),
+              ],
+              if (scannedContent.aiAnalysis != null && 
+                  scannedContent.aiAnalysis!.suggestedTags.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                const Text('Suggested Tags:', style: TextStyle(fontWeight: FontWeight.bold)),
+                Wrap(
+                  spacing: 4,
+                  children: scannedContent.aiAnalysis!.suggestedTags
+                      .map((tag) => Chip(label: Text(tag), materialTapTargetSize: MaterialTapTargetSize.shrinkWrap))
+                      .toList(),
+                ),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+            child: const Text('Discard'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              _saveAsNote(context, ref, scannedContent);
+            },
+            child: const Text('Save as Note'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _saveAsNote(BuildContext context, WidgetRef ref, ScannedContent scannedContent) async {
     try {
+      DebugLogger().log('🔄 Starting to save note...');
+      
       // Create a new note with the extracted content
       const uuid = Uuid();
       
@@ -746,6 +896,8 @@ class ImagePreviewScreen extends ConsumerWidget {
       if (!kIsWeb || !scannedContent.imagePath.startsWith('web://')) {
         attachments = [scannedContent.imagePath];
       }
+      
+      DebugLogger().log('📄 Creating note with content: ${scannedContent.rawText.substring(0, scannedContent.rawText.length > 100 ? 100 : scannedContent.rawText.length)}...');
       
       final note = NoteModel(
         id: uuid.v4(),
@@ -761,9 +913,13 @@ class ImagePreviewScreen extends ConsumerWidget {
         priority: 1, // medium priority
       );
 
+      DebugLogger().log('💾 Attempting to save note with ID: ${note.id}');
+      
       // Save the note using the notesProvider
       final notesNotifier = ref.read(notesProvider.notifier);
-      await notesNotifier.addNote(note);
+      await notesNotifier.saveNote(note);
+      
+      DebugLogger().log('✅ Note saved successfully!');
       
       Navigator.of(context).pop(); // Close dialog
       Navigator.of(context).popUntil((route) => route.isFirst);
@@ -774,7 +930,10 @@ class ImagePreviewScreen extends ConsumerWidget {
           backgroundColor: Colors.green,
         ),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      DebugLogger().log('❌ Error saving note: $e');
+      DebugLogger().log('Stack trace: $stackTrace');
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error saving note: $e'),

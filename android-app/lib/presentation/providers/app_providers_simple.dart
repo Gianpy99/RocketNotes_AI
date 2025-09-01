@@ -4,6 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/note_model.dart';
 import '../../data/repositories/note_repository.dart';
+import '../../core/debug/debug_logger.dart';
+import '../../features/rocketbook/ai_analysis/ai_service.dart';
+
+// AI Service Provider
+final aiServiceProvider = Provider<AIService>((ref) {
+  final service = AIService.instance;
+  // Initialize with default configuration
+  service.initialize();
+  return service;
+});
 
 // Note Repository Provider
 final noteRepositoryProvider = Provider<NoteRepository>((ref) {
@@ -48,9 +58,14 @@ class NotesNotifier extends StateNotifier<AsyncValue<List<NoteModel>>> {
 
   Future<void> saveNote(NoteModel note) async {
     try {
+      DebugLogger().log('🔄 NotesNotifier: Starting to save note ${note.id}...');
       await _repository.saveNote(note);
+      DebugLogger().log('💾 NotesNotifier: Note saved to repository, reloading notes...');
       await loadNotes(); // Reload after saving
+      DebugLogger().log('✅ NotesNotifier: Save operation completed successfully');
     } catch (error, stackTrace) {
+      DebugLogger().log('❌ NotesNotifier: Error saving note: $error');
+      DebugLogger().log('Stack trace: $stackTrace');
       state = AsyncValue.error(error, stackTrace);
     }
   }

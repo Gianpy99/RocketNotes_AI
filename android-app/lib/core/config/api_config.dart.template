@@ -1,0 +1,70 @@
+// lib/core/config/api_config.dart
+import '../../../features/rocketbook/ai_analysis/ai_service.dart';
+
+/// API Configuration for RocketNotes AI
+/// 
+/// This file contains the configuration for external AI services.
+/// To enable real AI functionality, replace the placeholder values in developmentKeys
+/// with your actual API keys.
+/// 
+/// IMPORTANT: This is a template file!
+/// 1. Copy this file to api_config.dart
+/// 2. Replace the placeholder values with your real API keys
+/// 3. Never commit the real api_config.dart file!
+
+class ApiConfig {
+  // OpenAI Configuration - checks environment variables first
+  static const String openAIApiKey = String.fromEnvironment(
+    'OPENAI_API_KEY',
+    defaultValue: '', // Leave empty for security - will use developmentKeys if available
+  );
+  
+  // Gemini Configuration - checks environment variables first
+  static const String geminiApiKey = String.fromEnvironment(
+    'GEMINI_API_KEY',
+    defaultValue: '', // Leave empty for security - will use developmentKeys if available
+  );
+  
+  // Development/testing keys - REPLACE WITH YOUR ACTUAL KEYS FOR TESTING
+  // For production, use environment variables or secure key management
+  static const Map<String, String> developmentKeys = {
+    'openai': 'your-openai-api-key-here',  // Get from: https://platform.openai.com/api-keys
+    'gemini': 'your-gemini-api-key-here',  // Get from: https://ai.google.dev/
+  };
+  
+  // Get the actual API key to use (environment variable or development key)
+  static String get actualOpenAIKey {
+    if (openAIApiKey.isNotEmpty) return openAIApiKey;
+    final devKey = developmentKeys['openai'] ?? '';
+    return (devKey != 'your-openai-api-key-here') ? devKey : '';
+  }
+  
+  static String get actualGeminiKey {
+    if (geminiApiKey.isNotEmpty) return geminiApiKey;
+    final devKey = developmentKeys['gemini'] ?? '';
+    return (devKey != 'your-gemini-api-key-here') ? devKey : '';
+  }
+  
+  // Check if real API keys are available
+  static bool get hasOpenAIKey => 
+      actualOpenAIKey.isNotEmpty && actualOpenAIKey.startsWith('sk-');
+  static bool get hasGeminiKey => 
+      actualGeminiKey.isNotEmpty && actualGeminiKey != 'your-gemini-api-key-here';
+  static bool get hasAnyAPIKey => hasOpenAIKey || hasGeminiKey;
+  
+  // Get preferred AI provider based on available keys
+  static AIProvider get preferredProvider {
+    if (hasOpenAIKey) return AIProvider.openAI;
+    if (hasGeminiKey) return AIProvider.gemini;
+    return AIProvider.mockAI;
+  }
+  
+  // Configuration status for debugging
+  static Map<String, dynamic> get configStatus => {
+    'has_openai_key': hasOpenAIKey,
+    'has_gemini_key': hasGeminiKey,
+    'has_any_key': hasAnyAPIKey,
+    'preferred_provider': preferredProvider.toString(),
+    'enhanced_simulation': !hasAnyAPIKey,
+  };
+}

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/debug/debug_logger.dart';
 import '../../data/services/nfc_service.dart';
 import '../../data/services/deep_link_service.dart';
 import '../../features/rocketbook/camera/camera_screen.dart';
@@ -101,22 +102,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final currentMode = ref.watch(appModeProvider);
     final recentNotes = ref.watch(recentNotesProvider(7)); // Get notes from last 7 days
 
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 200,
-            floating: false,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: const Text(
-                'RocketNotes AI',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
+    return Stack(
+      children: [
+        Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 200,
+                floating: false,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  title: const Text(
+                    'RocketNotes AI',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: currentMode == 'work'
                         ? [AppColors.workBlue, AppColors.workBlue.withValues(alpha: 0.8)]
@@ -387,7 +390,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         tooltip: 'Open Camera',
         child: const Icon(Icons.camera_alt, color: Colors.white),
       ),
-    );
+    ),
+    // Debug button overlay
+    const DebugFloatingButton(),
+  ],
+);
   }
 
   String _formatDate(DateTime date) {
