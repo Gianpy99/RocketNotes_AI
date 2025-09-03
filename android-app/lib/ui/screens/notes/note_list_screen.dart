@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/note_model.dart';
 import '../../../presentation/providers/app_providers.dart';
@@ -647,11 +649,63 @@ class _NoteListScreenState extends ConsumerState<NoteListScreen>
     );
   }
 
-  void _shareNote(Note note) {
-    // TODO: Implement note sharing
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Note sharing coming soon!')),
-    );
+  void _shareNote(Note note) async {
+    try {
+      // Prepare the note content for sharing
+      final title = note.title.isEmpty ? 'Nota senza titolo' : note.title;
+      final content = note.content.trim();
+      final tags = note.tags.isNotEmpty
+          ? '\n\n🏷️ Tag: ${note.tags.join(', ')}'
+          : '';
+
+      // Add metadata
+      var metadata = '\n\n📅 Creato: ${_formatDate(note.createdAt)}';
+      if (note.attachments.isNotEmpty) {
+        metadata += '\n📎 Allegati: ${note.attachments.length} file/i';
+      }
+
+      final shareText = '$title\n\n$content$tags$metadata';
+
+      // Share the note
+      // ignore: deprecated_member_use
+      await Share.share(shareText, subject: title);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Nota condivisa con successo!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Errore nella condivisione: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      if (difference.inHours == 0) {
+        return '${difference.inMinutes}m fa';
+      }
+      return '${difference.inHours}h fa';
+    } else if (difference.inDays == 1) {
+      return 'Ieri';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}g fa';
+    } else {
+      return DateFormat('dd/MM/yyyy').format(date);
+    }
   }
 
   void _duplicateNote(Note note) {

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/services/image_manager.dart';
 import '../widgets/ocr_widget.dart';
 import '../widgets/rocketbook_analyzer_widget.dart';
+import '../data/models/note_model.dart';
+import '../main_simple.dart';
 
 /// Screen principale per la cattura e analisi delle immagini
 class QuickCaptureScreen extends ConsumerStatefulWidget {
@@ -20,6 +22,8 @@ class QuickCaptureScreen extends ConsumerStatefulWidget {
 class _QuickCaptureScreenState extends ConsumerState<QuickCaptureScreen> {
   String? _capturedImagePath;
   bool _isProcessing = false;
+  String? _extractedText;
+  String? _aiAnalysis;
 
   @override
   Widget build(BuildContext context) {
@@ -148,6 +152,9 @@ class _QuickCaptureScreenState extends ConsumerState<QuickCaptureScreen> {
             autoExtract: true,
             onOCRComplete: (result) {
               debugPrint('OCR completato: ${result.rawText.length} caratteri');
+              setState(() {
+                _extractedText = result.rawText;
+              });
             },
           ),
           
@@ -158,8 +165,38 @@ class _QuickCaptureScreenState extends ConsumerState<QuickCaptureScreen> {
             imagePath: _capturedImagePath!,
             onAnalysisGenerated: (request) {
               debugPrint('Analisi generata per template: ${request.template.name}');
+              setState(() {
+                _aiAnalysis = request.prompt;
+              });
             },
           ),
+          
+          const SizedBox(height: 16),
+          
+          // Status indicators
+          if (_extractedText != null || _aiAnalysis != null)
+            Card(
+              color: Colors.blue.shade50,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _extractedText != null && _aiAnalysis != null
+                            ? 'OCR e analisi AI completati'
+                            : _extractedText != null
+                                ? 'Testo estratto dall\'immagine'
+                                : 'Analisi AI completata',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           
           const SizedBox(height: 16),
           
@@ -168,9 +205,15 @@ class _QuickCaptureScreenState extends ConsumerState<QuickCaptureScreen> {
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: _saveToNote,
-                  icon: const Icon(Icons.save),
-                  label: const Text('Salva come Nota'),
+                  onPressed: _isProcessing ? null : _saveToNote,
+                  icon: _isProcessing
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.save),
+                  label: Text(_isProcessing ? 'Salvataggio...' : 'Salva come Nota'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
@@ -180,7 +223,7 @@ class _QuickCaptureScreenState extends ConsumerState<QuickCaptureScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: _captureNew,
+                  onPressed: _isProcessing ? null : _captureNew,
                   icon: const Icon(Icons.refresh),
                   label: const Text('Nuova Foto'),
                 ),
@@ -236,20 +279,91 @@ class _QuickCaptureScreenState extends ConsumerState<QuickCaptureScreen> {
     }
   }
 
-  void _saveToNote() {
-    // TODO: Implementare salvataggio come nota
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('💾 Funzionalità in sviluppo - Salvataggio note'),
-        backgroundColor: Colors.orange,
-      ),
-    );
+  void _saveToNote() async {
+    if (_capturedImagePath == null) {
+      _showError('Nessuna immagine catturata');
+      return;
+    }
+
+    setState(() => _isProcessing = true);
+
+    try {
+      // Genera un titolo basato sul contenuto estratto
+      String title = '📷 Nota da immagine';
+      if (_extractedText != null && _extractedText!.isNotEmpty) {
+        // Usa le prime parole del testo estratto come titolo
+        final words = _extractedText!.trim().split(' ');
+        if (words.isNotEmpty) {
+          title = words.take(5).join(' ');
+          if (title.length > 30) {
+            title = '${title.substring(0, 27)}...';
+          }
+        }
+      }
+
+      // Costruisci il contenuto della nota
+      String content = '';
+
+      // Aggiungi il testo estratto dall'OCR
+      if (_extractedText != null && _extractedText!.isNotEmpty) {
+        content += '📝 Testo estratto:\n$_extractedText\n\n';
+      }
+
+      // Aggiungi l'analisi AI se disponibile
+      if (_aiAnalysis != null && _aiAnalysis!.isNotEmpty) {
+        content += '🤖 Analisi AI:\n$_aiAnalysis\n\n';
+      }
+
+      // Aggiungi un riferimento all'immagine
+      content += '🖼️ Immagine allegata: $_capturedImagePath';
+
+      // Crea la nota
+      final note = NoteModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        title: title,
+        content: content,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        tags: ['quick-capture', 'image', if (_extractedText != null) 'ocr'],
+        mode: 'personal', // Default mode
+        attachments: [_capturedImagePath!],
+        isFavorite: false,
+        priority: 0,
+      );
+
+      // Salva la nota usando il provider
+      final notesNotifier = ref.read(notesProvider.notifier);
+      await notesNotifier.addNote(note);
+
+      setState(() => _isProcessing = false);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Nota salvata con successo!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Torna alla schermata precedente dopo un breve delay
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
+        });
+      }
+    } catch (e) {
+      setState(() => _isProcessing = false);
+      _showError('Errore nel salvare la nota: $e');
+    }
   }
 
   void _captureNew() {
     setState(() {
       _capturedImagePath = null;
       _isProcessing = false;
+      _extractedText = null;
+      _aiAnalysis = null;
     });
   }
 
