@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import '../data/models/note_model.dart';
 import '../main_simple.dart';
 import '../core/utils/web_image_handler.dart';
@@ -13,6 +14,7 @@ import '../widgets/ocr_widget.dart';
 import '../core/services/rocketbook_template_service.dart';
 import '../core/services/image_template_recognition.dart';
 import '../features/rocketbook/models/scanned_content.dart';
+import '../ui/widgets/note_editor/tag_input.dart';
 
 class NoteEditorScreen extends ConsumerStatefulWidget {
   final NoteModel? note;
@@ -26,7 +28,7 @@ class NoteEditorScreen extends ConsumerStatefulWidget {
 class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
   late TextEditingController _titleController;
   late TextEditingController _contentController;
-  late TextEditingController _tagsController;
+  List<String> _tags = [];
   String _selectedMode = 'personal';
   bool _isEditing = false;
   List<String> _attachments = [];
@@ -36,9 +38,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
     super.initState();
     _titleController = TextEditingController(text: widget.note?.title ?? '');
     _contentController = TextEditingController(text: widget.note?.content ?? '');
-    _tagsController = TextEditingController(
-      text: widget.note?.tags.join(', ') ?? '',
-    );
+    _tags = List.from(widget.note?.tags ?? []);
     _selectedMode = widget.note?.mode ?? 'personal';
     _isEditing = widget.note != null;
     _attachments = List.from(widget.note?.attachments ?? []);
@@ -48,7 +48,6 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
   void dispose() {
     _titleController.dispose();
     _contentController.dispose();
-    _tagsController.dispose();
     super.dispose();
   }
 
@@ -69,11 +68,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
       content: _contentController.text.trim(),
       createdAt: widget.note?.createdAt ?? DateTime.now(),
       updatedAt: DateTime.now(),
-      tags: _tagsController.text
-          .split(',')
-          .map((tag) => tag.trim())
-          .where((tag) => tag.isNotEmpty)
-          .toList(),
+      tags: _tags,
       mode: _selectedMode,
       attachments: _attachments,
       isFavorite: widget.note?.isFavorite ?? false,
@@ -159,6 +154,33 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
             ),
           );
         }
+      }
+    }
+  }
+
+  /// Condivide la nota corrente
+  Future<void> _shareNote() async {
+    final title = _titleController.text.trim().isEmpty
+        ? 'Nota senza titolo'
+        : _titleController.text.trim();
+    final content = _contentController.text.trim();
+    final tags = _tags.isNotEmpty
+        ? '\n\nTag: ${_tags.join(', ')}'
+        : '';
+
+    final shareText = '$title\n\n$content$tags';
+
+    try {
+      // ignore: deprecated_member_use
+      await Share.share(shareText, subject: title);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Errore nella condivisione: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -813,14 +835,49 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
       appBar: AppBar(
         title: Text(_isEditing ? 'Modifica Nota' : 'Nuova Nota'),
         actions: [
-          if (_isEditing)
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: _deleteNote,
-            ),
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _saveNote,
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              switch (value) {
+                case 'save':
+                  _saveNote();
+                  break;
+                case 'share':
+                  _shareNote();
+                  break;
+                case 'delete':
+                  if (_isEditing) {
+                    _deleteNote();
+                  }
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'save',
+                child: ListTile(
+                  leading: Icon(Icons.save),
+                  title: Text('Salva'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'share',
+                child: ListTile(
+                  leading: Icon(Icons.share),
+                  title: Text('Condividi'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              if (_isEditing)
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: ListTile(
+                    leading: Icon(Icons.delete, color: Colors.red),
+                    title: Text('Elimina', style: TextStyle(color: Colors.red)),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+            ],
           ),
         ],
       ),
@@ -901,14 +958,14 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
             const SizedBox(height: 16),
 
             // Campo Tag
-            TextField(
-              controller: _tagsController,
-              decoration: const InputDecoration(
-                labelText: 'Tag (separati da virgola)',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.tag),
-                hintText: 'casa, lavoro, importante',
-              ),
+            TagInput(
+              tags: _tags,
+              onTagsChanged: (newTags) {
+                setState(() {
+                  _tags = newTags;
+                });
+              },
+              noteContent: _contentController.text,
             ),
             const SizedBox(height: 16),
 
