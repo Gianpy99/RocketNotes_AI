@@ -65,6 +65,10 @@ dependencies:
   # Voice Recording
   record: ^5.1.0
   
+  # Notifications
+  flutter_local_notifications: ^17.2.2
+  timezone: ^0.9.3
+  
   # Path utilities
   path: ^1.8.3
 
