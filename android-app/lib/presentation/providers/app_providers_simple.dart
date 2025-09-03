@@ -6,6 +6,8 @@ import '../../data/models/note_model.dart';
 import '../../data/repositories/note_repository.dart';
 import '../../core/debug/debug_logger.dart';
 import '../../features/rocketbook/ai_analysis/ai_service.dart';
+import '../../features/rocketbook/ocr/ocr_service_real.dart';
+import '../../core/services/openai_service.dart';
 
 // AI Service Provider
 final aiServiceProvider = Provider<AIService>((ref) {
@@ -13,6 +15,19 @@ final aiServiceProvider = Provider<AIService>((ref) {
   // Initialize with default configuration
   service.initialize();
   return service;
+});
+
+// OCR Service Provider
+final ocrServiceProvider = Provider<OCRService>((ref) {
+  final service = OCRService.instance;
+  // Initialize OCR service
+  service.initialize();
+  return service;
+});
+
+// OpenAI Service Provider
+final openAIServiceProvider = Provider<OpenAIService>((ref) {
+  return OpenAIService();
 });
 
 // Note Repository Provider

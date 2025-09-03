@@ -1,3 +1,8 @@
+// ==========================================
+// lib/main_simple.dart - SIMPLIFIED APP VERSION
+// WARNING: This is a standalone simplified version for testing
+// Use main.dart for the full-featured app
+// ==========================================
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -16,27 +21,26 @@ void main() async {
   try {
     // Initialize Hive
     await Hive.initFlutter();
-    
+
     // Register adapters
     if (!Hive.isAdapterRegistered(0)) {
       Hive.registerAdapter(NoteModelAdapter());
     }
 
-    // Open box safely (check if already open)
+    // Open boxes safely
     if (!Hive.isBoxOpen('notes')) {
       await Hive.openBox<NoteModel>('notes');
     }
-    
     if (!Hive.isBoxOpen('settings')) {
       await Hive.openBox<dynamic>('settings');
     }
-    
-    debugPrint('✅ Hive initialized successfully');
+
+    debugPrint('✅ Simple app: Hive initialized successfully');
   } catch (e) {
-    debugPrint('❌ Error initializing Hive: $e');
+    debugPrint('❌ Simple app: Error initializing Hive: $e');
   }
 
-  runApp(const ProviderScope(child: RocketNotesApp()));
+  runApp(const ProviderScope(child: SimpleRocketNotesApp()));
 }
 
 // Simple notes provider
@@ -93,13 +97,13 @@ class NotesNotifier extends StateNotifier<List<NoteModel>> {
   }
 }
 
-class RocketNotesApp extends StatelessWidget {
-  const RocketNotesApp({super.key});
+class SimpleRocketNotesApp extends StatelessWidget {
+  const SimpleRocketNotesApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'RocketNotes AI',
+      title: 'RocketNotes AI (Simple)',
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
         useMaterial3: true,
