@@ -1,8 +1,15 @@
 // lib/ui/widgets/settings/backup_settings.dart
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../data/models/note_model.dart';
 import '../../../screens/settings_screen.dart';
+import '../../../main_simple.dart';
 
 class BackupSettings extends ConsumerStatefulWidget {
   const BackupSettings({super.key});
@@ -23,8 +30,16 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
   }
 
   void _loadLastBackupDate() {
-    // TODO: Load from shared preferences or settings
-    // _lastBackup = ...;
+    // Load from shared preferences or settings
+    try {
+      final box = Hive.box('settings');
+      final lastBackupTimestamp = box.get('lastBackupDate');
+      if (lastBackupTimestamp != null) {
+        _lastBackup = DateTime.fromMillisecondsSinceEpoch(lastBackupTimestamp);
+      }
+    } catch (e) {
+      debugPrint('Error loading last backup date: $e');
+    }
   }
 
   Future<void> _performBackup() async {
@@ -33,13 +48,54 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
     });
 
     try {
-      // TODO: Implement backup logic
-      await Future.delayed(const Duration(seconds: 3)); // Simulate backup
-      
+      // Get all notes from Hive
+      final notesBox = Hive.box<NoteModel>('notes');
+      final notes = notesBox.values.cast<NoteModel>().toList();
+
+      // Create backup data
+      final backupData = {
+        'version': '1.0',
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+        'notes': notes.map((note) => {
+          'id': note.id,
+          'title': note.title,
+          'content': note.content,
+          'mode': note.mode,
+          'createdAt': note.createdAt.millisecondsSinceEpoch,
+          'updatedAt': note.updatedAt.millisecondsSinceEpoch,
+          'tags': note.tags,
+          'aiSummary': note.aiSummary,
+          'attachments': note.attachments,
+          'nfcTagId': note.nfcTagId,
+          'isFavorite': note.isFavorite,
+          'color': note.color,
+          'priority': note.priority,
+        }).toList(),
+      };
+
+      // Convert to JSON
+      final jsonString = jsonEncode(backupData);
+
+      // Get backup directory
+      final directory = await getApplicationDocumentsDirectory();
+      final backupDir = Directory('${directory.path}/backups');
+      if (!await backupDir.exists()) {
+        await backupDir.create(recursive: true);
+      }
+
+      // Create backup file
+      final timestamp = DateTime.now().toString().replaceAll(':', '-').replaceAll(' ', '_').split('.')[0];
+      final backupFile = File('${backupDir.path}/rocketnotes_backup_$timestamp.json');
+      await backupFile.writeAsString(jsonString);
+
+      // Save last backup date to settings
+      final settingsBox = Hive.box('settings');
+      await settingsBox.put('lastBackupDate', DateTime.now().millisecondsSinceEpoch);
+
       setState(() {
         _lastBackup = DateTime.now();
       });
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -96,9 +152,60 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
     });
 
     try {
-      // TODO: Implement restore logic
-      await Future.delayed(const Duration(seconds: 3)); // Simulate restore
-      
+      // Get backup directory
+      final directory = await getApplicationDocumentsDirectory();
+      final backupDir = Directory('${directory.path}/backups');
+
+      if (!await backupDir.exists()) {
+        throw Exception('No backup directory found');
+      }
+
+      // Get the most recent backup file
+      final backupFiles = await backupDir.list().toList();
+      final jsonFiles = backupFiles.whereType<File>()
+          .where((file) => file.path.endsWith('.json'))
+          .toList();
+
+      if (jsonFiles.isEmpty) {
+        throw Exception('No backup files found');
+      }
+
+      // Sort by modification time (most recent first)
+      jsonFiles.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+      final latestBackup = jsonFiles.first;
+
+      // Read backup file
+      final jsonString = await latestBackup.readAsString();
+      final backupData = jsonDecode(jsonString) as Map<String, dynamic>;
+
+      // Clear existing notes
+      final notesBox = Hive.box<NoteModel>('notes');
+      await notesBox.clear();
+
+      // Restore notes from backup
+      final notesData = backupData['notes'] as List<dynamic>;
+      for (final noteData in notesData) {
+        final note = NoteModel(
+          id: noteData['id'],
+          title: noteData['title'] ?? '',
+          content: noteData['content'] ?? '',
+          mode: noteData['mode'] ?? 'personal',
+          createdAt: DateTime.fromMillisecondsSinceEpoch(noteData['createdAt']),
+          updatedAt: DateTime.fromMillisecondsSinceEpoch(noteData['updatedAt']),
+          tags: List<String>.from(noteData['tags'] ?? []),
+          aiSummary: noteData['aiSummary'],
+          attachments: List<String>.from(noteData['attachments'] ?? []),
+          nfcTagId: noteData['nfcTagId'],
+          isFavorite: noteData['isFavorite'] ?? false,
+          color: noteData['color'],
+          priority: noteData['priority'] ?? 0,
+        );
+        await notesBox.put(note.id, note);
+      }
+
+      // Refresh the notes provider
+      ref.invalidate(notesProvider);
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -125,9 +232,51 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
 
   Future<void> _exportNotes() async {
     try {
-      // TODO: Implement export to JSON/CSV
-      await Future.delayed(const Duration(seconds: 2)); // Simulate export
-      
+      // Get all notes
+      final notesBox = Hive.box<NoteModel>('notes');
+      final notes = notesBox.values.cast<NoteModel>().toList();
+
+      // Create export data in JSON format
+      final exportData = {
+        'exportDate': DateTime.now().toIso8601String(),
+        'appVersion': '1.0.0',
+        'totalNotes': notes.length,
+        'notes': notes.map((note) => {
+          'id': note.id,
+          'title': note.title,
+          'content': note.content,
+          'mode': note.mode,
+          'createdAt': note.createdAt.toIso8601String(),
+          'updatedAt': note.updatedAt.toIso8601String(),
+          'tags': note.tags,
+          'aiSummary': note.aiSummary,
+          'attachments': note.attachments,
+          'nfcTagId': note.nfcTagId,
+          'isFavorite': note.isFavorite,
+          'color': note.color,
+          'priority': note.priority,
+        }).toList(),
+      };
+
+      // Convert to JSON string
+      final jsonString = jsonEncode(exportData);
+
+      // Get temporary directory for export file
+      final directory = await getTemporaryDirectory();
+      final timestamp = DateTime.now().toString().replaceAll(':', '-').replaceAll(' ', '_').split('.')[0];
+      final exportFile = File('${directory.path}/rocketnotes_export_$timestamp.json');
+
+      // Write JSON to file
+      await exportFile.writeAsString(jsonString);
+
+      // Share the export file
+      // ignore: deprecated_member_use
+      await Share.shareXFiles(
+        [XFile(exportFile.path)],
+        subject: 'RocketNotes AI Export - $timestamp',
+        text: 'Exported ${notes.length} notes from RocketNotes AI',
+      );
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -418,7 +567,7 @@ class _StorageInfo extends StatelessWidget {
                 style: theme.textTheme.bodySmall,
               ),
               Text(
-                '2.4 MB', // TODO: Calculate actual size
+                _calculateNotesSize(),
                 style: theme.textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.w500,
                 ),
@@ -436,7 +585,7 @@ class _StorageInfo extends StatelessWidget {
                 style: theme.textTheme.bodySmall,
               ),
               Text(
-                '1.8 MB', // TODO: Calculate actual size
+                _calculateBackupSize(),
                 style: theme.textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.w500,
                 ),
@@ -446,5 +595,45 @@ class _StorageInfo extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _calculateNotesSize() {
+    try {
+      final notesBox = Hive.box<NoteModel>('notes');
+      final notes = notesBox.values.cast<NoteModel>().toList();
+      
+      // Calculate approximate size
+      int totalSize = 0;
+      for (final note in notes) {
+        // Rough estimation: title + content + metadata
+        totalSize += (note.title.length + note.content.length) * 2; // 2 bytes per character for UTF-16
+        totalSize += note.tags.join(',').length * 2;
+        totalSize += 200; // Metadata overhead per note
+      }
+      
+      return _formatBytes(totalSize);
+    } catch (e) {
+      return 'Unknown';
+    }
+  }
+
+  String _calculateBackupSize() {
+    try {
+      // For now, return a placeholder since we can't use async in build
+      // In a real implementation, this would be calculated asynchronously
+      return 'Calculating...';
+    } catch (e) {
+      return 'Unknown';
+    }
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes < 1024) {
+      return '$bytes B';
+    } else if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    } else {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
   }
 }
