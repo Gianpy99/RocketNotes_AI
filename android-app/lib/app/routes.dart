@@ -52,8 +52,10 @@ class AppRouter {
         name: 'editor',
         builder: (context, state) {
           final noteId = state.uri.queryParameters['id'];
+          final voiceNotePath = state.uri.queryParameters['voiceNotePath'];
           return NoteEditorScreen(
             noteId: noteId,
+            voiceNotePath: voiceNotePath,
           );
         },
       ),

@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../presentation/providers/app_providers.dart';
 import '../../widgets/common/gradient_background.dart';
@@ -10,6 +11,7 @@ import '../../widgets/home/quick_actions.dart';
 import '../../widgets/home/stats_overview.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/floating_action_menu.dart';
+import '../../widgets/voice_recording_dialog.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -384,10 +386,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     }
   }
 
-  void _navigateToNoteEditor([String? noteId]) {
-    Navigator.of(context).pushNamed(
-      '/note-editor',
-      arguments: noteId,
+  Future<void> _navigateToNoteEditor([String? noteId, String? voiceNotePath]) {
+    final queryParams = <String, String>{};
+    if (noteId != null) queryParams['id'] = noteId;
+    if (voiceNotePath != null) queryParams['voiceNotePath'] = voiceNotePath;
+
+    return context.pushNamed(
+      'editor',
+      queryParameters: queryParams,
     );
   }
 
@@ -414,13 +420,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     }
   }
 
-  void _handleVoiceNote() {
-    // TODO: Implement voice note functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Voice notes coming soon!'),
-      ),
-    );
+  void _handleVoiceNote() async {
+    try {
+      final result = await showDialog<String>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const VoiceRecordingDialog(),
+      );
+
+      if (result != null && mounted) {
+        // Navigate to note editor with the voice recording
+        await _navigateToNoteEditor(null, result);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Voice note failed: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   void _showBackupDialog() {

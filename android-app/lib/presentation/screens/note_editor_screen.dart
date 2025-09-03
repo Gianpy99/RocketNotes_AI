@@ -73,8 +73,13 @@ extension AIFeatureTypeExtension on AIFeatureType {
 
 class NoteEditorScreen extends ConsumerStatefulWidget {
   final String? noteId;
+  final String? voiceNotePath;
 
-  const NoteEditorScreen({super.key, this.noteId});
+  const NoteEditorScreen({
+    super.key,
+    this.noteId,
+    this.voiceNotePath,
+  });
 
   @override
   ConsumerState<NoteEditorScreen> createState() => _NoteEditorScreenState();
@@ -90,10 +95,12 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
   NoteModel? _currentNote;
   bool _isLoading = true;
   bool _hasUnsavedChanges = false;
+  String? _voiceNotePath;
 
   @override
   void initState() {
     super.initState();
+    _voiceNotePath = widget.voiceNotePath;
     _loadNote();
     _setupChangeListeners();
   }
@@ -129,6 +136,16 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
         });
         return;
       }
+    } else if (_voiceNotePath != null) {
+      // Handle voice note - create a new note with voice note content
+      setState(() {
+        _titleController.text = 'Voice Note - ${DateTime.now().toString().split(' ')[0]}';
+        _contentController.text = '[Voice recording attached]\n\n🎵 Voice Note: $_voiceNotePath\n\nTranscribe or add notes here...';
+        _tags = ['voice-note'];
+        _isLoading = false;
+        _hasUnsavedChanges = true;
+      });
+      return;
     }
     
     setState(() {
