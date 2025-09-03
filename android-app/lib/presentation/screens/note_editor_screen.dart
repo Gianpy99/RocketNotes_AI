@@ -2,10 +2,74 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/constants/app_colors.dart';
+import '../../../core/services/openai_service.dart';
+import '../../core/themes/app_colors.dart';
 import '../../data/models/note_model.dart';
 import '../providers/app_providers.dart';
 import '../widgets/tag_input_field.dart';
+
+/// Enum per i tipi di funzionalità AI disponibili
+enum AIFeatureType {
+  improve,
+  summarize,
+  correctGrammar,
+  generateSuggestions,
+  generateTitle,
+  generateTags,
+}
+
+extension AIFeatureTypeExtension on AIFeatureType {
+  String get displayName {
+    switch (this) {
+      case AIFeatureType.improve:
+        return 'Migliora Testo';
+      case AIFeatureType.summarize:
+        return 'Riassumi';
+      case AIFeatureType.correctGrammar:
+        return 'Correggi Grammatica';
+      case AIFeatureType.generateSuggestions:
+        return 'Suggerimenti';
+      case AIFeatureType.generateTitle:
+        return 'Genera Titolo';
+      case AIFeatureType.generateTags:
+        return 'Genera Tag';
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case AIFeatureType.improve:
+        return 'Migliora la chiarezza e la struttura del testo';
+      case AIFeatureType.summarize:
+        return 'Crea un riassunto conciso del contenuto';
+      case AIFeatureType.correctGrammar:
+        return 'Correggi errori grammaticali e ortografici';
+      case AIFeatureType.generateSuggestions:
+        return 'Suggerisci modi per espandere il contenuto';
+      case AIFeatureType.generateTitle:
+        return 'Genera un titolo appropriato';
+      case AIFeatureType.generateTags:
+        return 'Crea tag automatici basati sul contenuto';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case AIFeatureType.improve:
+        return Icons.auto_fix_high;
+      case AIFeatureType.summarize:
+        return Icons.summarize;
+      case AIFeatureType.correctGrammar:
+        return Icons.spellcheck;
+      case AIFeatureType.generateSuggestions:
+        return Icons.lightbulb;
+      case AIFeatureType.generateTitle:
+        return Icons.title;
+      case AIFeatureType.generateTags:
+        return Icons.tag;
+    }
+  }
+}
 
 class NoteEditorScreen extends ConsumerStatefulWidget {
   final String? noteId;
@@ -250,7 +314,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppColors.accentOrange,
+                        color: AppColors.accent,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Text(
@@ -353,14 +417,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () {
-                              // TODO: Implement AI features
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('AI features coming soon!'),
-                                ),
-                              );
-                            },
+                            onPressed: _showAIFeaturesMenu,
                             icon: const Icon(Icons.auto_awesome),
                             label: const Text('AI Enhance'),
                           ),
@@ -523,5 +580,322 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
         ],
       ),
     );
+  }
+
+  void _showAIFeaturesMenu() {
+    if (OpenAIService.isApiKeyMissing()) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('API Key Required'),
+          content: const Text(
+            'To use AI features, you need to configure your OpenAI API key in Settings.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Navigate to settings - you might need to implement this navigation
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please go to Settings > AI to configure your API key'),
+                  ),
+                );
+              },
+              child: const Text('Go to Settings'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    final currentText = _contentController.text.trim();
+    if (currentText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter some text first'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(top: 12),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                'AI Enhancement Tools',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Choose an AI feature to enhance your note:',
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: AIFeatureType.values.map((feature) {
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      leading: Icon(feature.icon, color: AppColors.primary),
+                      title: Text(feature.displayName),
+                      subtitle: Text(feature.description),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () => _executeAIFeature(feature),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _executeAIFeature(AIFeatureType feature) async {
+    Navigator.of(context).pop(); // Close the menu
+
+    final currentText = _contentController.text.trim();
+    if (currentText.isEmpty) return;
+
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 16),
+            Text('Processing with AI...'),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      String result = '';
+      String resultTitle = '';
+
+      switch (feature) {
+        case AIFeatureType.improve:
+          final openAIService = OpenAIService();
+          final prompt = '''
+Migliora il seguente testo rendendolo più chiaro, professionale e ben strutturato.
+Mantieni il significato originale ma migliora la grammatica, la struttura e la leggibilità.
+Se il testo è in italiano, rispondi in italiano. Se è in inglese, rispondi in inglese.
+
+Testo originale:
+$currentText
+
+Testo migliorato:
+''';
+          result = await openAIService.generateText(prompt);
+          resultTitle = 'Improved Text';
+          break;
+        case AIFeatureType.summarize:
+          final openAIService = OpenAIService();
+          final prompt = '''
+Crea un riassunto conciso ma completo del seguente testo.
+Il riassunto dovrebbe catturare i punti principali e le idee chiave.
+Mantieni un tono professionale e usa un linguaggio chiaro.
+
+Testo da riassumere:
+$currentText
+
+Riassunto:
+''';
+          result = await openAIService.generateText(prompt);
+          resultTitle = 'Summary';
+          break;
+        case AIFeatureType.correctGrammar:
+          final openAIService = OpenAIService();
+          final prompt = '''
+Correggi la grammatica, l'ortografia e la punteggiatura del seguente testo.
+Mantieni il significato originale e lo stile di scrittura.
+Se il testo è in italiano, correggi secondo le regole grammaticali italiane.
+Se è in inglese, correggi secondo le regole grammaticali inglesi.
+
+Testo originale:
+$currentText
+
+Testo corretto:
+''';
+          result = await openAIService.generateText(prompt);
+          resultTitle = 'Corrected Text';
+          break;
+        case AIFeatureType.generateSuggestions:
+          final openAIService = OpenAIService();
+          final prompt = '''
+Analizza il seguente testo e fornisci suggerimenti concreti per espanderlo e migliorarlo.
+Suggerisci:
+1. Argomenti aggiuntivi da coprire
+2. Esempi o casi d'uso da aggiungere
+3. Domande che il testo dovrebbe rispondere
+4. Strutture o sezioni che potrebbero essere aggiunte
+
+Testo da analizzare:
+$currentText
+
+Suggerimenti:
+''';
+          result = await openAIService.generateText(prompt);
+          resultTitle = 'Suggestions';
+          break;
+        case AIFeatureType.generateTitle:
+          final openAIService = OpenAIService();
+          final prompt = '''
+Genera un titolo accattivante e descrittivo per il seguente testo.
+Il titolo dovrebbe essere conciso (max 10 parole) ma informativo.
+Se il testo è in italiano, genera un titolo in italiano.
+Se è in inglese, genera un titolo in inglese.
+
+Testo:
+$currentText
+
+Titolo:
+''';
+          result = (await openAIService.generateText(prompt)).trim();
+          resultTitle = 'Generated Title';
+          _titleController.text = result;
+          setState(() {
+            _hasUnsavedChanges = true;
+          });
+          if (mounted) {
+            Navigator.of(context).pop(); // Close loading dialog
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('✅ Title generated and applied!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+          return;
+        case AIFeatureType.generateTags:
+          final openAIService = OpenAIService();
+          final prompt = '''
+Analizza il seguente testo e genera 3-5 tag rilevanti che descrivano il contenuto principale.
+I tag dovrebbero essere parole chiave concise, separate da virgola.
+Se il testo è in italiano, usa tag in italiano.
+Se è in inglese, usa tag in inglese.
+
+Testo:
+$currentText
+
+Tag (separati da virgola):
+''';
+          final tagsString = await openAIService.generateText(prompt);
+          final tags = tagsString
+              .split(',')
+              .map((tag) => tag.trim())
+              .where((tag) => tag.isNotEmpty)
+              .toList();
+          resultTitle = 'Generated Tags';
+          result = tags.join(', ');
+          // Add tags to existing tags
+          final existingTags = Set<String>.from(_tags);
+          existingTags.addAll(tags);
+          setState(() {
+            _tags = existingTags.toList();
+            _hasUnsavedChanges = true;
+          });
+          if (mounted) {
+            Navigator.of(context).pop(); // Close loading dialog
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('✅ Tags generated and added!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+          return;
+      }
+
+      if (mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+
+        // Show result dialog
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(resultTitle),
+            content: SingleChildScrollView(
+              child: Text(result),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (feature == AIFeatureType.improve ||
+                      feature == AIFeatureType.correctGrammar) {
+                    _contentController.text = result;
+                  } else {
+                    // For summary and suggestions, append to existing content
+                    final currentContent = _contentController.text;
+                    _contentController.text = '$currentContent\n\n--- $resultTitle ---\n$result';
+                  }
+                  setState(() {
+                    _hasUnsavedChanges = true;
+                  });
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('✅ AI enhancement applied!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                },
+                child: const Text('Apply'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('AI processing failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
