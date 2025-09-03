@@ -23,10 +23,10 @@ class AdvancedImageViewer extends StatefulWidget {
   });
 
   @override
-  _AdvancedImageViewerState createState() => _AdvancedImageViewerState();
+  AdvancedImageViewerState createState() => AdvancedImageViewerState();
 }
 
-class _AdvancedImageViewerState extends State<AdvancedImageViewer> {
+class AdvancedImageViewerState extends State<AdvancedImageViewer> {
   BoxFit _currentFit = BoxFit.contain;
   bool _showInfo = false;
   
