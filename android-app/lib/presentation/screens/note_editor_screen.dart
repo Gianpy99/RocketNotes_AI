@@ -2,11 +2,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../core/services/openai_service.dart';
 import '../../core/themes/app_colors.dart';
 import '../../data/models/note_model.dart';
 import '../providers/app_providers.dart';
-import '../widgets/tag_input_field.dart';
+import '../../ui/widgets/note_editor/tag_input.dart';
 
 /// Enum per i tipi di funzionalità AI disponibili
 enum AIFeatureType {
@@ -197,6 +198,30 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
     }
   }
 
+  Future<void> _shareNote() async {
+    final title = _titleController.text.trim().isEmpty
+        ? 'Untitled Note'
+        : _titleController.text.trim();
+    final content = _contentController.text.trim();
+    final tags = _tags.isNotEmpty ? '\n\nTags: ${_tags.join(', ')}' : '';
+
+    final shareText = '$title\n\n$content$tags';
+
+    try {
+      // ignore: deprecated_member_use
+      await Share.share(shareText, subject: title);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to share note: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Future<bool> _onWillPop() async {
     if (!_hasUnsavedChanges) return true;
 
@@ -270,6 +295,9 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                   case 'save':
                     _saveNote();
                     break;
+                  case 'share':
+                    _shareNote();
+                    break;
                   case 'delete':
                     if (_currentNote != null) {
                       _showDeleteDialog();
@@ -283,6 +311,14 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                   child: ListTile(
                     leading: Icon(Icons.save),
                     title: Text('Save'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'share',
+                  child: ListTile(
+                    leading: Icon(Icons.share),
+                    title: Text('Share'),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
@@ -374,7 +410,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                     const SizedBox(height: 16),
                     
                     // Tags Input
-                    TagInputField(
+                    TagInput(
                       tags: _tags,
                       onTagsChanged: (newTags) {
                         setState(() {
@@ -382,6 +418,11 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                           _hasUnsavedChanges = true;
                         });
                       },
+                      noteContent: _contentController.text,
+                      recentTags: ref.watch(appSettingsProvider).maybeWhen(
+                        data: (settings) => settings.pinnedTags,
+                        orElse: () => [],
+                      ),
                     ),
                     
                     const SizedBox(height: 16),

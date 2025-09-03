@@ -69,6 +69,12 @@ dependencies:
   flutter_local_notifications: ^17.2.2
   timezone: ^0.9.3
   
+  # Encryption
+  encrypt: ^5.0.3
+  
+  # App Rating
+  in_app_review: ^2.0.9
+  
   # Path utilities
   path: ^1.8.3
 
