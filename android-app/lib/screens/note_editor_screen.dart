@@ -12,7 +12,7 @@ import '../widgets/rocketbook_analyzer_widget.dart';
 import '../widgets/ocr_widget.dart';
 import '../core/services/rocketbook_template_service.dart';
 import '../core/services/image_template_recognition.dart';
-import '../core/services/ocr_service.dart';
+import '../features/rocketbook/models/scanned_content.dart';
 
 class NoteEditorScreen extends ConsumerStatefulWidget {
   final NoteModel? note;
@@ -251,7 +251,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                   imagePath: imagePath,
                   autoExtract: true,
                   onOCRComplete: (result) {
-                    if (result.text.isNotEmpty) {
+                    if (result.rawText.isNotEmpty) {
                       _showOCRResultDialog(result);
                     }
                   },
@@ -274,7 +274,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
   }
 
   /// Mostra il risultato OCR e permette di aggiungere al contenuto
-  void _showOCRResultDialog(OCRResult result) {
+  void _showOCRResultDialog(ScannedContent result) {
     Navigator.of(context).pop(); // Chiudi il dialog OCR
     
     showDialog(
@@ -286,11 +286,11 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Confidenza: ${(result.confidence * 100).toStringAsFixed(1)}%',
+              'Confidenza: ${(result.ocrMetadata.overallConfidence * 100).toStringAsFixed(1)}%',
               style: TextStyle(
-                color: result.confidence > 0.8 
+                color: result.ocrMetadata.overallConfidence > 0.8 
                     ? Colors.green 
-                    : result.confidence > 0.6 
+                    : result.ocrMetadata.overallConfidence > 0.6 
                         ? Colors.orange 
                         : Colors.red,
                 fontWeight: FontWeight.bold,
@@ -306,7 +306,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
               padding: const EdgeInsets.all(12),
               child: SingleChildScrollView(
                 child: SelectableText(
-                  result.text,
+                  result.rawText,
                   style: const TextStyle(fontSize: 14),
                 ),
               ),
@@ -323,8 +323,8 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
               // Aggiungi il testo al contenuto della nota
               final currentText = _contentController.text;
               final newText = currentText.isEmpty 
-                  ? result.text 
-                  : '$currentText\n\n${result.text}';
+                  ? result.rawText 
+                  : '$currentText\n\n${result.rawText}';
               _contentController.text = newText;
               
               Navigator.of(context).pop();

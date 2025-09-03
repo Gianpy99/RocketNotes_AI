@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../core/services/ocr_service.dart';
+import '../features/rocketbook/ocr/ocr_service_real.dart';
+import '../features/rocketbook/models/scanned_content.dart';
 
 /// Widget per gestione OCR con UI intuitiva
 class OCRWidget extends StatefulWidget {
   final String imagePath;
-  final Function(OCRResult)? onOCRComplete;
+  final Function(ScannedContent)? onOCRComplete;
   final bool autoExtract;
 
   const OCRWidget({
@@ -20,7 +21,7 @@ class OCRWidget extends StatefulWidget {
 }
 
 class _OCRWidgetState extends State<OCRWidget> {
-  OCRResult? _ocrResult;
+  ScannedContent? _ocrResult;
   bool _isProcessing = false;
   bool _hasStarted = false;
 
@@ -41,13 +42,13 @@ class _OCRWidgetState extends State<OCRWidget> {
 
     try {
       debugPrint('🔍 OCR_WIDGET: Iniziando estrazione da: ${widget.imagePath}');
-      final result = await OCRService.extractTextFromImage(widget.imagePath);
-      debugPrint('🔍 OCR_WIDGET: Risultato - Success: ${result.isSuccess}');
-      if (result.isSuccess) {
-        final preview = result.text.length > 50 ? '${result.text.substring(0, 50)}...' : result.text;
+      final result = await OCRService.instance.processImage(widget.imagePath);
+      debugPrint('🔍 OCR_WIDGET: Risultato - Status: ${result.status}');
+      if (result.status == ProcessingStatus.completed) {
+        final preview = result.rawText.length > 50 ? '${result.rawText.substring(0, 50)}...' : result.rawText;
         debugPrint('🔍 OCR_WIDGET: Testo estratto: $preview');
       } else {
-        debugPrint('🔍 OCR_WIDGET: Errore: ${result.error}');
+        debugPrint('🔍 OCR_WIDGET: Status: ${result.status}');
       }
       
       setState(() {
@@ -57,15 +58,17 @@ class _OCRWidgetState extends State<OCRWidget> {
 
       widget.onOCRComplete?.call(result);
 
-      if (result.isSuccess) {
+      if (result.status == ProcessingStatus.completed) {
         _showSuccessSnackBar();
-      } else if (result.hasError) {
-        _showErrorSnackBar(result.error!);
+      } else if (result.status == ProcessingStatus.failed) {
+        _showErrorSnackBar('OCR processing failed');
       }
     } catch (e) {
       debugPrint('❌ OCR_WIDGET: Eccezione durante OCR: $e');
       setState(() {
-        _ocrResult = OCRResult.error('Errore imprevisto: $e');
+        _ocrResult = ScannedContent.fromImage(widget.imagePath);
+        _ocrResult!.status = ProcessingStatus.failed;
+        _ocrResult!.rawText = 'Errore imprevisto: $e';
         _isProcessing = false;
       });
       _showErrorSnackBar('Errore imprevisto: $e');
@@ -81,7 +84,7 @@ class _OCRWidgetState extends State<OCRWidget> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'OCR completato: ${_ocrResult!.text.length} caratteri estratti',
+                'OCR completato: ${_ocrResult!.rawText.length} caratteri estratti',
               ),
             ),
           ],
@@ -117,8 +120,8 @@ class _OCRWidgetState extends State<OCRWidget> {
   }
 
   void _copyTextToClipboard() {
-    if (_ocrResult?.text != null) {
-      Clipboard.setData(ClipboardData(text: _ocrResult!.text));
+    if (_ocrResult?.rawText != null) {
+      Clipboard.setData(ClipboardData(text: _ocrResult!.rawText));
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Testo copiato negli appunti'),
@@ -140,9 +143,23 @@ class _OCRWidgetState extends State<OCRWidget> {
         maxChildSize: 0.95,
         builder: (context, scrollController) => Container(
           padding: const EdgeInsets.all(16),
-          child: OCRResultDetailWidget(
-            result: _ocrResult!,
-            scrollController: scrollController,
+          child: Column(
+            children: [
+              Text(
+                'Testo Estratto',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: SelectableText(
+                    _ocrResult!.rawText.isNotEmpty ? _ocrResult!.rawText : 'Nessun testo estratto',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -181,7 +198,7 @@ class _OCRWidgetState extends State<OCRWidget> {
           ),
         ),
         const Spacer(),
-        if (_ocrResult?.isSuccess == true)
+        if (_ocrResult?.status == ProcessingStatus.completed)
           IconButton(
             icon: const Icon(Icons.info_outline),
             onPressed: _showFullResults,
@@ -225,11 +242,11 @@ class _OCRWidgetState extends State<OCRWidget> {
   Widget _buildResultWidget() {
     final result = _ocrResult!;
     
-    if (result.hasError) {
-      return _buildErrorWidget(result.error!);
+    if (result.status == ProcessingStatus.failed) {
+      return _buildErrorWidget('OCR processing failed');
     }
 
-    if (result.isEmpty) {
+    if (result.rawText.isEmpty) {
       return _buildEmptyWidget();
     }
 
@@ -311,7 +328,7 @@ class _OCRWidgetState extends State<OCRWidget> {
     );
   }
 
-  Widget _buildSuccessWidget(OCRResult result) {
+  Widget _buildSuccessWidget(ScannedContent result) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -338,7 +355,7 @@ class _OCRWidgetState extends State<OCRWidget> {
           const SizedBox(height: 12),
           _buildResultStats(result),
           const SizedBox(height: 12),
-          _buildTextPreview(result.text),
+          _buildTextPreview(result.rawText),
           const SizedBox(height: 12),
           _buildActionButtons(),
         ],
@@ -346,15 +363,13 @@ class _OCRWidgetState extends State<OCRWidget> {
     );
   }
 
-  Widget _buildResultStats(OCRResult result) {
+  Widget _buildResultStats(ScannedContent result) {
     return Wrap(
       spacing: 12,
       children: [
-        _buildStatChip('${result.text.length} caratteri', Icons.text_fields),
-        _buildStatChip('${(result.confidence * 100).toStringAsFixed(1)}%', Icons.speed),
-        _buildStatChip(result.language.toUpperCase(), Icons.language),
-        if (result.isWebFallback)
-          _buildStatChip('Web Fallback', Icons.web, color: Colors.orange),
+        _buildStatChip('${result.rawText.length} caratteri', Icons.text_fields),
+        _buildStatChip('${(result.ocrMetadata.overallConfidence * 100).toStringAsFixed(1)}%', Icons.speed),
+        _buildStatChip('EN', Icons.language),
       ],
     );
   }
@@ -451,203 +466,6 @@ class _OCRWidgetState extends State<OCRWidget> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Widget per mostrare i dettagli completi del risultato OCR
-class OCRResultDetailWidget extends StatelessWidget {
-  final OCRResult result;
-  final ScrollController? scrollController;
-
-  const OCRResultDetailWidget({
-    super.key,
-    required this.result,
-    this.scrollController,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildHeader(context),
-        const SizedBox(height: 16),
-        Expanded(
-          child: SingleChildScrollView(
-            controller: scrollController,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildStatistics(),
-                const SizedBox(height: 16),
-                _buildFullText(),
-                const SizedBox(height: 16),
-                if (result.blocks.isNotEmpty) _buildTextBlocks(),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Row(
-      children: [
-        const Icon(Icons.analytics, color: Colors.blue),
-        const SizedBox(width: 8),
-        const Text(
-          'Risultati OCR Dettagliati',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const Spacer(),
-        IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatistics() {
-    final stats = result.statistics;
-    
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Statistiche',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            _buildStatRow('Caratteri', '${stats['text_length']}'),
-            _buildStatRow('Confidenza', '${stats['confidence_percentage']}%'),
-            _buildStatRow('Parole', '${stats['word_count']}'),
-            _buildStatRow('Righe', '${stats['line_count']}'),
-            _buildStatRow('Blocchi', '${stats['block_count']}'),
-            _buildStatRow('Lingua', '${stats['language']}'),
-            _buildStatRow('Tempo', '${stats['processing_time_ms']}ms'),
-            if (stats['is_web_fallback'] == true)
-              _buildStatRow('Modalità', 'Web Fallback', isWarning: true),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatRow(String label, String value, {bool isWarning = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              '$label:',
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              color: isWarning ? Colors.orange : null,
-              fontWeight: isWarning ? FontWeight.bold : null,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFullText() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Text(
-                  'Testo Completo',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.copy),
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: result.text));
-                  },
-                  tooltip: 'Copia tutto',
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: SelectableText(
-                result.text.isNotEmpty ? result.text : 'Nessun testo estratto',
-                style: const TextStyle(fontSize: 14, height: 1.5),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextBlocks() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Blocchi di Testo (${result.blocks.length})',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            ...result.blocks.asMap().entries.map((entry) {
-              final index = entry.key;
-              final block = entry.value;
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: Colors.blue.shade200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Blocco ${index + 1} (${(block.confidence * 100).toStringAsFixed(1)}%)',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(block.text),
-                  ],
-                ),
-              );
-            }),
-          ],
-        ),
       ),
     );
   }

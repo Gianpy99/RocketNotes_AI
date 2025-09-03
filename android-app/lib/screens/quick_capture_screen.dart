@@ -147,7 +147,7 @@ class _QuickCaptureScreenState extends ConsumerState<QuickCaptureScreen> {
             imagePath: _capturedImagePath!,
             autoExtract: true,
             onOCRComplete: (result) {
-              debugPrint('OCR completato: ${result.text.length} caratteri');
+              debugPrint('OCR completato: ${result.rawText.length} caratteri');
             },
           ),
           

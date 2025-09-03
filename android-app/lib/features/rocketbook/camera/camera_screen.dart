@@ -6,7 +6,7 @@ import 'package:camera/camera.dart';
 import 'package:photo_view/photo_view.dart';
 import 'camera_service.dart';
 import 'web_camera_service.dart';
-import '../ocr/ocr_service.dart';
+import '../ocr/ocr_service_real.dart';
 import '../models/scanned_content.dart';
 import '../../../data/models/note_model.dart';
 import '../../../presentation/providers/app_providers_simple.dart';
