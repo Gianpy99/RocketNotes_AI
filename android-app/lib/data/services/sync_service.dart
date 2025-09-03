@@ -12,12 +12,13 @@ class SyncService {
   
   SyncService({required this.apiService, required this.noteRepository});
   
-  Stream<ConnectivityResult> get connectivityStream => 
-      _connectivity.onConnectivityChanged;
+  Stream<ConnectivityResult> get connectivityStream =>
+      _connectivity.onConnectivityChanged.map((results) =>
+          results.isNotEmpty ? results.first : ConnectivityResult.none);
   
   Future<bool> get isOnline async {
-    final result = await _connectivity.checkConnectivity();
-    return result != ConnectivityResult.none;
+    final results = await _connectivity.checkConnectivity();
+    return results.isNotEmpty && results.first != ConnectivityResult.none;
   }
   
   Future<void> syncNotes() async {

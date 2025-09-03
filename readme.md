@@ -20,21 +20,55 @@ RocketNotes AI bridges the gap between physical note-taking and digital organiza
 - **🤖 AI Ready:** Prepared for smart suggestions and insights (Phase 2)
 - **🎨 Clean UI:** Material Design with dark mode support
 
-## 📚 Documentation
+## � Project Structure
 
-For comprehensive documentation, please visit the **[docs/](docs/)** directory:
+```
+RocketNotes_AI/
+├── android-app/                 # Flutter mobile application
+│   ├── lib/                     # Main application code
+│   ├── android/                 # Android platform code
+│   ├── ios/                     # iOS platform code (future)
+│   ├── test/                    # Unit and widget tests
+│   └── pubspec.yaml             # Flutter dependencies
+├── web-app/                     # React web application
+│   ├── src/                     # Web app source code
+│   ├── public/                  # Static assets
+│   └── package.json             # Node.js dependencies
+├── backend-api/                 # Node.js API server
+│   ├── src/                     # API source code
+│   └── package.json             # Server dependencies
+├── docs/                        # Comprehensive documentation
+│   ├── api/                     # API documentation
+│   ├── architecture/            # System architecture docs
+│   ├── changelogs/              # Development history
+│   └── user_guides/             # User documentation
+├── shared/                      # Shared utilities and types
+├── scripts/                     # Build and deployment scripts
+├── ci_cd/                       # CI/CD configurations
+├── docker/                      # Docker configurations
+├── backup_unused_files/         # Archived unused files
+└── ARCHIVE/                     # Historical project documentation
+```
 
-- **[📋 Complete Documentation Index](docs/README.md)** - Navigate all project documentation
-- **[📝 Product Requirements Document](docs/requirements/PRD_ROCKETNOTES_AI.md)** - Detailed feature specifications
-- **[🏗️ Setup Guide](docs/SETUP.md)** - Development environment setup
-- **[📱 Development Status](docs/changelogs/DEVELOPMENT_STATUS.md)** - Current progress and roadmap
-- **[📈 Changelog](docs/changelogs/CHANGELOG.md)** - Version history
+### 🧹 Recent Cleanup (September 2025)
+- ✅ Removed empty directories (sandbox, experiments, prototypes, etc.)
+- ✅ Archived unused test files and temporary backups
+- ✅ Consolidated redundant documentation files
+- ✅ Streamlined project structure for better maintainability
+
+### ✅ Build Status (October 2025)
+- ✅ **Flutter Android App:** Successfully builds and runs in debug mode
+- ✅ **React Web App:** Successfully builds for production deployment
+- ✅ **Project Structure:** Clean and optimized for development
+- ✅ **Dependencies:** All required packages installed and configured
+- ✅ **Java Compatibility:** Resolved obsolete Java 8 warnings
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Flutter SDK 3.x or higher
+- Node.js 16.x or higher
 - Android Studio / Xcode
 - Android device with NFC support (for testing)
 - NTAG213 NFC tags (2 minimum)
@@ -47,14 +81,16 @@ git clone https://github.com/Gianpy99/RocketNotes_AI.git
 cd RocketNotes_AI
 ```
 
-2. **Navigate to the Flutter app:**
+2. **Setup Flutter App:**
 ```bash
 cd android-app
+flutter pub get
 ```
 
-3. **Install dependencies:**
+3. **Setup Web App:**
 ```bash
-flutter pub get
+cd ../web-app
+npm install
 ```
 
 4. **Configure platform-specific settings:**
@@ -67,9 +103,18 @@ targetSdkVersion 34
 
 **iOS:** Add NFC capability in Xcode project settings
 
-5. **Run the app:**
+5. **Run the apps:**
 ```bash
+# Flutter app
+cd android-app
 flutter run
+
+# Web app (development)
+cd ../web-app
+npm start
+
+# Web app (production build)
+npm run build
 ```
 
 ## 🏗️ Project Structure
@@ -84,7 +129,10 @@ RocketNotes_AI/
 │       ├── data/                    # Models, repositories, services
 │       ├── domain/                  # Business entities & use cases
 │       └── presentation/            # UI screens, widgets, providers
-├── web-app/                         # React web application (future)
+├── web-app/                         # React web application
+│   ├── src/                     # Web app source code
+│   ├── public/                  # Static assets
+│   └── package.json             # Node.js dependencies
 ├── backend-api/                     # Node.js API server (future)
 ├── docs/                            # 📚 Complete documentation
 │   ├── requirements/                # PRD and specifications
@@ -139,6 +187,7 @@ flutter test --coverage
 
 **Android:**
 ```bash
+cd android-app
 flutter build apk --release
 # or for app bundle
 flutter build appbundle --release
@@ -146,24 +195,38 @@ flutter build appbundle --release
 
 **iOS:**
 ```bash
+cd android-app
 flutter build ios --release
+```
+
+**Web App:**
+```bash
+cd web-app
+npm run build
+# Build output in build/ directory
 ```
 
 ### Code Generation
 
 ```bash
 # Generate models, routes, etc.
+cd android-app
 flutter pub run build_runner build --delete-conflicting-outputs
 ```
 
 ## 📦 Dependencies
 
-### Core Dependencies
+### Flutter App Dependencies
 - `flutter_nfc_kit: ^3.5.0` - NFC reading functionality
 - `app_links: ^6.0.0` - Deep linking support
 - `hive_flutter: ^1.1.0` - Local storage
 - `riverpod: ^2.5.0` - State management
 - `go_router: ^14.0.0` - Navigation
+
+### Web App Dependencies
+- `react: ^18.2.0` - React framework
+- `react-dom: ^18.2.0` - React DOM rendering
+- `react-scripts: ^5.0.1` - Build and development scripts
 
 ### Dev Dependencies
 - `flutter_test` - Testing framework
@@ -206,12 +269,14 @@ For detailed development progress, see **[Development Status](docs/changelogs/DE
 - [x] App structure and routing
 - [x] Local storage with Hive
 - [x] Material 3 theming
+- [x] **React Web App:** Basic implementation with build system
 
 ### 🚧 Current Phase: UI Implementation
 - [ ] Screen implementations
 - [ ] Widget components
 - [ ] User interaction flows
 - [ ] Testing suite development
+- [ ] **Web App Features:** Enhanced UI and functionality
 
 ### 📋 Future Phases
 - **Phase 2**: Advanced features (Camera, OCR, AI integration)

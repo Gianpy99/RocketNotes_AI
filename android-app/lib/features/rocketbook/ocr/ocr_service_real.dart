@@ -1,11 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import '../models/scanned_content.dart';
-import '../camera/web_camera_service.dart';
 import '../../../core/debug/debug_logger.dart';
-
-// Conditional import for web-only Tesseract bindings
-import 'tesseract_bindings.dart' if (dart.library.io) 'tesseract_bindings_stub.dart';
 
 class OCRService {
   static OCRService? _instance;
@@ -14,35 +9,20 @@ class OCRService {
 
   TextRecognizer? _textRecognizer;
   BarcodeScanner? _barcodeScanner;
-  TesseractWorker? _tesseractWorker;
 
   /// Initialize the OCR service
   Future<void> initialize() async {
     DebugLogger().log('🔧 OCR Service: Initializing...');
-    
-    if (kIsWeb) {
-      // Initialize Tesseract.js for web
-      DebugLogger().log('🌐 OCR: Initializing Tesseract.js for web platform');
-      try {
-        _tesseractWorker = createWorker(null);
-        await promiseToFuture(_tesseractWorker!.load());
-        await promiseToFuture(_tesseractWorker!.loadLanguage('eng'));
-        await promiseToFuture(_tesseractWorker!.initialize('eng'));
-        DebugLogger().log('✅ OCR: Tesseract.js initialized successfully');
-      } catch (e) {
-        DebugLogger().log('❌ OCR: Failed to initialize Tesseract.js: $e');
-        _tesseractWorker = null;
-      }
-    } else {
-      // Initialize Google ML Kit for mobile
-      DebugLogger().log('📱 OCR: Initializing Google ML Kit for mobile platform');
-      try {
-        _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
-        _barcodeScanner = BarcodeScanner();
-        DebugLogger().log('✅ OCR: Google ML Kit initialized successfully');
-      } catch (e) {
-        DebugLogger().log('❌ OCR: Failed to initialize Google ML Kit: $e');
-      }
+
+    // Initialize Google ML Kit for all platforms
+    DebugLogger().log('🤖 OCR: Initializing Google ML Kit');
+    try {
+      _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+      _barcodeScanner = BarcodeScanner();
+      DebugLogger().log('✅ OCR: Google ML Kit initialized successfully');
+    } catch (e) {
+      DebugLogger().log('❌ OCR: Failed to initialize Google ML Kit: $e');
+      rethrow;
     }
   }
 
@@ -56,11 +36,7 @@ class OCRService {
       final scannedContent = ScannedContent.fromImage(imagePath);
       scannedContent.status = ProcessingStatus.processing;
 
-      if (kIsWeb) {
-        await _processImageWeb(scannedContent, imagePath);
-      } else {
-        await _processImageMobile(scannedContent, imagePath);
-      }
+      await _processImage(scannedContent, imagePath);
       
       stopwatch.stop();
       scannedContent.ocrMetadata.processingTime = stopwatch.elapsed;
@@ -78,7 +54,7 @@ class OCRService {
       scannedContent.status = ProcessingStatus.failed;
       scannedContent.rawText = 'OCR processing failed: $e';
       scannedContent.ocrMetadata = OCRMetadata(
-        engine: kIsWeb ? 'tesseract_js_error' : 'ml_kit_error',
+        engine: 'google_ml_kit_error',
         overallConfidence: 0.0,
         detectedLanguages: [],
         processingTime: stopwatch.elapsed,
@@ -88,63 +64,9 @@ class OCRService {
     }
   }
 
-  /// Web implementation using Tesseract.js
-  Future<void> _processImageWeb(ScannedContent scannedContent, String imagePath) async {
-    DebugLogger().log('🌐 OCR: Processing image with Tesseract.js');
-    
-    if (_tesseractWorker == null) {
-      throw Exception('Tesseract.js not initialized. Call initialize() first.');
-    }
-
-    try {
-      // Use the captured image from WebCameraService
-      final webService = WebCameraService.instance;
-      final imageData = await webService.getLastImageBytes();
-      
-      if (imageData == null) {
-        throw Exception('No image data available for OCR processing');
-      }
-
-      DebugLogger().log('📤 OCR: Sending image to Tesseract.js engine');
-      
-      // Perform OCR with Tesseract.js
-      final result = await promiseToFuture<TesseractResult>(
-        _tesseractWorker!.recognize(imageData, 'eng')
-      );
-      
-      final data = result.data;
-      scannedContent.rawText = data.text.trim();
-      
-      DebugLogger().log('📥 OCR: Received result from Tesseract.js');
-      DebugLogger().log('🎯 OCR: Confidence: ${(data.confidence * 100).toStringAsFixed(1)}%');
-      
-      // Extract additional data
-      _extractTablesFromTesseractData(scannedContent, data);
-      _extractDiagramsFromText(scannedContent);
-      
-      // Set metadata
-      scannedContent.ocrMetadata = OCRMetadata(
-        engine: 'tesseract_js',
-        overallConfidence: data.confidence,
-        detectedLanguages: ['en'],
-        processingTime: Duration.zero, // Will be set by caller
-        additionalData: {
-          'words_count': data.words.length,
-          'lines_count': data.lines.length,
-          'paragraphs_count': data.paragraphs.length,
-          'web_processing': true,
-        },
-      );
-      
-    } catch (e) {
-      DebugLogger().log('❌ OCR: Tesseract.js processing error: $e');
-      rethrow;
-    }
-  }
-
-  /// Mobile implementation using Google ML Kit
-  Future<void> _processImageMobile(ScannedContent scannedContent, String imagePath) async {
-    DebugLogger().log('📱 OCR: Processing image with Google ML Kit');
+  /// Process image using Google ML Kit (works on all platforms)
+  Future<void> _processImage(ScannedContent scannedContent, String imagePath) async {
+    DebugLogger().log('🤖 OCR: Processing image with Google ML Kit');
     
     if (_textRecognizer == null) {
       throw Exception('Google ML Kit not initialized. Call initialize() first.');
@@ -191,39 +113,13 @@ class OCRService {
         processingTime: Duration.zero, // Will be set by caller
         additionalData: {
           'blocks_count': recognizedText.blocks.length,
-          'mobile_processing': true,
+          'cross_platform': true,
         },
       );
       
     } catch (e) {
       DebugLogger().log('❌ OCR: ML Kit processing error: $e');
       rethrow;
-    }
-  }
-
-  /// Extract tables from Tesseract.js data
-  void _extractTablesFromTesseractData(ScannedContent scannedContent, TesseractData data) {
-    // Basic table extraction logic based on text layout
-    final tableRows = <List<String>>[];
-    for (final line in data.lines) {
-      // Look for lines that might be table rows (contain multiple columns)
-      final text = line.text.trim();
-      if (text.contains('|') || text.contains('\t')) {
-        final columns = text.split(RegExp(r'[|\t]')).map((e) => e.trim()).toList();
-        if (columns.length > 1) {
-          tableRows.add(columns);
-        }
-      }
-    }
-    
-    if (tableRows.isNotEmpty) {
-      scannedContent.tables.add(
-        TableData(
-          rows: tableRows,
-          boundingBox: BoundingBox(left: 0, top: 0, width: 100, height: 100),
-          confidence: data.confidence,
-        ),
-      );
     }
   }
 
@@ -282,16 +178,9 @@ class OCRService {
 
   /// Cleanup resources
   Future<void> dispose() async {
-    if (kIsWeb) {
-      if (_tesseractWorker != null) {
-        await promiseToFuture(_tesseractWorker!.terminate());
-        _tesseractWorker = null;
-      }
-    } else {
-      await _textRecognizer?.close();
-      await _barcodeScanner?.close();
-      _textRecognizer = null;
-      _barcodeScanner = null;
-    }
+    await _textRecognizer?.close();
+    await _barcodeScanner?.close();
+    _textRecognizer = null;
+    _barcodeScanner = null;
   }
 }
