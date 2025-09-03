@@ -486,21 +486,25 @@ class ChatGptPromptDialog extends StatelessWidget {
         mode: request.mode,
       );
 
-      Navigator.of(context).pop(); // Chiudi dialog caricamento
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Chiudi dialog caricamento
 
-      // Mostra la risposta
-      _showChatGptResponse(context, response);
+        // Mostra la risposta
+        _showChatGptResponse(context, response);
+      }
       
     } catch (e) {
-      Navigator.of(context).pop(); // Chiudi dialog caricamento
-      
-      // Mostra errore
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Errore: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Chiudi dialog caricamento
+        
+        // Mostra errore
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Errore: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

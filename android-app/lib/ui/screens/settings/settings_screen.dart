@@ -543,7 +543,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     try {
       // TODO: Implement data export
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Data export coming soon!'),
@@ -551,7 +551,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Export failed: ${e.toString()}'),
@@ -577,7 +577,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     try {
       // TODO: Implement cache clearing
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Cache cleared successfully'),
@@ -586,7 +586,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to clear cache: ${e.toString()}'),
@@ -616,7 +616,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       await settingsRepo.resetToDefaults();
       ref.invalidate(appSettingsProvider);
       
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Settings reset to defaults'),
@@ -625,7 +625,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to reset settings: ${e.toString()}'),
