@@ -207,6 +207,26 @@ Analizza attentamente l'immagine e estrai TUTTE le informazioni visibili.
       throw Exception('Errore nella generazione testo: $e');
     }
   }
+
+  /// Testa la connessione all'API OpenAI
+  Future<bool> testConnection() async {
+    try {
+      debugPrint('🔗 OPENAI DEBUG: Testando connessione API...');
+
+      final response = await _dio.get('$_baseUrl/models');
+
+      if (response.statusCode == 200) {
+        debugPrint('✅ OPENAI DEBUG: Connessione API riuscita');
+        return true;
+      } else {
+        debugPrint('❌ OPENAI DEBUG: Connessione API fallita - Status: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('❌ OPENAI DEBUG: Errore connessione API: $e');
+      throw Exception('Errore nella connessione API: $e');
+    }
+  }
 }
 
 /// Modello per l'analisi del Rocketbook

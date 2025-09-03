@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../screens/settings_screen.dart';
+import 'package:dio/dio.dart';
+import '../../../screens/settings_screen.dart' as settings_lib;
 
 class AISettings extends ConsumerStatefulWidget {
   const AISettings({super.key});
@@ -30,8 +31,8 @@ class _AISettingsState extends ConsumerState<AISettings> {
   }
 
   void _loadApiKey() {
-    final settings = ref.read(settingsProvider);
-    _apiKeyController.text = settings.aiApiKey;
+    final appSettings = ref.read(settings_lib.settingsProvider);
+    _apiKeyController.text = appSettings.aiApiKey;
   }
 
   Future<void> _testConnection() async {
@@ -51,32 +52,46 @@ class _AISettingsState extends ConsumerState<AISettings> {
     });
 
     try {
-      // TODO: Implement actual API connection test
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
-      
-      setState(() {
-        _connectionSuccess = true;
-        _connectionTested = true;
-      });
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Connection successful!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+      // Test the API connection using a direct HTTP call
+      final testApiKey = _apiKeyController.text.trim();
+
+      // Create a Dio instance for testing
+      final dio = Dio();
+      dio.options.headers = {
+        'Authorization': 'Bearer $testApiKey',
+        'Content-Type': 'application/json',
+      };
+
+      // Test connection by calling the models endpoint
+      final response = await dio.get('https://api.openai.com/v1/models');
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _connectionSuccess = true;
+          _connectionTested = true;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ API connection successful!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        throw Exception('API returned status code: ${response.statusCode}');
       }
     } catch (e) {
       setState(() {
         _connectionSuccess = false;
         _connectionTested = true;
       });
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Connection failed: $e'),
+            content: Text('❌ Connection failed: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -89,7 +104,7 @@ class _AISettingsState extends ConsumerState<AISettings> {
   }
 
   void _saveApiKey() {
-    ref.read(settingsProvider.notifier).setAiApiKey(_apiKeyController.text.trim());
+    ref.read(settings_lib.settingsProvider.notifier).setAiApiKey(_apiKeyController.text.trim());
     
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -101,7 +116,7 @@ class _AISettingsState extends ConsumerState<AISettings> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
+    final appSettings = ref.watch(settings_lib.settingsProvider);
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
 
@@ -145,9 +160,9 @@ class _AISettingsState extends ConsumerState<AISettings> {
             title: 'Enable AI Assistant',
             subtitle: 'Get intelligent suggestions and improvements',
             trailing: Switch(
-              value: settings.aiEnabled,
+              value: appSettings.aiEnabled,
               onChanged: (value) {
-                ref.read(settingsProvider.notifier).setAiEnabled(value);
+                ref.read(settings_lib.settingsProvider.notifier).setAiEnabled(value);
               },
               activeThumbColor: AppColors.primary,
             ),
@@ -160,7 +175,7 @@ class _AISettingsState extends ConsumerState<AISettings> {
             title: 'AI Provider',
             subtitle: 'Choose your preferred AI service',
             trailing: DropdownButton<String>(
-              value: settings.aiProvider,
+              value: appSettings.aiProvider,
               items: const [
                 DropdownMenuItem(value: 'openai', child: Text('OpenAI')),
                 DropdownMenuItem(value: 'gemini', child: Text('Google Gemini')),
@@ -168,7 +183,7 @@ class _AISettingsState extends ConsumerState<AISettings> {
               ],
               onChanged: (value) {
                 if (value != null) {
-                  ref.read(settingsProvider.notifier).setAiProvider(value);
+                  ref.read(settings_lib.settingsProvider.notifier).setAiProvider(value);
                 }
               },
               underline: const SizedBox(),
@@ -254,9 +269,9 @@ class _AISettingsState extends ConsumerState<AISettings> {
           _FeatureTile(
             title: 'Smart Suggestions',
             subtitle: 'Get writing suggestions while typing',
-            enabled: settings.aiSmartSuggestions,
+            enabled: appSettings.aiSmartSuggestions,
             onChanged: (value) {
-              ref.read(settingsProvider.notifier).setAiSmartSuggestions(value);
+              ref.read(settings_lib.settingsProvider.notifier).setAiSmartSuggestions(value);
             },
           ),
           
@@ -265,9 +280,9 @@ class _AISettingsState extends ConsumerState<AISettings> {
           _FeatureTile(
             title: 'Auto Tag Generation',
             subtitle: 'Automatically suggest relevant tags',
-            enabled: settings.aiAutoTags,
+            enabled: appSettings.aiAutoTags,
             onChanged: (value) {
-              ref.read(settingsProvider.notifier).setAiAutoTags(value);
+              ref.read(settings_lib.settingsProvider.notifier).setAiAutoTags(value);
             },
           ),
           
@@ -276,9 +291,9 @@ class _AISettingsState extends ConsumerState<AISettings> {
           _FeatureTile(
             title: 'Grammar Correction',
             subtitle: 'Detect and suggest grammar fixes',
-            enabled: settings.aiGrammarCheck,
+            enabled: appSettings.aiGrammarCheck,
             onChanged: (value) {
-              ref.read(settingsProvider.notifier).setAiGrammarCheck(value);
+              ref.read(settings_lib.settingsProvider.notifier).setAiGrammarCheck(value);
             },
           ),
           
@@ -287,9 +302,9 @@ class _AISettingsState extends ConsumerState<AISettings> {
           _FeatureTile(
             title: 'Content Enhancement',
             subtitle: 'Suggest content improvements',
-            enabled: settings.aiContentEnhancement,
+            enabled: appSettings.aiContentEnhancement,
             onChanged: (value) {
-              ref.read(settingsProvider.notifier).setAiContentEnhancement(value);
+              ref.read(settings_lib.settingsProvider.notifier).setAiContentEnhancement(value);
             },
           ),
           
