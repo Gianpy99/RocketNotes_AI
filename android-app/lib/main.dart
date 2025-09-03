@@ -10,6 +10,7 @@ import 'app/app_simple.dart';
 import 'core/constants/app_constants.dart';
 import 'data/models/note_model.dart';
 import 'data/models/app_settings_model.dart';
+import 'features/rocketbook/ai_analysis/ai_service.dart';
 
 Future<void> main() async {
   // Ensure Flutter bindings are initialized before async work
@@ -36,6 +37,12 @@ Future<void> main() async {
     await Hive.openBox<AppSettingsModel>(AppConstants.settingsBox);
 
     debugPrint('✅ Hive initialized successfully');
+    
+    // ------------------------------------------
+    // Initialize AI Service
+    // ------------------------------------------
+    await AIService.instance.initialize();
+    debugPrint('✅ AI Service initialized successfully');
   } catch (e) {
     // If Hive fails, log it but let the app continue
     // The UI should be able to handle missing storage gracefully

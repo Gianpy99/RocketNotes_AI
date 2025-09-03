@@ -131,9 +131,9 @@ class OCRService {
         detectedLanguages: ['en'],
         processingTime: Duration.zero, // Will be set by caller
         additionalData: {
-          'words_count': data.words?.length ?? 0,
-          'lines_count': data.lines?.length ?? 0,
-          'paragraphs_count': data.paragraphs?.length ?? 0,
+          'words_count': data.words.length ?? 0,
+          'lines_count': data.lines.length ?? 0,
+          'paragraphs_count': data.paragraphs.length ?? 0,
           'web_processing': true,
         },
       );
@@ -206,29 +206,27 @@ class OCRService {
   /// Extract tables from Tesseract.js data
   void _extractTablesFromTesseractData(ScannedContent scannedContent, TesseractData data) {
     // Basic table extraction logic based on text layout
-    if (data.lines != null) {
-      final tableRows = <List<String>>[];
-      for (final line in data.lines!) {
-        // Look for lines that might be table rows (contain multiple columns)
-        final text = line.text.trim();
-        if (text.contains('|') || text.contains('\t')) {
-          final columns = text.split(RegExp(r'[|\t]')).map((e) => e.trim()).toList();
-          if (columns.length > 1) {
-            tableRows.add(columns);
-          }
+    final tableRows = <List<String>>[];
+    for (final line in data.lines) {
+      // Look for lines that might be table rows (contain multiple columns)
+      final text = line.text.trim();
+      if (text.contains('|') || text.contains('\t')) {
+        final columns = text.split(RegExp(r'[|\t]')).map((e) => e.trim()).toList();
+        if (columns.length > 1) {
+          tableRows.add(columns);
         }
       }
-      
-      if (tableRows.isNotEmpty) {
-        scannedContent.tables.add(
-          TableData(
-            rows: tableRows,
-            confidence: data.confidence,
-          ),
-        );
-      }
     }
-  }
+    
+    if (tableRows.isNotEmpty) {
+      scannedContent.tables.add(
+        TableData(
+          rows: tableRows,
+          confidence: data.confidence,
+        ),
+      );
+    }
+    }
 
   /// Extract tables from ML Kit text
   void _extractTablesFromMLKitText(ScannedContent scannedContent, RecognizedText recognizedText) {

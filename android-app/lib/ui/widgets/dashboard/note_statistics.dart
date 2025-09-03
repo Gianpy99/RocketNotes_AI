@@ -37,7 +37,7 @@ class NoteStatistics extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.analytics_outlined,
                 color: AppColors.primary,
                 size: 24,
@@ -123,7 +123,7 @@ class NoteStatistics extends ConsumerWidget {
                     children: [
                       Text(
                         tagStat.tag,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                           color: AppColors.primary,

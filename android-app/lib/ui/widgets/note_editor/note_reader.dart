@@ -270,7 +270,7 @@ class _MetadataSection extends StatelessWidget {
                   ),
                   child: Text(
                     tag,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.primary,
                       fontWeight: FontWeight.w500,

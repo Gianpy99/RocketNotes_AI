@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class DebugLogger {
@@ -34,7 +33,7 @@ class DebugLogger {
 }
 
 class DebugLogViewer extends StatelessWidget {
-  const DebugLogViewer({Key? key}) : super(key: key);
+  const DebugLogViewer({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -85,20 +84,20 @@ class DebugLogViewer extends StatelessWidget {
 
   Color _getLogColor(String log) {
     if (log.contains('❌') || log.contains('Error')) {
-      return Colors.red.withOpacity(0.1);
+      return Colors.red..withValues(alpha: 0.1);
     } else if (log.contains('⚠️') || log.contains('Warning')) {
-      return Colors.orange.withOpacity(0.1);
+      return Colors.orange..withValues(alpha: 0.1);
     } else if (log.contains('✅') || log.contains('success')) {
-      return Colors.green.withOpacity(0.1);
+      return Colors.green..withValues(alpha: 0.1);
     } else if (log.contains('🤖') || log.contains('AI')) {
-      return Colors.blue.withOpacity(0.1);
+      return Colors.blue..withValues(alpha: 0.1);
     }
-    return Colors.grey.withOpacity(0.05);
+    return Colors.grey..withValues(alpha: 0.05);
   }
 }
 
 class DebugFloatingButton extends StatelessWidget {
-  const DebugFloatingButton({Key? key}) : super(key: key);
+  const DebugFloatingButton({super.key});
 
   @override
   Widget build(BuildContext context) {

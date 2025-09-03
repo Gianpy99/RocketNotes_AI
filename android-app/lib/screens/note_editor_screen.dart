@@ -642,7 +642,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                         prompt,
                         style: const TextStyle(fontSize: 12),
                       ),
-                    )).toList(),
+                    )),
                   ],
                 ),
               ),

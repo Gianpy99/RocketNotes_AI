@@ -175,7 +175,7 @@ class _AIContentSuggestionsState extends ConsumerState<AIContentSuggestions> {
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.auto_awesome,
                       color: AppColors.primary,
                     ),

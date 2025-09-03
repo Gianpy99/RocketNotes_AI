@@ -43,7 +43,7 @@ class _AISuggestionsState extends State<AISuggestions> {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.auto_awesome_rounded,
                 color: AppColors.primary,
               ),

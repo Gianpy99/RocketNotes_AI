@@ -123,7 +123,7 @@ class _AISettingsState extends ConsumerState<AISettings> {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.auto_awesome,
                 color: AppColors.primary,
                 size: 24,

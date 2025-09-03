@@ -196,7 +196,7 @@ class _SmartTagSuggestionsState extends State<SmartTagSuggestions> {
           children: [
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.local_offer_outlined,
                   color: AppColors.primary,
                   size: 20,

@@ -172,7 +172,7 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.backup_rounded,
                 color: AppColors.primary,
                 size: 24,

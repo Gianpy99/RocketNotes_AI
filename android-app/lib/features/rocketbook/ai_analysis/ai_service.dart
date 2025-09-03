@@ -1,6 +1,6 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import '../../../core/debug/debug_logger.dart';
 import '../../../core/config/api_config.dart';
 import '../models/scanned_content.dart';
@@ -80,13 +80,16 @@ class AIService {
 
   /// Analyze content with OpenAI GPT-4
   Future<AIAnalysis> _analyzeWithOpenAI(ScannedContent scannedContent) async {
-    if (_openAIKey == null || _openAIKey == 'your-api-key-here') {
+    // Use ApiConfig to check if we have a valid key
+    if (!ApiConfig.hasOpenAIKey) {
       DebugLogger().log('❌ AI Service: OpenAI API key not configured - falling back to simulation');
+      DebugLogger().log('🔑 Current key: ${_openAIKey?.substring(0, 10)}...');
       return _fallbackAnalysis(scannedContent);
     }
 
     try {
       DebugLogger().log('🚀 AI Service: Starting real OpenAI analysis...');
+      DebugLogger().log('🔑 OPENAI DEBUG: API Key configurata: ${_openAIKey?.substring(0, 10)}...');
       final prompt = _buildAnalysisPrompt(scannedContent);
       
       DebugLogger().log('📤 AI Service: Sending request to OpenAI API');
@@ -110,13 +113,18 @@ class AIService {
               'content': prompt,
             },
           ],
-          'temperature': 0.7,
+          'temperature': 0.3,
           'max_tokens': 1500,
+          'response_format': {'type': 'json_object'},
         },
       );
 
       DebugLogger().log('✅ AI Service: Received response from OpenAI');
       final content = response.data['choices'][0]['message']['content'];
+      
+      // Log the raw response for debugging
+      DebugLogger().log('🔍 Raw OpenAI response: ${content.toString().substring(0, min(200, content.toString().length))}...');
+      
       final analysis = _parseAIResponse(content);
       
       DebugLogger().log('🎯 AI Service: Analysis completed - ${analysis.keyTopics.length} topics, ${analysis.actionItems.length} actions');
@@ -130,8 +138,10 @@ class AIService {
 
   /// Analyze content with Google Gemini
   Future<AIAnalysis> _analyzeWithGemini(ScannedContent scannedContent) async {
-    if (_geminiKey == null || _geminiKey == 'your-api-key-here') {
+    // Use ApiConfig to check if we have a valid key
+    if (!ApiConfig.hasGeminiKey) {
       DebugLogger().log('❌ AI Service: Gemini API key not configured - falling back to simulation');
+      DebugLogger().log('🔑 Current key: ${_geminiKey?.substring(0, 10)}...');
       return _fallbackAnalysis(scannedContent);
     }
 
@@ -431,13 +441,19 @@ Analyze with intelligence, context-awareness, and practical focus.
   /// Parse AI response from JSON
   AIAnalysis _parseAIResponse(String response) {
     try {
-      // Extract JSON from response (in case there's additional text)
+      DebugLogger().log('🔍 Parsing AI response of length: ${response.length}');
+      
+      // First try to find and parse JSON
       final jsonMatch = RegExp(r'\{.*\}', dotAll: true).firstMatch(response);
       if (jsonMatch == null) {
-        throw Exception('No JSON found in response');
+        DebugLogger().log('⚠️ No JSON found, attempting text parsing...');
+        return _parseTextResponse(response);
       }
       
-      final jsonData = json.decode(jsonMatch.group(0)!);
+      final jsonString = jsonMatch.group(0)!;
+      DebugLogger().log('🔍 Found JSON: ${jsonString.substring(0, min(100, jsonString.length))}...');
+      
+      final jsonData = json.decode(jsonString);
       
       final actionItems = (jsonData['actionItems'] as List?)
           ?.map((item) => ActionItem(
@@ -447,6 +463,7 @@ Analyze with intelligence, context-awareness, and practical focus.
               ))
           .toList() ?? [];
       
+      DebugLogger().log('✅ Successfully parsed JSON response');
       return AIAnalysis(
         summary: jsonData['summary'] ?? '',
         keyTopics: List<String>.from(jsonData['keyTopics'] ?? []),
@@ -459,19 +476,94 @@ Analyze with intelligence, context-awareness, and practical focus.
       );
       
     } catch (e) {
-      debugPrint('Error parsing AI response: $e');
-      // Return basic analysis if parsing fails
+      DebugLogger().log('❌ Error parsing AI response: $e');
+      DebugLogger().log('🔄 Falling back to text parsing...');
+      return _parseTextResponse(response);
+    }
+  }
+
+  /// Parse non-JSON text response as fallback
+  AIAnalysis _parseTextResponse(String response) {
+    try {
+      // Extract basic information from text response
+      final lines = response.split('\n').where((line) => line.trim().isNotEmpty).toList();
+      
+      // Try to extract a title (first meaningful line)
+      String title = 'AI Analysis';
+      if (lines.isNotEmpty) {
+        title = lines.first.trim().replaceAll(RegExp(r'^[#*\-\s]*'), '');
+        if (title.length > 50) title = '${title.substring(0, 50)}...';
+      }
+      
+      // Create a summary from the response
+      String summary = response.length > 200 
+          ? '${response.substring(0, 200)}...'
+          : response;
+      
+      // Extract any obvious action items (lines starting with action words)
+      final actionWords = ['do', 'complete', 'finish', 'send', 'call', 'email', 'review', 'update'];
+      final actionItems = <ActionItem>[];
+      
+      for (final line in lines) {
+        final lowerLine = line.toLowerCase();
+        if (actionWords.any((word) => lowerLine.contains(word))) {
+          actionItems.add(ActionItem(
+            text: line.trim(),
+            priority: Priority.medium,
+            dueDate: null,
+          ));
+        }
+      }
+      
+      DebugLogger().log('✅ Successfully parsed text response');
       return AIAnalysis(
-        summary: 'Analysis completed',
+        summary: summary,
+        keyTopics: _extractKeyTopicsFromText(response),
+        suggestedTags: ['ai-analysis', 'text-parsed'],
+        suggestedTitle: title,
+        contentType: ContentType.notes,
+        sentiment: 0.0,
+        actionItems: actionItems,
+        insights: {
+          'parse_method': 'text_fallback',
+          'response_length': response.length,
+          'lines_count': lines.length,
+        },
+      );
+      
+    } catch (e) {
+      DebugLogger().log('❌ Error in text parsing: $e');
+      // Final fallback - basic analysis
+      return AIAnalysis(
+        summary: 'Analysis completed - content processed',
         keyTopics: [],
-        suggestedTags: [],
-        suggestedTitle: 'Scanned Note',
+        suggestedTags: ['ai-analysis'],
+        suggestedTitle: 'AI Analysis',
         contentType: ContentType.notes,
         sentiment: 0.0,
         actionItems: [],
         insights: {'parse_error': e.toString()},
       );
     }
+  }
+
+  /// Extract key topics from text
+  List<String> _extractKeyTopicsFromText(String text) {
+    final words = text.toLowerCase().split(RegExp(r'\W+'));
+    final commonWords = {'the', 'and', 'is', 'in', 'to', 'of', 'a', 'for', 'on', 'with', 'as', 'by', 'at', 'or', 'an', 'are', 'was', 'but', 'not', 'from', 'had', 'has', 'have', 'he', 'she', 'it', 'they', 'we', 'you', 'i', 'me', 'my', 'your', 'his', 'her', 'its', 'our', 'their'};
+    
+    final wordFreq = <String, int>{};
+    for (final word in words) {
+      if (word.length > 3 && !commonWords.contains(word)) {
+        wordFreq[word] = (wordFreq[word] ?? 0) + 1;
+      }
+    }
+    
+    return wordFreq.entries
+        .where((entry) => entry.value > 1)
+        .map((entry) => entry.key)
+        .take(5)
+        .toList();
   }
 
   /// Fallback analysis when AI service fails

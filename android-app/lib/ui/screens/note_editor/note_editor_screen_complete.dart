@@ -118,18 +118,18 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
                 contentData = note.content;
               } else {
                 // Convert plain text to Quill format
-                contentData = [{'insert': note.content + '\n'}];
+                contentData = [{'insert': '${note.content}\n'}];
               }
               _contentController.document = quill.Document.fromJson(contentData);
             } catch (e) {
               // Fallback to plain text if JSON parsing fails
               _contentController.document = quill.Document.fromJson([
-                {'insert': note.content + '\n'}
+                {'insert': '${note.content}\n'}
               ]);
             }
           } else {
             _contentController.document = quill.Document.fromJson([
-              {'insert': note.content + '\n'}
+              {'insert': '${note.content}\n'}
             ]);
           }
           
