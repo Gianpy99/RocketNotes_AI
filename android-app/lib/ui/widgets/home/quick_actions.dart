@@ -4,6 +4,13 @@ import '../../../core/constants/app_colors.dart';
 import '../../../data/services/nfc_service.dart';
 import '../voice_recording_dialog.dart';
 
+// TODO: FAMILY_FEATURES - Add family quick actions
+// - Add "Family Notes" quick action button
+// - Add "Emergency Contacts" quick action
+// - Add "Family Calendar" integration
+// - Add "Shared Shopping List" quick action
+// - Consider family member avatar/profile switching
+
 class QuickActions extends StatefulWidget {
   const QuickActions({super.key});
 

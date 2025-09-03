@@ -63,7 +63,7 @@ dependencies:
   permission_handler: ^12.0.1
   
   # Voice Recording
-  record: ^5.1.0
+  # record: ^5.1.0  # Temporarily disabled due to build issues
   
   # Notifications
   flutter_local_notifications: ^17.2.2

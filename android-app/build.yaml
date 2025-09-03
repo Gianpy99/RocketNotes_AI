@@ -1,0 +1,9 @@
+targets:
+  $default:
+    builders:
+      hive_generator:hive_generator:
+        enabled: true
+        options:
+          # No options needed for basic Hive generation
+      json_serializable:
+        enabled: true

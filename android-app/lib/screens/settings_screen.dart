@@ -3,6 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../main_simple.dart';
+import 'family_members_screen.dart';
+
+// TODO: FAMILY_FEATURES - Add family settings
+// - Family member management (add/remove/edit profiles)
+// - Family sharing permissions and access control
+// - Emergency contacts management
+// - Family calendar integration settings
+// - Child-safe mode and parental controls
+
+// TODO: BACKUP_SYSTEM - Add backup settings
+// - Automatic backup scheduling
+// - Cloud sync configuration (Google Drive, iCloud)
+// - Backup location preferences
+// - Data export/import functionality
+// - Backup history and restore options
 
 final settingsProvider = StateNotifierProvider<SettingsNotifier, AppSettings>((ref) {
   return SettingsNotifier();
@@ -325,9 +340,59 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
-          // About
+          // Family Features
+          const Text(
+            'Famiglia',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  title: const Text('Membri della famiglia'),
+                  subtitle: const Text('Gestisci i profili familiari'),
+                  leading: const Icon(Icons.family_restroom),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const FamilyMembersScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: const Text('Notebook condivisi'),
+                  subtitle: const Text('Gestisci notebook familiari'),
+                  leading: const Icon(Icons.book),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Notebook condivisi - Coming Soon!')),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: const Text('Contatti di emergenza'),
+                  subtitle: const Text('Gestisci contatti importanti'),
+                  leading: const Icon(Icons.emergency),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Contatti emergenza - Coming Soon!')),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
           Card(
             child: ListTile(
               title: const Text('Informazioni'),

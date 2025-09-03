@@ -28,13 +28,14 @@ class AppSettingsModelAdapter extends TypeAdapter<AppSettingsModel> {
       fontSize: fields[8] as double,
       enableBiometric: fields[9] as bool,
       pinnedTags: (fields[10] as List).cast<String>(),
+      showStats: fields[11] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettingsModel obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.defaultMode)
       ..writeByte(1)
@@ -56,7 +57,9 @@ class AppSettingsModelAdapter extends TypeAdapter<AppSettingsModel> {
       ..writeByte(9)
       ..write(obj.enableBiometric)
       ..writeByte(10)
-      ..write(obj.pinnedTags);
+      ..write(obj.pinnedTags)
+      ..writeByte(11)
+      ..write(obj.showStats);
   }
 
   @override

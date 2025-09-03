@@ -12,6 +12,16 @@ import '../../widgets/home/stats_overview.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/floating_action_menu.dart';
 import '../../widgets/voice_recording_dialog.dart';
+import '../../widgets/common/family_member_selector.dart';
+import '../../widgets/home/shared_notebooks_section.dart';
+
+// TODO: FAMILY_FEATURES - Add family dashboard
+// - Add family member selector in app bar
+// - Add family activity feed/timeline
+// - Add shared family notes section
+// - Add family reminders and tasks overview
+// - Add emergency contacts quick access
+// - Add family calendar integration preview
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -97,6 +107,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ref.read(searchQueryProvider.notifier).state = query;
               },
               actions: [
+                const FamilyMemberSelector(),
                 IconButton(
                   icon: AnimatedRotation(
                     turns: _isRefreshing ? 1 : 0,
@@ -167,6 +178,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         
                         // Quick Actions
                         const QuickActions(),
+                        
+                        const SizedBox(height: 16),
+                        
+                        // Family Shared Notebooks
+                        const SharedNotebooksSection(),
                         
                         const SizedBox(height: 24),
                         

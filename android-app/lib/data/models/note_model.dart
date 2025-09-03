@@ -8,6 +8,12 @@ part 'note_model.g.dart';
 // Create alias for compatibility
 typedef Note = NoteModel;
 
+// TODO: FAMILY_FEATURES - Add family member management
+// - Add familyMemberId field to track who created the note
+// - Add sharedNotebookId for family-shared notebooks
+// - Add sharingPermissions for family collaboration
+// - Consider emergency contact integration for critical notes
+
 @HiveType(typeId: 0)
 class NoteModel extends HiveObject {
   @HiveField(0)
@@ -54,6 +60,16 @@ class NoteModel extends HiveObject {
 
   @HiveField(14)
   bool isArchived;
+
+  // TODO: FAMILY_FEATURES - Add these fields for family functionality
+  // @HiveField(15)
+  // String? familyMemberId; // ID of family member who created the note
+  // @HiveField(16)
+  // String? sharedNotebookId; // ID of shared family notebook
+  // @HiveField(17)
+  // List<String>? sharedWith; // List of family member IDs who can access
+  // @HiveField(18)
+  // bool isEmergencyContact; // Flag for emergency contact notes
 
   NoteModel({
     required this.id,

@@ -12,12 +12,25 @@ import '../../widgets/notes/note_card.dart';
 import '../../widgets/notes/note_list_filters.dart';
 import '../../widgets/common/search_bar.dart';
 
+// TODO: FAMILY_FEATURES - Add family note management
+// - Add "Family Notes" filter option
+// - Add family member attribution in note cards
+// - Add shared note indicators and permissions
+// - Add family member filter dropdown
+// - Add "Share with Family" quick action
+
+// TODO: UI_IMPROVEMENTS - Add family-friendly UI
+// - Add larger touch targets for elderly family members
+// - Add simplified view mode for children
+// - Add voice-to-text for accessibility
+// - Add emergency contact quick dial
+
 enum NoteViewMode { list, grid }
-enum NoteSortBy { 
-  dateModified, 
-  dateCreated, 
-  title, 
-  tags 
+enum NoteSortBy {
+  dateModified,
+  dateCreated,
+  title,
+  tags
 }
 
 class NoteListScreen extends ConsumerStatefulWidget {
