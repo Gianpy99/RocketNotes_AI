@@ -240,43 +240,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void _showThemeDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Choose Theme'),
+      builder: (context) => const AlertDialog(
+        title: Text('Choose Theme'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             RadioListTile<ThemeMode>(
-              title: const Text('Light'),
+              title: Text('Light'),
               value: ThemeMode.light,
-              groupValue: ref.read(themeModeProvider),
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(themeModeProvider.notifier).setThemeMode(value);
-                  Navigator.of(context).pop();
-                }
-              },
             ),
             RadioListTile<ThemeMode>(
-              title: const Text('Dark'),
+              title: Text('Dark'),
               value: ThemeMode.dark,
-              groupValue: ref.read(themeModeProvider),
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(themeModeProvider.notifier).setThemeMode(value);
-                  Navigator.of(context).pop();
-                }
-              },
             ),
             RadioListTile<ThemeMode>(
-              title: const Text('System'),
+              title: Text('System'),
               value: ThemeMode.system,
-              groupValue: ref.read(themeModeProvider),
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(themeModeProvider.notifier).setThemeMode(value);
-                  Navigator.of(context).pop();
-                }
-              },
             ),
           ],
         ),
@@ -342,7 +321,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           TextButton(
             onPressed: () async {
               await ref.read(notesProvider.notifier).clearAllNotes();
-              if (mounted) {
+              if (context.mounted) {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(

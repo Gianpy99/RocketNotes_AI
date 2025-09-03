@@ -184,7 +184,9 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
           FilledButton(
             onPressed: () async {
               await _saveNote(showSnackBar: false);
-              Navigator.of(context).pop(true);
+              if (context.mounted) {
+                Navigator.of(context).pop(true);
+              }
             },
             child: const Text('Save & Leave'),
           ),
@@ -354,10 +356,10 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
 
     return PopScope(
       canPop: !_hasUnsavedChanges,
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (didPop, result) async {
         if (!didPop) {
           final shouldPop = await _onWillPop();
-          if (shouldPop && mounted) {
+          if (shouldPop && context.mounted) {
             Navigator.of(context).pop();
           }
         }
@@ -510,11 +512,13 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
             onPressed: () async {
               if (_hasUnsavedChanges) {
                 final shouldPop = await _onWillPop();
-                if (shouldPop && mounted) {
+                if (shouldPop && context.mounted) {
                   Navigator.of(context).pop();
                 }
               } else {
-                Navigator.of(context).pop();
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
               }
             },
             icon: const Icon(Icons.arrow_back_rounded),

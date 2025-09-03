@@ -498,8 +498,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ElevatedButton(
             onPressed: () async {
               await ref.read(notesProvider.notifier).loadNotes();
-              Navigator.of(context).pop();
-              _showDebugNotesDialog(); // Riapri dopo il refresh
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                _showDebugNotesDialog(); // Riapri dopo il refresh
+              }
             },
             child: const Text('🔄 Aggiorna'),
           ),

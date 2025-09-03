@@ -132,7 +132,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
           TextButton(
             onPressed: () async {
               await _saveNote();
-              if (mounted) Navigator.of(context).pop(true);
+              if (context.mounted) Navigator.of(context).pop(true);
             },
             child: const Text('Save'),
           ),
@@ -507,7 +507,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
           TextButton(
             onPressed: () async {
               await ref.read(notesProvider.notifier).deleteNote(_currentNote!.id);
-              if (mounted) {
+              if (context.mounted) {
                 Navigator.of(context).pop(); // Close dialog
                 context.pop(); // Go back to previous screen
                 ScaffoldMessenger.of(context).showSnackBar(

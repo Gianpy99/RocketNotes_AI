@@ -1,4 +1,5 @@
 // Simple Note Editor Screen
+// ignore_for_file: prefer_const_constructors, unnecessary_const
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -849,12 +850,8 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                           child: RadioListTile<String>(
                             title: const Text('Personale'),
                             value: 'personal',
-                            groupValue: _selectedMode,
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedMode = value!;
-                              });
-                            },
+                            groupValue: _selectedMode, // ignore: deprecated_member_use
+                            onChanged: (value) => setState(() => _selectedMode = value!), // ignore: deprecated_member_use
                             dense: true,
                             contentPadding: EdgeInsets.zero,
                           ),
@@ -863,12 +860,8 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                           child: RadioListTile<String>(
                             title: const Text('Lavoro'),
                             value: 'work',
-                            groupValue: _selectedMode,
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedMode = value!;
-                              });
-                            },
+                            groupValue: _selectedMode, // ignore: deprecated_member_use
+                            onChanged: (value) => setState(() => _selectedMode = value!), // ignore: deprecated_member_use
                             dense: true,
                             contentPadding: EdgeInsets.zero,
                           ),
@@ -922,7 +915,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
             // Sezione Immagini
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -959,12 +952,12 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                           child: Column(
                             children: [
                               Icon(Icons.photo_library_outlined, size: 48, color: Colors.grey.shade400),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               Text(
                                 'Nessuna immagine allegata',
                                 style: TextStyle(color: Colors.grey.shade600),
                               ),
-                              const SizedBox(height: 4),
+                              SizedBox(height: 4),
                               Text(
                                 'Tocca + per aggiungere immagini',
                                 style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
@@ -989,9 +982,9 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                     children: [
                       const Row(
                         children: [
-                          Icon(Icons.auto_awesome, color: Colors.purple),
-                          SizedBox(width: 8),
-                          Text(
+                          const Icon(Icons.auto_awesome, color: Colors.purple),
+                          const SizedBox(width: 8),
+                          const Text(
                             'Analisi Rocketbook AI',
                             style: TextStyle(
                               fontSize: 16,
