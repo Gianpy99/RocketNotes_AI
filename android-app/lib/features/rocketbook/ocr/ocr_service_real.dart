@@ -1,7 +1,5 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
-import 'package:image/image.dart' as img;
 import '../models/scanned_content.dart';
 import '../camera/web_camera_service.dart';
 import '../../../core/debug/debug_logger.dart';
@@ -101,7 +99,7 @@ class OCRService {
     try {
       // Use the captured image from WebCameraService
       final webService = WebCameraService.instance;
-      final imageData = webService.getLastCapturedImageData();
+      final imageData = await webService.getLastImageBytes();
       
       if (imageData == null) {
         throw Exception('No image data available for OCR processing');
@@ -131,9 +129,9 @@ class OCRService {
         detectedLanguages: ['en'],
         processingTime: Duration.zero, // Will be set by caller
         additionalData: {
-          'words_count': data.words.length ?? 0,
-          'lines_count': data.lines.length ?? 0,
-          'paragraphs_count': data.paragraphs.length ?? 0,
+          'words_count': data.words.length,
+          'lines_count': data.lines.length,
+          'paragraphs_count': data.paragraphs.length,
           'web_processing': true,
         },
       );
@@ -222,11 +220,12 @@ class OCRService {
       scannedContent.tables.add(
         TableData(
           rows: tableRows,
+          boundingBox: BoundingBox(left: 0, top: 0, width: 100, height: 100),
           confidence: data.confidence,
         ),
       );
     }
-    }
+  }
 
   /// Extract tables from ML Kit text
   void _extractTablesFromMLKitText(ScannedContent scannedContent, RecognizedText recognizedText) {
@@ -248,6 +247,7 @@ class OCRService {
       scannedContent.tables.add(
         TableData(
           rows: tableRows,
+          boundingBox: BoundingBox(left: 0, top: 0, width: 100, height: 100),
           confidence: 0.8, // Default confidence for ML Kit
         ),
       );
@@ -269,6 +269,7 @@ class OCRService {
         DiagramData(
           type: 'technical',
           description: 'Detected diagram or chart in the image',
+          boundingBox: BoundingBox(left: 0, top: 0, width: 100, height: 100),
           elements: {
             'type': 'detected_from_text',
             'indicators': ['diagram', 'chart', 'flow'],
