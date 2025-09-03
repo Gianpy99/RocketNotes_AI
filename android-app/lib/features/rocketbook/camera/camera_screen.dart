@@ -921,25 +921,29 @@ class ImagePreviewScreen extends ConsumerWidget {
       
       DebugLogger().log('✅ Note saved successfully!');
       
-      Navigator.of(context).pop(); // Close dialog
-      Navigator.of(context).popUntil((route) => route.isFirst);
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Note saved successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close dialog
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Note saved successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     } catch (e, stackTrace) {
       DebugLogger().log('❌ Error saving note: $e');
       DebugLogger().log('Stack trace: $stackTrace');
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error saving note: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving note: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
