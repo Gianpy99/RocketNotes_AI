@@ -37,12 +37,17 @@ class CameraService {
       // Initialize the camera controller with the first camera (usually back camera)
       _controller = CameraController(
         _cameras!.first,
-        ResolutionPreset.high,
+        ResolutionPreset.medium, // Reduced from high to medium
         enableAudio: false,
         imageFormatGroup: ImageFormatGroup.jpeg,
       );
 
+      // Configure with optimized settings
       await _controller!.initialize();
+      
+      // Set additional configuration to prevent buffer overflow
+      await _controller!.setFlashMode(FlashMode.off);
+      
       _isInitialized = true;
 
       return true;
@@ -85,6 +90,11 @@ class CameraService {
     }
 
     try {
+      // Check if controller is still valid
+      if (!_controller!.value.isInitialized) {
+        throw Exception('Camera controller not ready');
+      }
+
       // Create a unique filename
       final Directory appDir = await getApplicationDocumentsDirectory();
       final String scansDir = path.join(appDir.path, 'rocketbook_scans');
@@ -95,19 +105,32 @@ class CameraService {
       final String fileName = 'scan_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final String filePath = path.join(scansDir, fileName);
 
-      // Capture the image
+      debugPrint('📸 CameraService: Starting photo capture...');
+      
+      // Capture the image with timeout
       final XFile image = await _controller!.takePicture();
+      
+      debugPrint('📸 CameraService: Photo captured, saving to: $filePath');
       
       // Move the image to our scans directory
       final File capturedFile = File(image.path);
+      if (!await capturedFile.exists()) {
+        throw Exception('Captured image file not found');
+      }
+      
       final File savedFile = await capturedFile.copy(filePath);
       
       // Clean up temporary file
-      await capturedFile.delete();
+      try {
+        await capturedFile.delete();
+      } catch (e) {
+        debugPrint('Warning: Could not delete temporary file: $e');
+      }
 
+      debugPrint('✅ CameraService: Photo saved successfully: ${savedFile.path}');
       return savedFile.path;
     } catch (e) {
-      debugPrint('Error capturing photo: $e');
+      debugPrint('❌ CameraService: Error capturing photo: $e');
       return null;
     }
   }

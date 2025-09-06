@@ -30,6 +30,7 @@ final cameraStateProvider = StateNotifierProvider<CameraStateNotifier, CameraSta
 
 class CameraStateNotifier extends StateNotifier<CameraState> {
   final dynamic _cameraService; // Può essere CameraService o WebCameraService
+  bool _isCapturing = false; // Flag to prevent multiple captures
 
   CameraStateNotifier(this._cameraService) : super(const CameraState()) {
     _initializeCamera(); // Re-enabled with controlled initialization
@@ -48,20 +49,27 @@ class CameraStateNotifier extends StateNotifier<CameraState> {
   }
 
   Future<String?> capturePhoto() async {
-    if (!state.isInitialized) return null;
+    if (!state.isInitialized || _isCapturing) return null;
 
+    _isCapturing = true;
     state = state.copyWith(isCapturing: true);
+    
     try {
       String? imagePath;
       if (kIsWeb) {
         imagePath = await _cameraService.capturePhotoWithData();
       } else {
+        // Add a small delay to ensure camera is ready
+        await Future.delayed(const Duration(milliseconds: 100));
         imagePath = await _cameraService.capturePhoto();
       }
+      
       state = state.copyWith(isCapturing: false);
+      _isCapturing = false;
       return imagePath;
     } catch (e) {
       state = state.copyWith(isCapturing: false, error: e.toString());
+      _isCapturing = false;
       return null;
     }
   }
@@ -88,6 +96,8 @@ class CameraStateNotifier extends StateNotifier<CameraState> {
 
   @override
   void dispose() {
+    debugPrint('🔧 Camera: Disposing camera state notifier...');
+    _isCapturing = false;
     if (!kIsWeb) {
       _cameraService.dispose();
     }
@@ -247,7 +257,7 @@ class RocketbookCameraScreen extends ConsumerWidget {
 
             // Capture button
             GestureDetector(
-              onTap: state.isCapturing ? null : () => _capturePhoto(context, notifier),
+              onTap: state.isCapturing ? null : () => _capturePhoto(context, notifier, state),
               child: Container(
                 width: 80,
                 height: 80,
@@ -321,15 +331,34 @@ class RocketbookCameraScreen extends ConsumerWidget {
     notifier.setFlashMode(nextMode);
   }
 
-  Future<void> _capturePhoto(BuildContext context, CameraStateNotifier notifier) async {
+  Future<void> _capturePhoto(BuildContext context, CameraStateNotifier notifier, CameraState currentState) async {
+    // Prevent rapid consecutive captures
+    if (currentState.isCapturing) {
+      debugPrint('🚫 Camera: Capture already in progress, ignoring request');
+      return;
+    }
+
+    debugPrint('📸 Camera: Starting photo capture...');
     final imagePath = await notifier.capturePhoto();
+    
     if (imagePath != null && context.mounted) {
+      debugPrint('✅ Camera: Photo captured successfully: $imagePath');
       // Navigate to preview screen
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => ImagePreviewScreen(imagePath: imagePath),
         ),
       );
+    } else {
+      debugPrint('❌ Camera: Failed to capture photo');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to capture photo. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -402,7 +431,7 @@ class RocketbookCameraScreen extends ConsumerWidget {
               
               // Capture button
               GestureDetector(
-                onTap: state.isCapturing ? null : () => _capturePhoto(context, notifier),
+                onTap: state.isCapturing ? null : () => _capturePhoto(context, notifier, state),
                 child: Container(
                   width: 80,
                   height: 80,
