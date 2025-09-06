@@ -29,17 +29,19 @@ class AppSettingsModelAdapter extends TypeAdapter<AppSettingsModel> {
       enableBiometric: fields[9] as bool,
       pinnedTags: (fields[10] as List).cast<String>(),
       showStats: fields[11] as bool,
-      ocrProvider: fields[12] as String,
-      aiProvider: fields[13] as String,
-      ocrModel: fields[14] as String,
-      aiModel: fields[15] as String,
+      ocrProvider: fields[12] as String?,
+      aiProvider: fields[13] as String?,
+      textSummarizationModel: fields[14] as String?,
+      imageAnalysisModel: fields[15] as String?,
+      openAIServiceTier: fields[16] as String?,
+      audioTranscriptionModel: fields[17] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettingsModel obj) {
     writer
-      ..writeByte(16)
+      ..writeByte(18)
       ..writeByte(0)
       ..write(obj.defaultMode)
       ..writeByte(1)
@@ -69,9 +71,13 @@ class AppSettingsModelAdapter extends TypeAdapter<AppSettingsModel> {
       ..writeByte(13)
       ..write(obj.aiProvider)
       ..writeByte(14)
-      ..write(obj.ocrModel)
+      ..write(obj.textSummarizationModel)
       ..writeByte(15)
-      ..write(obj.aiModel);
+      ..write(obj.imageAnalysisModel)
+      ..writeByte(16)
+      ..write(obj.openAIServiceTier)
+      ..writeByte(17)
+      ..write(obj.audioTranscriptionModel);
   }
 
   @override

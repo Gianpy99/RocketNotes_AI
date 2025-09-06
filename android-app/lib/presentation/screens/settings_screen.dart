@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_constants.dart';
 import '../../data/services/nfc_service.dart';
 import '../providers/app_providers.dart';
+import '../../features/rocketbook/ai_analysis/ai_service.dart';
+import 'cost_monitoring_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -179,8 +181,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           const SizedBox(height: 24),
 
-          // OCR Settings Section
-          _buildSectionHeader('OCR Settings'),
+          // OCR Engine Section
+          _buildSectionHeader('OCR Engine'),
           Card(
             child: Column(
               children: [
@@ -189,43 +191,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     return ref.watch(appSettingsProvider).when(
                       data: (settings) => ListTile(
                         leading: const Icon(Icons.text_fields),
-                        title: const Text('OCR Provider'),
-                        subtitle: Text(_getOCRProviderName(settings.ocrProvider)),
+                        title: const Text('OCR Engine'),
+                        subtitle: Text(_getOCRProviderName(settings.effectiveOcrProvider)),
                         trailing: const Icon(Icons.arrow_forward_ios),
                         onTap: () => _showOCRProviderDialog(),
                       ),
                       loading: () => const ListTile(
                         leading: Icon(Icons.text_fields),
-                        title: Text('OCR Provider'),
+                        title: Text('OCR Engine'),
                         subtitle: Text('Loading...'),
                       ),
                       error: (_, __) => const ListTile(
                         leading: Icon(Icons.text_fields),
-                        title: Text('OCR Provider'),
-                        subtitle: Text('Error loading settings'),
-                      ),
-                    );
-                  },
-                ),
-                const Divider(),
-                Consumer(
-                  builder: (context, ref, child) {
-                    return ref.watch(appSettingsProvider).when(
-                      data: (settings) => ListTile(
-                        leading: const Icon(Icons.memory),
-                        title: const Text('OCR Model'),
-                        subtitle: Text(_getOCRModelName(settings.ocrModel)),
-                        trailing: const Icon(Icons.arrow_forward_ios),
-                        onTap: () => _showOCRModelDialog(settings.ocrProvider),
-                      ),
-                      loading: () => const ListTile(
-                        leading: Icon(Icons.memory),
-                        title: Text('OCR Model'),
-                        subtitle: Text('Loading...'),
-                      ),
-                      error: (_, __) => const ListTile(
-                        leading: Icon(Icons.memory),
-                        title: Text('OCR Model'),
+                        title: Text('OCR Engine'),
                         subtitle: Text('Error loading settings'),
                       ),
                     );
@@ -237,8 +215,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           const SizedBox(height: 24),
 
-          // AI Settings Section
-          _buildSectionHeader('AI Settings'),
+          // AI Configuration Section
+          _buildSectionHeader('AI Configuration'),
           Card(
             child: Column(
               children: [
@@ -248,7 +226,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       data: (settings) => ListTile(
                         leading: const Icon(Icons.smart_toy),
                         title: const Text('AI Provider'),
-                        subtitle: Text(_getAIProviderName(settings.aiProvider)),
+                        subtitle: Text(_getAIProviderName(settings.effectiveAiProvider)),
                         trailing: const Icon(Icons.arrow_forward_ios),
                         onTap: () => _showAIProviderDialog(),
                       ),
@@ -270,22 +248,109 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   builder: (context, ref, child) {
                     return ref.watch(appSettingsProvider).when(
                       data: (settings) => ListTile(
-                        leading: const Icon(Icons.psychology),
-                        title: const Text('AI Model'),
-                        subtitle: Text(_getAIModelName(settings.aiModel)),
+                        leading: const Icon(Icons.summarize),
+                        title: const Text('Text Summarization Model'),
+                        subtitle: Text(_getModelDisplayName(settings.effectiveTextSummarizationModel)),
                         trailing: const Icon(Icons.arrow_forward_ios),
-                        onTap: () => _showAIModelDialog(settings.aiProvider),
+                        onTap: () => _showTextSummarizationModelDialog(settings.effectiveAiProvider),
                       ),
                       loading: () => const ListTile(
-                        leading: Icon(Icons.psychology),
-                        title: Text('AI Model'),
+                        leading: Icon(Icons.summarize),
+                        title: Text('Text Summarization Model'),
                         subtitle: Text('Loading...'),
                       ),
                       error: (_, __) => const ListTile(
-                        leading: Icon(Icons.psychology),
-                        title: Text('AI Model'),
+                        leading: Icon(Icons.summarize),
+                        title: Text('Text Summarization Model'),
                         subtitle: Text('Error loading settings'),
                       ),
+                    );
+                  },
+                ),
+                const Divider(),
+                Consumer(
+                  builder: (context, ref, child) {
+                    return ref.watch(appSettingsProvider).when(
+                      data: (settings) => ListTile(
+                        leading: const Icon(Icons.image_search),
+                        title: const Text('Image Analysis Model'),
+                        subtitle: Text(_getModelDisplayName(settings.effectiveImageAnalysisModel)),
+                        trailing: const Icon(Icons.arrow_forward_ios),
+                        onTap: () => _showImageAnalysisModelDialog(settings.effectiveAiProvider),
+                      ),
+                      loading: () => const ListTile(
+                        leading: Icon(Icons.image_search),
+                        title: Text('Image Analysis Model'),
+                        subtitle: Text('Loading...'),
+                      ),
+                      error: (_, __) => const ListTile(
+                        leading: Icon(Icons.image_search),
+                        title: Text('Image Analysis Model'),
+                        subtitle: Text('Error loading settings'),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(),
+                // Audio Transcription Model
+                Consumer(
+                  builder: (context, ref, child) {
+                    return ref.watch(appSettingsProvider).when(
+                      data: (settings) => ListTile(
+                        leading: const Icon(Icons.mic),
+                        title: const Text('Audio Transcription Model'),
+                        subtitle: Text(_getModelDisplayName(settings.effectiveAudioTranscriptionModel)),
+                        trailing: const Icon(Icons.arrow_forward_ios),
+                        onTap: () => _showAudioTranscriptionModelDialog(settings.effectiveAiProvider),
+                      ),
+                      loading: () => const ListTile(
+                        leading: Icon(Icons.mic),
+                        title: Text('Audio Transcription Model'),
+                        subtitle: Text('Loading...'),
+                      ),
+                      error: (_, __) => const ListTile(
+                        leading: Icon(Icons.mic),
+                        title: Text('Audio Transcription Model'),
+                        subtitle: Text('Error loading settings'),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(),
+                // Cost Monitoring
+                ListTile(
+                  leading: const Icon(Icons.analytics_outlined),
+                  title: const Text('Cost Monitoring'),
+                  subtitle: const Text('Track API usage and costs'),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CostMonitoringScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(),
+                // OpenAI Service Tier option (only show for OpenAI provider)
+                Consumer(
+                  builder: (context, ref, child) {
+                    return ref.watch(appSettingsProvider).when(
+                      data: (settings) {
+                        if (settings.effectiveAiProvider != 'openai') {
+                          return const SizedBox.shrink(); // Hide for non-OpenAI providers
+                        }
+                        return ListTile(
+                          leading: const Icon(Icons.speed),
+                          title: const Text('OpenAI Service Tier'),
+                          subtitle: Text(_getServiceTierDisplayName(settings.effectiveOpenAIServiceTier)),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onTap: () => _showServiceTierDialog(),
+                        );
+                      },
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
                     );
                   },
                 ),
@@ -491,48 +556,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  // OCR Settings Methods
+  // OCR Engine Methods
   String _getOCRProviderName(String provider) {
     switch (provider) {
-      case 'trocr-handwritten':
-        return 'TrOCR Handwritten';
-      case 'trocr-printed':
-        return 'TrOCR Printed';
+      case 'google_ml_kit':
+        return 'Google ML Kit (Recommended)';
       case 'tesseract':
         return 'Tesseract OCR';
       default:
-        return 'Unknown Provider';
-    }
-  }
-
-  String _getOCRModelName(String model) {
-    switch (model) {
-      case 'microsoft/trocr-base-handwritten':
-        return 'TrOCR Base Handwritten';
-      case 'microsoft/trocr-large-handwritten':
-        return 'TrOCR Large Handwritten';
-      case 'microsoft/trocr-base-printed':
-        return 'TrOCR Base Printed';
-      case 'microsoft/trocr-large-printed':
-        return 'TrOCR Large Printed';
-      case 'tesseract-ocr':
-        return 'Tesseract Default';
-      default:
-        return 'Unknown Model';
+        return 'Unknown Engine';
     }
   }
 
   void _showOCRProviderDialog() {
     final ocrProviders = [
-      {'id': 'trocr-handwritten', 'name': 'TrOCR Handwritten', 'description': 'Best for handwritten text'},
-      {'id': 'trocr-printed', 'name': 'TrOCR Printed', 'description': 'Best for printed text'},
-      {'id': 'tesseract', 'name': 'Tesseract OCR', 'description': 'Traditional OCR (local)'},
+      {
+        'id': 'google_ml_kit', 
+        'name': 'Google ML Kit', 
+        'description': 'Fast & accurate OCR engine (Recommended)'
+      },
+      {
+        'id': 'tesseract', 
+        'name': 'Tesseract OCR', 
+        'description': 'Traditional open-source OCR'
+      },
     ];
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Select OCR Provider'),
+        title: const Text('Select OCR Engine'),
         content: SizedBox(
           width: double.maxFinite,
           child: ListView.builder(
@@ -562,97 +615,50 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _showOCRModelDialog(String provider) {
-    List<Map<String, String>> models;
-    
-    switch (provider) {
-      case 'trocr-handwritten':
-        models = [
-          {'id': 'microsoft/trocr-base-handwritten', 'name': 'TrOCR Base Handwritten'},
-          {'id': 'microsoft/trocr-large-handwritten', 'name': 'TrOCR Large Handwritten'},
-        ];
-        break;
-      case 'trocr-printed':
-        models = [
-          {'id': 'microsoft/trocr-base-printed', 'name': 'TrOCR Base Printed'},
-          {'id': 'microsoft/trocr-large-printed', 'name': 'TrOCR Large Printed'},
-        ];
-        break;
-      case 'tesseract':
-        models = [
-          {'id': 'tesseract-ocr', 'name': 'Tesseract Default'},
-        ];
-        break;
-      default:
-        models = [];
-    }
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select OCR Model'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: models.length,
-            itemBuilder: (context, index) {
-              final model = models[index];
-              return ListTile(
-                title: Text(model['name']!),
-                onTap: () async {
-                  Navigator.of(context).pop();
-                  await ref.read(settingsRepositoryProvider).updateOcrModel(model['id']!);
-                  ref.invalidate(appSettingsProvider);
-                },
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // AI Settings Methods
+  // AI Configuration Methods
   String _getAIProviderName(String provider) {
     switch (provider) {
       case 'openai':
-        return 'OpenAI';
+        return 'OpenAI (GPT Models)';
       case 'gemini':
         return 'Google Gemini';
-      case 'huggingface':
-        return 'HuggingFace';
-      case 'mock':
-        return 'Mock AI (Testing)';
       default:
         return 'Unknown Provider';
     }
   }
 
-  String _getAIModelName(String model) {
+  String _getModelDisplayName(String model) {
     switch (model) {
-      case 'gpt-4-turbo-preview':
-        return 'GPT-4 Turbo Preview';
+      case 'gpt-4o':
+        return 'GPT-4o (Latest)';
+      case 'gpt-4-turbo':
+        return 'GPT-4 Turbo';
       case 'gpt-4':
         return 'GPT-4';
       case 'gpt-3.5-turbo':
         return 'GPT-3.5 Turbo';
+      case 'gpt-5':
+        return 'GPT-5 (Latest)';
+      case 'gpt-5-mini':
+        return 'GPT-5 Mini';
+      case 'gpt-5-nano':
+        return 'GPT-5 Nano';
+      case 'gpt-4o-mini-transcribe':
+        return 'GPT-4o Mini Transcribe';
       case 'gemini-pro':
         return 'Gemini Pro';
       case 'gemini-pro-vision':
         return 'Gemini Pro Vision';
-      case 'mistralai/Mistral-7B-Instruct-v0.1':
-        return 'Mistral 7B Instruct';
-      case 'meta-llama/Llama-2-7b-chat-hf':
-        return 'Llama 2 7B Chat';
-      case 'google/flan-t5-large':
-        return 'FLAN-T5 Large';
+      case 'gemini-2.5-flash':
+        return 'Gemini 2.5 Flash';
+      case 'gemini-2.5-flash-lite':
+        return 'Gemini 2.5 Flash Lite';
+      case 'gemini-2.5-flash-batch':
+        return 'Gemini 2.5 Flash Batch';
+      case 'gemini-2.5-flash-lite-batch':
+        return 'Gemini 2.5 Flash Lite Batch';
+      case 'gemini-2.5-flash-native-audio':
+        return 'Gemini 2.5 Flash Native Audio';
       default:
         return 'Unknown Model';
     }
@@ -660,10 +666,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   void _showAIProviderDialog() {
     final aiProviders = [
-      {'id': 'openai', 'name': 'OpenAI', 'description': 'GPT-4 and GPT-3.5 models'},
-      {'id': 'gemini', 'name': 'Google Gemini', 'description': 'Google\'s AI models'},
-      {'id': 'huggingface', 'name': 'HuggingFace', 'description': 'Open source models'},
-      {'id': 'mock', 'name': 'Mock AI', 'description': 'For testing (no API required)'},
+      {
+        'id': 'openai', 
+        'name': 'OpenAI', 
+        'description': 'GPT-4o, GPT-4 Turbo, and GPT-3.5 models'
+      },
+      {
+        'id': 'gemini', 
+        'name': 'Google Gemini', 
+        'description': 'Gemini Pro and Gemini Pro Vision'
+      },
     ];
 
     showDialog(
@@ -699,38 +711,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _showAIModelDialog(String provider) {
-    List<Map<String, String>> models;
+  void _showTextSummarizationModelDialog(String provider) async {
+    final settingsAsync = ref.read(appSettingsProvider);
+    final settings = settingsAsync.maybeWhen(
+      data: (settings) => settings,
+      orElse: () => null,
+    );
     
-    switch (provider) {
-      case 'openai':
-        models = [
-          {'id': 'gpt-4-turbo-preview', 'name': 'GPT-4 Turbo Preview'},
-          {'id': 'gpt-4', 'name': 'GPT-4'},
-          {'id': 'gpt-3.5-turbo', 'name': 'GPT-3.5 Turbo'},
-        ];
-        break;
-      case 'gemini':
-        models = [
-          {'id': 'gemini-pro', 'name': 'Gemini Pro'},
-          {'id': 'gemini-pro-vision', 'name': 'Gemini Pro Vision'},
-        ];
-        break;
-      case 'huggingface':
-        models = [
-          {'id': 'mistralai/Mistral-7B-Instruct-v0.1', 'name': 'Mistral 7B Instruct'},
-          {'id': 'meta-llama/Llama-2-7b-chat-hf', 'name': 'Llama 2 7B Chat'},
-          {'id': 'google/flan-t5-large', 'name': 'FLAN-T5 Large'},
-        ];
-        break;
-      default:
-        models = [];
-    }
+    final tier = provider == 'openai' && settings != null ? settings.effectiveOpenAIServiceTier : 'standard';
+    final models = AIModelConfig.getModelsForProvider(provider, tier: tier);
+    
+    if (!mounted) return;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Select AI Model'),
+        title: const Text('Select Text Summarization Model'),
         content: SizedBox(
           width: double.maxFinite,
           child: ListView.builder(
@@ -739,10 +735,255 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             itemBuilder: (context, index) {
               final model = models[index];
               return ListTile(
-                title: Text(model['name']!),
+                title: Row(
+                  children: [
+                    Expanded(child: Text(model['name'])),
+                    if (model['inputPrice'] != null) 
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _getCategoryColor(model['category']),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '\$${model['inputPrice'].toStringAsFixed(2)}/1M',
+                          style: const TextStyle(
+                            fontSize: 10, 
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                subtitle: Text(model['description'] ?? ''),
                 onTap: () async {
                   Navigator.of(context).pop();
-                  await ref.read(settingsRepositoryProvider).updateAiModel(model['id']!);
+                  await ref.read(settingsRepositoryProvider).updateTextSummarizationModel(model['id']);
+                  ref.invalidate(appSettingsProvider);
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showImageAnalysisModelDialog(String provider) async {
+    final settingsAsync = ref.read(appSettingsProvider);
+    final settings = settingsAsync.maybeWhen(
+      data: (settings) => settings,
+      orElse: () => null,
+    );
+    
+    final tier = provider == 'openai' && settings != null ? settings.effectiveOpenAIServiceTier : 'standard';
+    final allModels = AIModelConfig.getModelsForProvider(provider, tier: tier);
+    final models = allModels.where((m) => m['supportsVision'] == true).toList();
+    
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select Image Analysis Model'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: models.length,
+            itemBuilder: (context, index) {
+              final model = models[index];
+              return ListTile(
+                title: Row(
+                  children: [
+                    Expanded(child: Text(model['name'])),
+                    if (model['inputPrice'] != null) 
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _getCategoryColor(model['category']),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '\$${model['inputPrice'].toStringAsFixed(2)}/1M',
+                          style: const TextStyle(
+                            fontSize: 10, 
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                subtitle: Text(model['description'] ?? ''),
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  await ref.read(settingsRepositoryProvider).updateImageAnalysisModel(model['id']);
+                  ref.invalidate(appSettingsProvider);
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAudioTranscriptionModelDialog(String provider) async {
+    final models = AIModelConfig.getAudioModelsForProvider(provider);
+    
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select Audio Transcription Model'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: models.length,
+            itemBuilder: (context, index) {
+              final model = models[index];
+              return ListTile(
+                title: Row(
+                  children: [
+                    Expanded(child: Text(model['name'])),
+                    if (model['estimatedCostPerMinute'] != null) 
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _getCategoryColor(model['category']),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '\$${model['estimatedCostPerMinute'].toStringAsFixed(3)}/min',
+                          style: const TextStyle(
+                            fontSize: 10, 
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                    else if (model['costPerMinute'] != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _getCategoryColor(model['category']),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '\$${model['costPerMinute'].toStringAsFixed(3)}/min',
+                          style: const TextStyle(
+                            fontSize: 10, 
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                subtitle: Text(model['description'] ?? ''),
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  await ref.read(settingsRepositoryProvider).updateAudioTranscriptionModel(model['id']);
+                  ref.invalidate(appSettingsProvider);
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper method to get category colors for price badges
+  Color _getCategoryColor(String? category) {
+    switch (category) {
+      case 'premium':
+        return Colors.purple;
+      case 'balanced':
+        return Colors.blue;
+      case 'economical':
+        return Colors.green;
+      case 'reasoning':
+        return Colors.orange;
+      case 'standard':
+        return Colors.grey;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  // Service Tier helper methods
+  String _getServiceTierDisplayName(String serviceTier) {
+    switch (serviceTier) {
+      case 'flex':
+        return 'Flex (Best Value)';
+      case 'standard':
+        return 'Standard';
+      case 'priority':
+        return 'Priority (Fastest)';
+      default:
+        return 'Flex (Best Value)';
+    }
+  }
+
+  void _showServiceTierDialog() {
+    final tiers = [
+      {
+        'id': 'flex',
+        'name': 'Flex (Best Value)',
+        'description': 'Best cost/performance ratio - GPT-5 access at lower prices'
+      },
+      {
+        'id': 'standard',
+        'name': 'Standard',
+        'description': 'Standard processing speed and quality'
+      },
+      {
+        'id': 'priority',
+        'name': 'Priority (Fastest)',
+        'description': 'Faster responses at higher cost'
+      },
+    ];
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select OpenAI Service Tier'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: tiers.length,
+            itemBuilder: (context, index) {
+              final tier = tiers[index];
+              return ListTile(
+                title: Text(tier['name']!),
+                subtitle: Text(tier['description']!),
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  await ref.read(settingsRepositoryProvider).updateOpenAIServiceTier(tier['id']!);
                   ref.invalidate(appSettingsProvider);
                 },
               );

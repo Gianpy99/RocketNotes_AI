@@ -6,13 +6,24 @@ import '../models/app_settings_model.dart';
 import '../../core/constants/app_constants.dart';
 
 class SettingsRepository {
-  final Box<AppSettingsModel> _settingsBox = Hive.box<AppSettingsModel>(AppConstants.settingsBox);
+  Box<AppSettingsModel>? _settingsBox;
   static const String _settingsKey = 'app_settings';
+
+  Box<AppSettingsModel> get settingsBox {
+    if (_settingsBox == null || !_settingsBox!.isOpen) {
+      try {
+        _settingsBox = Hive.box<AppSettingsModel>(AppConstants.settingsBox);
+      } catch (e) {
+        throw Exception('Settings box not found. Make sure Hive is properly initialized: $e');
+      }
+    }
+    return _settingsBox!;
+  }
 
   // Get settings
   Future<AppSettingsModel> getSettings() async {
     try {
-      final settings = _settingsBox.get(_settingsKey);
+      final settings = settingsBox.get(_settingsKey);
       return settings ?? AppSettingsModel.defaults();
     } catch (e) {
       return AppSettingsModel.defaults();
@@ -22,7 +33,7 @@ class SettingsRepository {
   // Save settings
   Future<void> saveSettings(AppSettingsModel settings) async {
     try {
-      await _settingsBox.put(_settingsKey, settings);
+      await settingsBox.put(_settingsKey, settings);
     } catch (e) {
       throw Exception('Failed to save settings: $e');
     }
@@ -122,30 +133,55 @@ class SettingsRepository {
   Future<void> updateAiProvider(String provider) async {
     try {
       final settings = await getSettings();
-      final updatedSettings = settings.copyWith(aiProvider: provider);
+      
+      // Set appropriate default models for each provider
+      String textModel, imageModel, audioModel;
+      switch (provider) {
+        case 'openai':
+          textModel = 'gpt-5-mini';
+          imageModel = 'gpt-5-mini';
+          audioModel = 'gpt-4o-mini-transcribe';
+          break;
+        case 'gemini':
+          textModel = 'gemini-2.5-flash';
+          imageModel = 'gemini-2.5-flash';
+          audioModel = 'gemini-2.5-flash-native-audio';
+          break;
+        default:
+          textModel = settings.effectiveTextSummarizationModel;
+          imageModel = settings.effectiveImageAnalysisModel;
+          audioModel = settings.effectiveAudioTranscriptionModel;
+      }
+      
+      final updatedSettings = settings.copyWith(
+        aiProvider: provider,
+        textSummarizationModel: textModel,
+        imageAnalysisModel: imageModel,
+        audioTranscriptionModel: audioModel,
+      );
       await saveSettings(updatedSettings);
     } catch (e) {
       throw Exception('Failed to update AI provider: $e');
     }
   }
 
-  Future<void> updateOcrModel(String model) async {
+  Future<void> updateTextSummarizationModel(String model) async {
     try {
       final settings = await getSettings();
-      final updatedSettings = settings.copyWith(ocrModel: model);
+      final updatedSettings = settings.copyWith(textSummarizationModel: model);
       await saveSettings(updatedSettings);
     } catch (e) {
-      throw Exception('Failed to update OCR model: $e');
+      throw Exception('Failed to update text summarization model: $e');
     }
   }
 
-  Future<void> updateAiModel(String model) async {
+  Future<void> updateImageAnalysisModel(String model) async {
     try {
       final settings = await getSettings();
-      final updatedSettings = settings.copyWith(aiModel: model);
+      final updatedSettings = settings.copyWith(imageAnalysisModel: model);
       await saveSettings(updatedSettings);
     } catch (e) {
-      throw Exception('Failed to update AI model: $e');
+      throw Exception('Failed to update image analysis model: $e');
     }
   }
 
@@ -189,11 +225,11 @@ class SettingsRepository {
         case 'aiProvider':
           updatedSettings = settings.copyWith(aiProvider: value as String);
           break;
-        case 'ocrModel':
-          updatedSettings = settings.copyWith(ocrModel: value as String);
+        case 'textSummarizationModel':
+          updatedSettings = settings.copyWith(textSummarizationModel: value as String);
           break;
-        case 'aiModel':
-          updatedSettings = settings.copyWith(aiModel: value as String);
+        case 'imageAnalysisModel':
+          updatedSettings = settings.copyWith(imageAnalysisModel: value as String);
           break;
         default:
           throw Exception('Unknown setting key: $key');
@@ -202,6 +238,37 @@ class SettingsRepository {
       await saveSettings(updatedSettings);
     } catch (e) {
       throw Exception('Failed to update setting $key: $e');
+    }
+  }
+
+  // General update method
+  Future<void> updateSettings(AppSettingsModel settings) async {
+    try {
+      await saveSettings(settings);
+    } catch (e) {
+      throw Exception('Failed to update settings: $e');
+    }
+  }
+
+  // Update OpenAI Service Tier
+  Future<void> updateOpenAIServiceTier(String serviceTier) async {
+    try {
+      final settings = await getSettings();
+      final updatedSettings = settings.copyWith(openAIServiceTier: serviceTier);
+      await saveSettings(updatedSettings);
+    } catch (e) {
+      throw Exception('Failed to update OpenAI service tier: $e');
+    }
+  }
+
+  // Update Audio Transcription Model
+  Future<void> updateAudioTranscriptionModel(String model) async {
+    try {
+      final settings = await getSettings();
+      final updatedSettings = settings.copyWith(audioTranscriptionModel: model);
+      await saveSettings(updatedSettings);
+    } catch (e) {
+      throw Exception('Failed to update audio transcription model: $e');
     }
   }
 

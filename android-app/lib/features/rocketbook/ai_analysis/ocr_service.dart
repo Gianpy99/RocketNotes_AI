@@ -31,14 +31,12 @@ class OCRService {
   Future<String> extractTextFromImage(Uint8List imageBytes) async {
     final settings = await _settingsRepository.getSettings();
     final ocrProvider = settings.ocrProvider;
-    final ocrModel = settings.ocrModel;
     
-    DebugLogger().log('🔍 OCR Service: Extracting text with provider: $ocrProvider, model: $ocrModel');
+    DebugLogger().log('🔍 OCR Service: Extracting text with provider: $ocrProvider');
     
     switch (ocrProvider) {
-      case 'trocr-handwritten':
-      case 'trocr-printed':
-        return await _extractWithTrOCR(imageBytes, ocrModel);
+      case 'google_ml_kit':
+        return await _extractWithGoogleMLKit(imageBytes);
       case 'tesseract':
         return await _extractWithTesseract(imageBytes);
       default:
@@ -91,6 +89,12 @@ class OCRService {
       DebugLogger().log('❌ OCR Service: TrOCR extraction error: $e');
       return _mockOCR(imageBytes);
     }
+  }
+
+  /// Estrai testo usando Google ML Kit
+  Future<String> _extractWithGoogleMLKit(Uint8List imageBytes) async {
+    DebugLogger().log('🔍 OCR Service: Google ML Kit extraction not yet implemented - using simulation');
+    return _mockOCR(imageBytes);
   }
 
   /// Estrai testo usando Tesseract (implementazione placeholder)

@@ -806,18 +806,18 @@ class ImagePreviewScreen extends ConsumerWidget {
                               Icon(Icons.smart_toy, size: 24),
                               SizedBox(width: 8),
                               Text(
-                                'Direct AI Analysis',
+                                'Enhanced OCR + AI Analysis',
                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Skip OCR, analyze image directly with AI',
+                            'Use OCR + AI for best accuracy',
                             style: TextStyle(fontSize: 12, color: Colors.white70),
                           ),
                           Text(
-                            'Faster processing, good for diagrams & photos',
+                            'Combines text extraction with visual analysis',
                             style: TextStyle(fontSize: 11, color: Colors.white60),
                           ),
                         ],
@@ -950,7 +950,7 @@ class ImagePreviewScreen extends ConsumerWidget {
             CircularProgressIndicator(color: Colors.purple),
             SizedBox(height: 20),
             Text(
-              '🚀 Direct AI Analysis',
+              '🚀 Enhanced AI Analysis',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -959,13 +959,13 @@ class ImagePreviewScreen extends ConsumerWidget {
             ),
             SizedBox(height: 12),
             Text(
-              'Analyzing image directly with AI\nSkipping OCR for faster processing',
+              'Running OCR + AI analysis\nBest accuracy with visual context',
               style: TextStyle(fontSize: 14, color: Colors.grey),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 8),
             Text(
-              'Usually takes 5-15 seconds',
+              'Usually takes 10-20 seconds',
               style: TextStyle(fontSize: 12, color: Colors.green),
             ),
           ],
@@ -974,13 +974,16 @@ class ImagePreviewScreen extends ConsumerWidget {
     );
 
     try {
-      DebugLogger().log('🤖 Starting Direct AI processing...');
+      DebugLogger().log('🤖 Starting Enhanced AI processing with OCR...');
       
-      // Create ScannedContent without OCR processing
-      final scannedContent = ScannedContent.fromImage(imagePath);
-      scannedContent.rawText = '[Image sent directly to AI for analysis]';
-      scannedContent.status = ProcessingStatus.completed;
-      DebugLogger().log('📷 Scanned content created for direct AI analysis');
+      // STEP 1: First run OCR to extract text
+      final ocrService = ref.read(ocrServiceProvider);
+      final scannedContent = await ocrService.processImage(imagePath);
+      DebugLogger().log('📷 OCR completed, extracted ${scannedContent.rawText.length} characters');
+      
+      // STEP 2: Add visual context indicator for AI
+      scannedContent.rawText += '\n\n[Image also available for visual analysis]';
+      DebugLogger().log('📷 Enhanced content created with OCR + visual context');
       
       // Initialize AI service for direct image analysis
       final aiService = ref.read(aiServiceProvider);

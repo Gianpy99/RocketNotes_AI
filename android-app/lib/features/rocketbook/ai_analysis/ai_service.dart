@@ -21,52 +21,286 @@ enum OCRProvider {
   mockOCR,
 }
 
-// Configurazioni modelli
+// Configurazioni modelli avanzate
 class AIModelConfig {
-  static const Map<String, Map<String, String>> aiModels = {
-    'openai': {
-      'gpt-4o': 'gpt-4o',                          // Latest GPT-4 with vision
-      'gpt-4-turbo': 'gpt-4-turbo',                // GPT-4 Turbo
-      'gpt-4': 'gpt-4',                            // Standard GPT-4
-      'gpt-3.5-turbo': 'gpt-3.5-turbo',            // Cost-effective option
+  // Modelli OpenAI per Flex tier (migliore rapporto qualità/prezzo)
+  static const List<Map<String, dynamic>> openAIFlexModels = [
+    {
+      'id': 'gpt-5',
+      'name': 'GPT-5 (Latest)',
+      'description': 'Most advanced model',
+      'inputPrice': 0.625,
+      'outputPrice': 5.00,
+      'cachedInputPrice': 0.0625,
+      'supportsVision': true,
+      'supportsAudio': false,
+      'category': 'premium'
     },
-    'gemini': {
-      'gemini-pro': 'gemini-pro',
-      'gemini-pro-vision': 'gemini-pro-vision',
+    {
+      'id': 'gpt-5-mini',
+      'name': 'GPT-5 Mini',
+      'description': 'Fast and efficient',
+      'inputPrice': 0.125,
+      'outputPrice': 1.00,
+      'cachedInputPrice': 0.0125,
+      'supportsVision': true,
+      'supportsAudio': false,
+      'category': 'balanced'
     },
-    'huggingface': {
-      'mistral-7b': 'mistralai/Mistral-7B-Instruct-v0.1',
-      'llama2-7b': 'meta-llama/Llama-2-7b-chat-hf',
-      'flan-t5-large': 'google/flan-t5-large',
+    {
+      'id': 'gpt-5-nano',
+      'name': 'GPT-5 Nano',
+      'description': 'Ultra cost-effective',
+      'inputPrice': 0.025,
+      'outputPrice': 0.20,
+      'cachedInputPrice': 0.0025,
+      'supportsVision': true,
+      'supportsAudio': false,
+      'category': 'economical'
     },
-  };
+    {
+      'id': 'o3',
+      'name': 'O3',
+      'description': 'Advanced reasoning',
+      'inputPrice': 1.00,
+      'outputPrice': 4.00,
+      'cachedInputPrice': 0.25,
+      'supportsVision': false,
+      'supportsAudio': false,
+      'category': 'reasoning'
+    },
+    {
+      'id': 'o4-mini',
+      'name': 'O4 Mini',
+      'description': 'Efficient reasoning',
+      'inputPrice': 0.55,
+      'outputPrice': 2.20,
+      'cachedInputPrice': 0.138,
+      'supportsVision': false,
+      'supportsAudio': false,
+      'category': 'reasoning'
+    },
+  ];
 
-  static const Map<String, Map<String, String>> ocrModels = {
-    'trocr-handwritten': {
-      'trocr-base-handwritten': 'microsoft/trocr-base-handwritten',
-      'trocr-large-handwritten': 'microsoft/trocr-large-handwritten',
+  // Modelli OpenAI per Standard tier
+  static const List<Map<String, dynamic>> openAIStandardModels = [
+    {
+      'id': 'gpt-5',
+      'name': 'GPT-5 (Latest)',
+      'description': 'Most advanced model',
+      'inputPrice': 1.25,
+      'outputPrice': 10.00,
+      'supportsVision': true,
+      'supportsAudio': false,
+      'category': 'premium'
     },
-    'trocr-printed': {
-      'trocr-base-printed': 'microsoft/trocr-base-printed',
-      'trocr-large-printed': 'microsoft/trocr-large-printed',
+    {
+      'id': 'gpt-4o',
+      'name': 'GPT-4o',
+      'description': 'Vision and text',
+      'inputPrice': 2.50,
+      'outputPrice': 10.00,
+      'supportsVision': true,
+      'supportsAudio': false,
+      'category': 'balanced'
     },
-  };
+    {
+      'id': 'gpt-4o-mini',
+      'name': 'GPT-4o Mini',
+      'description': 'Fast and efficient',
+      'inputPrice': 0.15,
+      'outputPrice': 0.60,
+      'supportsVision': true,
+      'supportsAudio': false,
+      'category': 'economical'
+    },
+    {
+      'id': 'o1',
+      'name': 'O1',
+      'description': 'Advanced reasoning',
+      'inputPrice': 15.00,
+      'outputPrice': 60.00,
+      'supportsVision': false,
+      'supportsAudio': false,
+      'category': 'reasoning'
+    },
+  ];
 
-  /// Get optimal model for the task
-  static String getOptimalModel(String provider, {bool requiresVision = false, bool prioritizeCost = true}) {
+  // Modelli per trascrizione audio OpenAI
+  static const List<Map<String, dynamic>> openAIAudioModels = [
+    {
+      'id': 'gpt-4o-transcribe',
+      'name': 'GPT-4o Transcribe',
+      'description': 'High-quality transcription',
+      'inputPrice': 2.50, // text tokens
+      'outputPrice': 10.00,
+      'audioInputPrice': 6.00, // audio tokens
+      'estimatedCostPerMinute': 0.006,
+      'category': 'premium'
+    },
+    {
+      'id': 'gpt-4o-mini-transcribe',
+      'name': 'GPT-4o Mini Transcribe',
+      'description': 'Cost-effective transcription',
+      'inputPrice': 1.25,
+      'outputPrice': 5.00,
+      'audioInputPrice': 3.00,
+      'estimatedCostPerMinute': 0.003,
+      'category': 'economical'
+    },
+    {
+      'id': 'whisper',
+      'name': 'Whisper',
+      'description': 'Standard transcription',
+      'costPerMinute': 0.006,
+      'category': 'standard'
+    },
+  ];
+
+  // Modelli Gemini
+  static const List<Map<String, dynamic>> geminiModels = [
+    {
+      'id': 'gemini-2.5-flash',
+      'name': 'Gemini 2.5 Flash',
+      'description': 'Latest fast multimodal model - FREE up to limits',
+      'inputPrice': 0.0, // Free tier
+      'outputPrice': 0.0, // Free tier
+      'paidInputPrice': 0.30, // Paid tier per 1M tokens
+      'paidOutputPrice': 2.50, // Paid tier per 1M tokens
+      'cachingPrice': 0.075,
+      'supportsVision': true,
+      'supportsAudio': true,
+      'isFree': true,
+      'freeRateLimit': {'rpm': 5, 'rpd': 25},
+      'category': 'premium'
+    },
+    {
+      'id': 'gemini-2.5-flash-lite',
+      'name': 'Gemini 2.5 Flash Lite',
+      'description': 'Lightweight multimodal model - FREE up to limits',
+      'inputPrice': 0.0, // Free tier
+      'outputPrice': 0.0, // Free tier
+      'paidInputPrice': 0.10, // Paid tier per 1M tokens
+      'paidOutputPrice': 0.40, // Paid tier per 1M tokens
+      'cachingPrice': 0.025,
+      'supportsVision': true,
+      'supportsAudio': true,
+      'isFree': true,
+      'freeRateLimit': {'rpm': 5, 'rpd': 25},
+      'category': 'economical'
+    },
+    {
+      'id': 'gemini-2.5-flash-batch',
+      'name': 'Gemini 2.5 Flash Batch',
+      'description': 'Batch processing model',
+      'inputPrice': 0.15, // Per 1M tokens
+      'outputPrice': 1.25, // Per 1M tokens
+      'cachingPrice': 0.075,
+      'supportsVision': true,
+      'supportsAudio': true,
+      'isFree': false,
+      'category': 'batch'
+    },
+    {
+      'id': 'gemini-2.5-flash-lite-batch',
+      'name': 'Gemini 2.5 Flash Lite Batch',
+      'description': 'Batch processing lite model',
+      'inputPrice': 0.05, // Per 1M tokens
+      'outputPrice': 0.20, // Per 1M tokens
+      'cachingPrice': 0.025,
+      'supportsVision': true,
+      'supportsAudio': true,
+      'isFree': false,
+      'category': 'batch'
+    },
+    {
+      'id': 'gemini-2.5-flash-native-audio',
+      'name': 'Gemini 2.5 Flash Native Audio',
+      'description': 'Native audio processing',
+      'textInputPrice': 0.50, // Text per 1M tokens
+      'textOutputPrice': 2.00, // Text per 1M tokens
+      'audioInputPrice': 3.00, // Audio per 1M tokens
+      'audioOutputPrice': 12.00, // Audio per 1M tokens
+      'supportsVision': false,
+      'supportsAudio': true,
+      'isFree': false,
+      'category': 'premium'
+    },
+    {
+      'id': 'gemini-pro',
+      'name': 'Gemini Pro',
+      'description': 'FREE with grounding limits',
+      'inputPrice': 0.0, // Free
+      'outputPrice': 0.0, // Free
+      'supportsVision': true,
+      'supportsAudio': false,
+      'isFree': true,
+      'groundingLimit': 1500, // per day
+      'category': 'balanced'
+    },
+    {
+      'id': 'gemini-pro-long-context',
+      'name': 'Gemini Pro (Long Context)',
+      'description': 'Extended context model',
+      'inputPrice': 2.50, // Per 1M tokens
+      'outputPrice': 15.00, // Per 1M tokens
+      'cachingPrice': 0.625,
+      'supportsVision': true,
+      'supportsAudio': false,
+      'isFree': false,
+      'category': 'premium'
+    },
+  ];
+
+  /// Get models by provider and tier
+  static List<Map<String, dynamic>> getModelsForProvider(String provider, {String tier = 'flex'}) {
     switch (provider.toLowerCase()) {
       case 'openai':
-        if (requiresVision) {
-          return 'gpt-4o'; // Best for vision tasks
+        switch (tier.toLowerCase()) {
+          case 'flex':
+            return openAIFlexModels;
+          case 'standard':
+            return openAIStandardModels;
+          default:
+            return openAIFlexModels;
         }
-        return prioritizeCost ? 'gpt-3.5-turbo' : 'gpt-4-turbo';
       case 'gemini':
-        return requiresVision ? 'gemini-pro-vision' : 'gemini-pro';
-      case 'huggingface':
-        return 'meta-llama/Llama-2-7b-chat-hf'; // Default HF model
+        return geminiModels;
       default:
-        return 'gpt-3.5-turbo';
+        return [];
     }
+  }
+
+  /// Get audio models by provider
+  static List<Map<String, dynamic>> getAudioModelsForProvider(String provider) {
+    switch (provider.toLowerCase()) {
+      case 'openai':
+        return openAIAudioModels;
+      case 'gemini':
+        return geminiModels.where((model) => model['supportsAudio'] == true).toList();
+      default:
+        return [];
+    }
+  }
+
+  /// Get optimal model for the task
+  static String getOptimalModel(String provider, {bool requiresVision = false, bool prioritizeCost = true, String tier = 'flex'}) {
+    final models = getModelsForProvider(provider, tier: tier);
+    
+    if (models.isEmpty) return 'gpt-5-mini'; // fallback
+    
+    if (requiresVision) {
+      final visionModels = models.where((m) => m['supportsVision'] == true).toList();
+      if (visionModels.isNotEmpty) {
+        return prioritizeCost ? 
+          visionModels.where((m) => m['category'] == 'economical').first['id'] :
+          visionModels.where((m) => m['category'] == 'premium').first['id'];
+      }
+    }
+    
+    return prioritizeCost ? 
+      models.where((m) => m['category'] == 'economical').first['id'] :
+      models.where((m) => m['category'] == 'premium').first['id'];
   }
 }
 
@@ -178,14 +412,14 @@ class AIService {
     try {
       DebugLogger().log('🚀 AI Service: Starting real OpenAI analysis...');
       
-      // Smart model selection: Use cost-effective model for text-only analysis
-      final bool hasImages = scannedContent.imagePath != null;
-      final String optimalModel = AIModelConfig.getOptimalModel('openai', 
-        requiresVision: hasImages, 
-        prioritizeCost: true  // Prioritize cost-effectiveness
-      );
+      // Get the configured model from settings
+      final settings = await _settingsRepository.getSettings();
+      final bool hasImages = scannedContent.imagePath.isNotEmpty;
+      final configuredModel = hasImages 
+          ? settings.imageAnalysisModel
+          : settings.textSummarizationModel;
       
-      DebugLogger().log('⚙️ Selected optimal model: $optimalModel (vision: $hasImages)');
+      DebugLogger().log('⚙️ Using configured model: $configuredModel');
       
       final prompt = _buildAnalysisPrompt(scannedContent);
       
@@ -199,7 +433,8 @@ class AIService {
           },
         ),
         data: {
-          'model': optimalModel,  // Use optimal model instead of configured
+          'model': configuredModel,
+          'service_tier': settings.openAIServiceTier, // Add service tier configuration
           'messages': [
             {
               'role': 'system',
@@ -246,7 +481,10 @@ class AIService {
       
       // Get the configured model from settings
       final settings = await _settingsRepository.getSettings();
-      final configuredModel = settings.aiModel;
+      final bool hasImages = scannedContent.imagePath.isNotEmpty;
+      final configuredModel = hasImages 
+          ? settings.imageAnalysisModel
+          : settings.textSummarizationModel;
       
       DebugLogger().log('⚙️ Using configured model: $configuredModel');
       
@@ -303,7 +541,10 @@ class AIService {
       
       // Get the configured model from settings
       final settings = await _settingsRepository.getSettings();
-      final configuredModel = settings.aiModel;
+      final bool hasImages = scannedContent.imagePath.isNotEmpty;
+      final configuredModel = hasImages 
+          ? settings.imageAnalysisModel
+          : settings.textSummarizationModel;
       
       DebugLogger().log('⚙️ Using configured model: $configuredModel');
       

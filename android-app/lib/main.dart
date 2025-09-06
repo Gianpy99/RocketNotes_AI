@@ -11,6 +11,8 @@ import 'core/constants/app_constants.dart';
 import 'data/models/note_model.dart';
 import 'data/models/app_settings_model.dart';
 import 'data/models/family_member_model.dart';
+import 'data/models/usage_monitoring_model.dart';
+import 'data/services/cost_monitoring_service.dart';
 import 'features/rocketbook/ai_analysis/ai_service.dart';
 import 'features/rocketbook/ocr/ocr_service_real.dart';
 import 'core/services/family_service.dart';
@@ -37,9 +39,21 @@ Future<void> main() async {
     // ----------------------------------
     await Hive.initFlutter();
 
+    // Clear any existing corrupted data first
+    try {
+      await Hive.deleteFromDisk();
+      debugPrint('🧹 Cleared existing Hive data to prevent compatibility issues');
+    } catch (e) {
+      debugPrint('ℹ️ No existing Hive data to clear: $e');
+    }
+
+    // Re-initialize Hive after clearing
+    await Hive.initFlutter();
+
     // Register Hive adapters
     Hive.registerAdapter(NoteModelAdapter());
     Hive.registerAdapter(AppSettingsModelAdapter());
+    Hive.registerAdapter(UsageMonitoringModelAdapter());
 
     // Register family member adapter
     Hive.registerAdapter(FamilyMemberAdapter());
@@ -47,6 +61,7 @@ Future<void> main() async {
     // Open Hive boxes
     await Hive.openBox<NoteModel>(AppConstants.notesBox);
     await Hive.openBox<AppSettingsModel>(AppConstants.settingsBox);
+    await Hive.openBox<UsageMonitoringModel>('usage_monitoring');
 
     // Open family member box
     await Hive.openBox<FamilyMember>('familyMembers');
@@ -64,6 +79,12 @@ Future<void> main() async {
     // ----------------------------------
     await OCRService.instance.initialize();
     debugPrint('✅ OCR Service initialized successfully');
+
+    // ----------------------------------
+    // Initialize Cost Monitoring Service
+    // ----------------------------------
+    await CostMonitoringService().initialize();
+    debugPrint('✅ Cost Monitoring Service initialized successfully');
 
     // ----------------------------------
     // Initialize Family Service

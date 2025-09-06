@@ -5,8 +5,19 @@ import '../../core/debug/debug_logger.dart';
 import '../../core/constants/app_constants.dart';
 
 class NoteRepository {
-  // Use the typed box for notes
-  final Box<NoteModel> notesBox = Hive.box<NoteModel>(AppConstants.notesBox);
+  // Use lazy initialization for the box
+  Box<NoteModel>? _notesBox;
+  
+  Box<NoteModel> get notesBox {
+    if (_notesBox == null || !_notesBox!.isOpen) {
+      try {
+        _notesBox = Hive.box<NoteModel>(AppConstants.notesBox);
+      } catch (e) {
+        throw Exception('Notes box not found. Make sure Hive is properly initialized: $e');
+      }
+    }
+    return _notesBox!;
+  }
 
   Future<List<NoteModel>> getAllNotes() async {
     DebugLogger().log('🔍 Repository: Getting all notes from box...');

@@ -45,16 +45,22 @@ class AppSettingsModel extends HiveObject {
   bool showStats;
 
   @HiveField(12)
-  String ocrProvider; // microsoft/trocr-base-handwritten, tesseract, etc.
+  String? ocrProvider; // Google ML Kit, TesseractOCR
   
   @HiveField(13)
-  String aiProvider; // openai, gemini, huggingface, mock
+  String? aiProvider; // openai, gemini
 
   @HiveField(14)
-  String ocrModel; // specific model for OCR (e.g. trocr-base-handwritten)
+  String? textSummarizationModel; // AI model for text-to-text summarization
   
   @HiveField(15)
-  String aiModel; // specific model for AI analysis (e.g. gpt-4-turbo-preview)
+  String? imageAnalysisModel; // AI model for image-to-text analysis
+
+  @HiveField(16)
+  String? openAIServiceTier; // OpenAI service tier: flex, standard, priority
+
+  @HiveField(17)
+  String? audioTranscriptionModel; // AI model for audio transcription
 
   AppSettingsModel({
     this.defaultMode = 'work',
@@ -69,10 +75,12 @@ class AppSettingsModel extends HiveObject {
     this.enableBiometric = false,
     this.pinnedTags = const [],
     this.showStats = true,
-    this.ocrProvider = 'trocr-handwritten',
+    this.ocrProvider = 'google_ml_kit',
     this.aiProvider = 'openai',
-    this.ocrModel = 'microsoft/trocr-base-handwritten',
-    this.aiModel = 'gpt-4-turbo-preview',
+    this.textSummarizationModel = 'gpt-5-mini',
+    this.imageAnalysisModel = 'gpt-5-mini',
+    this.openAIServiceTier = 'flex',
+    this.audioTranscriptionModel = 'gpt-4o-mini-transcribe',
   });
 
   // Factory constructor with defaults
@@ -88,12 +96,22 @@ class AppSettingsModel extends HiveObject {
       enableBiometric: false,
       pinnedTags: [],
       showStats: true,
-      ocrProvider: 'trocr-handwritten',
+      ocrProvider: 'google_ml_kit',
       aiProvider: 'openai',
-      ocrModel: 'microsoft/trocr-base-handwritten',
-      aiModel: 'gpt-4-turbo-preview',
+      textSummarizationModel: 'gpt-5-mini',
+      imageAnalysisModel: 'gpt-5-mini',
+      openAIServiceTier: 'flex',
+      audioTranscriptionModel: 'gpt-4o-mini-transcribe',
     );
   }
+
+  // Getters with default values for nullable fields
+  String get effectiveOcrProvider => ocrProvider ?? 'google_ml_kit';
+  String get effectiveAiProvider => aiProvider ?? 'openai';
+  String get effectiveTextSummarizationModel => textSummarizationModel ?? 'gpt-5-mini';
+  String get effectiveImageAnalysisModel => imageAnalysisModel ?? 'gpt-5-mini';
+  String get effectiveOpenAIServiceTier => openAIServiceTier ?? 'flex';
+  String get effectiveAudioTranscriptionModel => audioTranscriptionModel ?? 'gpt-4o-mini-transcribe';
 
   // Copy with method
   AppSettingsModel copyWith({
@@ -111,8 +129,10 @@ class AppSettingsModel extends HiveObject {
     bool? showStats,
     String? ocrProvider,
     String? aiProvider,
-    String? ocrModel,
-    String? aiModel,
+    String? textSummarizationModel,
+    String? imageAnalysisModel,
+    String? openAIServiceTier,
+    String? audioTranscriptionModel,
   }) {
     return AppSettingsModel(
       defaultMode: defaultMode ?? this.defaultMode,
@@ -129,8 +149,10 @@ class AppSettingsModel extends HiveObject {
       showStats: showStats ?? this.showStats,
       ocrProvider: ocrProvider ?? this.ocrProvider,
       aiProvider: aiProvider ?? this.aiProvider,
-      ocrModel: ocrModel ?? this.ocrModel,
-      aiModel: aiModel ?? this.aiModel,
+      textSummarizationModel: textSummarizationModel ?? this.textSummarizationModel,
+      imageAnalysisModel: imageAnalysisModel ?? this.imageAnalysisModel,
+      openAIServiceTier: openAIServiceTier ?? this.openAIServiceTier,
+      audioTranscriptionModel: audioTranscriptionModel ?? this.audioTranscriptionModel,
     );
   }
 
@@ -166,8 +188,10 @@ class AppSettingsModel extends HiveObject {
       'showStats': showStats,
       'ocrProvider': ocrProvider,
       'aiProvider': aiProvider,
-      'ocrModel': ocrModel,
-      'aiModel': aiModel,
+      'textSummarizationModel': textSummarizationModel,
+      'imageAnalysisModel': imageAnalysisModel,
+      'openAIServiceTier': openAIServiceTier,
+      'audioTranscriptionModel': audioTranscriptionModel,
     };
   }
 
@@ -187,10 +211,12 @@ class AppSettingsModel extends HiveObject {
       enableBiometric: json['enableBiometric'] as bool? ?? false,
       pinnedTags: List<String>.from(json['pinnedTags'] as List? ?? []),
       showStats: json['showStats'] as bool? ?? true,
-      ocrProvider: json['ocrProvider'] as String? ?? 'trocr-handwritten',
+      ocrProvider: json['ocrProvider'] as String? ?? 'google_ml_kit',
       aiProvider: json['aiProvider'] as String? ?? 'openai',
-      ocrModel: json['ocrModel'] as String? ?? 'microsoft/trocr-base-handwritten',
-      aiModel: json['aiModel'] as String? ?? 'gpt-4-turbo-preview',
+      textSummarizationModel: json['textSummarizationModel'] as String? ?? 'gpt-5-mini',
+      imageAnalysisModel: json['imageAnalysisModel'] as String? ?? 'gpt-5-mini',
+      openAIServiceTier: json['openAIServiceTier'] as String? ?? 'flex',
+      audioTranscriptionModel: json['audioTranscriptionModel'] as String? ?? 'gpt-4o-mini-transcribe',
     );
   }
 }

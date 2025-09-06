@@ -29,7 +29,6 @@ dependencies:
 
   # NFC
   flutter_nfc_kit: ^3.3.1
-  nfc_manager: 4.0.2
 
   # Deep Links
   app_links: ^6.4.1
