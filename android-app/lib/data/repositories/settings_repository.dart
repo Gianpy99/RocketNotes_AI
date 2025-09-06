@@ -109,6 +109,46 @@ class SettingsRepository {
     }
   }
 
+  Future<void> updateOcrProvider(String provider) async {
+    try {
+      final settings = await getSettings();
+      final updatedSettings = settings.copyWith(ocrProvider: provider);
+      await saveSettings(updatedSettings);
+    } catch (e) {
+      throw Exception('Failed to update OCR provider: $e');
+    }
+  }
+
+  Future<void> updateAiProvider(String provider) async {
+    try {
+      final settings = await getSettings();
+      final updatedSettings = settings.copyWith(aiProvider: provider);
+      await saveSettings(updatedSettings);
+    } catch (e) {
+      throw Exception('Failed to update AI provider: $e');
+    }
+  }
+
+  Future<void> updateOcrModel(String model) async {
+    try {
+      final settings = await getSettings();
+      final updatedSettings = settings.copyWith(ocrModel: model);
+      await saveSettings(updatedSettings);
+    } catch (e) {
+      throw Exception('Failed to update OCR model: $e');
+    }
+  }
+
+  Future<void> updateAiModel(String model) async {
+    try {
+      final settings = await getSettings();
+      final updatedSettings = settings.copyWith(aiModel: model);
+      await saveSettings(updatedSettings);
+    } catch (e) {
+      throw Exception('Failed to update AI model: $e');
+    }
+  }
+
   // Generic setting update method
   Future<void> updateSetting(String key, dynamic value) async {
     try {
@@ -142,6 +182,18 @@ class SettingsRepository {
           break;
         case 'showStats':
           updatedSettings = settings.copyWith(showStats: value as bool);
+          break;
+        case 'ocrProvider':
+          updatedSettings = settings.copyWith(ocrProvider: value as String);
+          break;
+        case 'aiProvider':
+          updatedSettings = settings.copyWith(aiProvider: value as String);
+          break;
+        case 'ocrModel':
+          updatedSettings = settings.copyWith(ocrModel: value as String);
+          break;
+        case 'aiModel':
+          updatedSettings = settings.copyWith(aiModel: value as String);
           break;
         default:
           throw Exception('Unknown setting key: $key');

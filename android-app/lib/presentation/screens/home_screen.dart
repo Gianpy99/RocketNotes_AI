@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/debug/debug_logger.dart';
+import '../../data/models/note_model.dart';
 import '../../data/services/nfc_service.dart';
 import '../../data/services/deep_link_service.dart';
 import '../../features/rocketbook/camera/camera_screen.dart';
@@ -35,16 +35,55 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
     _listenToDeepLinks();
     
-    // DEBUG TOAST
+    // Create test notes for debugging
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('🐛 DEBUG: Cerca icona BUG ARANCIONE in alto a destra!'),
-          backgroundColor: Colors.orange,
-          duration: Duration(seconds: 4),
-        ),
-      );
+      _createTestNotes();
     });
+  }
+
+  Future<void> _createTestNotes() async {
+    try {
+      debugPrint('🧪 Creating test notes for debugging...');
+      
+      final notesNotifier = ref.read(notesProvider.notifier);
+      
+      // Create test notes
+      final testNotes = [
+        NoteModel(
+          id: 'test_work_${DateTime.now().millisecondsSinceEpoch}',
+          title: 'Test Work Note',
+          content: 'This is a test work note to verify the notes system.',
+          mode: 'work',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          tags: ['test', 'work'],
+          isArchived: false,
+          isFavorite: false,
+        ),
+        NoteModel(
+          id: 'test_personal_${DateTime.now().millisecondsSinceEpoch + 1}',
+          title: 'Test Personal Note', 
+          content: 'This is a test personal note to verify the notes system.',
+          mode: 'personal',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          tags: ['test', 'personal'],
+          isArchived: false,
+          isFavorite: false,
+        ),
+      ];
+      
+      for (final note in testNotes) {
+        await notesNotifier.saveNote(note);
+        debugPrint('✅ Test note created: ${note.title}');
+      }
+      
+      debugPrint('🧪 Test notes creation completed');
+      
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error creating test notes: $e');
+      debugPrint('Stack trace: $stackTrace');
+    }
   }
 
   void _listenToDeepLinks() {
@@ -136,14 +175,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
             actions: [
-              // DEBUG BUTTON - SUPER VISIBILE
-              IconButton(
-                icon: const Icon(Icons.bug_report, color: Colors.orange, size: 30),
-                onPressed: () async {
-                  // DEBUG: Mostra tutte le note salvate
-                  await _showDebugNotesDialog();
-                },
-              ),
               IconButton(
                 icon: const Icon(Icons.settings),
                 onPressed: () => context.push('/settings'),
@@ -378,6 +409,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       // FLOATING ACTION BUTTON per camera
       floatingActionButton: FloatingActionButton(
+        heroTag: 'home_fab',
         onPressed: () {
           Navigator.push(
             context,
@@ -391,8 +423,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: const Icon(Icons.camera_alt, color: Colors.white),
       ),
     ),
-    // Debug button overlay
-    const DebugFloatingButton(),
   ],
 );
   }
@@ -414,99 +444,4 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  Future<void> _showDebugNotesDialog() async {
-    final notesAsyncValue = ref.read(notesProvider);
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('🐛 DEBUG: Note Salvate'),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: 400,
-          child: notesAsyncValue.when(
-            data: (notes) {
-              if (notes.isEmpty) {
-                return const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.note_alt_outlined, size: 64, color: Colors.grey),
-                    SizedBox(height: 16),
-                    Text('Nessuna nota salvata'),
-                    Text('Le note scattate dalla camera dovrebbero apparire qui'),
-                  ],
-                );
-              }
-              
-              return ListView.builder(
-                itemCount: notes.length,
-                itemBuilder: (context, index) {
-                  final note = notes[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text(
-                        note.title.isNotEmpty ? note.title : 'Senza titolo',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            note.content.length > 100 
-                              ? '${note.content.substring(0, 100)}...'
-                              : note.content,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Creata: ${_formatDate(note.createdAt)}',
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
-                          ),
-                          Text(
-                            'ID: ${note.id}',
-                            style: const TextStyle(fontSize: 10, color: Colors.grey),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error, color: Colors.red, size: 48),
-                  const SizedBox(height: 16),
-                  Text('Errore: $error'),
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () => ref.read(notesProvider.notifier).loadNotes(),
-                    child: const Text('Riprova'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Chiudi'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await ref.read(notesProvider.notifier).loadNotes();
-              if (context.mounted) {
-                Navigator.of(context).pop();
-                _showDebugNotesDialog(); // Riapri dopo il refresh
-              }
-            },
-            child: const Text('🔄 Aggiorna'),
-          ),
-        ],
-      ),
-    );
-  }
 }

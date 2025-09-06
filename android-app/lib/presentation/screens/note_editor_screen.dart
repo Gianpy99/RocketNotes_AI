@@ -1,5 +1,6 @@
 // lib/presentation/screens/note_editor_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
@@ -195,6 +196,12 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
           duration: Duration(seconds: 1),
         ),
       );
+      
+      // Debug: Log the saved note
+      debugPrint('📝 Note saved: ${note.id} - ${note.title}');
+      
+      // Show dialog asking what to do next
+      await _showPostSaveDialog();
     }
   }
 
@@ -232,7 +239,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
         content: const Text('You have unsaved changes. Do you want to save before leaving?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () => Navigator.of(context).pop(true),
             child: const Text('Discard'),
           ),
           TextButton(
@@ -955,5 +962,48 @@ Tag (separati da virgola):
         );
       }
     }
+  }
+
+  Future<void> _showPostSaveDialog() async {
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Note Saved!'),
+        content: const Text('What would you like to do next?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop('new'),
+            child: const Text('Create New Note'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop('home'),
+            child: const Text('Go to Home'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop('stay'),
+            child: const Text('Stay Here'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == 'new') {
+      // Clear the current note and start fresh
+      setState(() {
+        _currentNote = null;
+        _titleController.clear();
+        _contentController.clear();
+        _tags.clear();
+        _hasUnsavedChanges = false;
+      });
+    } else if (result == 'home') {
+      // Navigate back to home screen and refresh notes
+      if (mounted) {
+        // Invalidate the notes provider to force refresh
+        ref.invalidate(notesProvider);
+        context.go('/');
+      }
+    }
+    // If 'stay' or null, just stay in the editor
   }
 }

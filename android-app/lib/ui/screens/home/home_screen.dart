@@ -376,7 +376,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 FilledButton(
                   onPressed: () {
                     // Navigate to settings or help
-                    Navigator.of(context).pushNamed('/settings');
+                    context.push('/settings');
                   },
                   child: const Text('Settings'),
                 ),
@@ -391,13 +391,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void _handleMenuAction(String action) {
     switch (action) {
       case 'settings':
-        Navigator.of(context).pushNamed('/settings');
+        context.push('/settings');
         break;
       case 'backup':
         _showBackupDialog();
         break;
       case 'stats':
-        Navigator.of(context).pushNamed('/statistics');
+        context.push('/statistics');
         break;
     }
   }
@@ -419,10 +419,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       final result = await nfcService.readNfcTag();
       
       if (result.success && mounted) {
-        Navigator.of(context).pushNamed(
-          '/note-editor',
-          arguments: {'nfcData': result.data},
-        );
+        context.push('/editor');
       }
     } catch (e) {
       if (mounted) {
@@ -488,7 +485,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           FilledButton(
             onPressed: () {
               Navigator.of(context).pop();
-              Navigator.of(context).pushNamed('/backup');
+              context.push('/backup');
             },
             child: const Text('Manage Backups'),
           ),

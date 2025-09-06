@@ -26,7 +26,7 @@ class ShoppingListItemAdapter extends TypeAdapter<ShoppingListItem> {
       notes: fields[6] as String?,
       completedAt: fields[7] as DateTime?,
       completedBy: fields[8] as String?,
-      createdAt: fields[9] as DateTime,
+      createdAt: fields[9] as DateTime?,
       createdBy: fields[10] as String,
     );
   }
@@ -84,14 +84,14 @@ class ShoppingListAdapter extends TypeAdapter<ShoppingList> {
       id: fields[0] as String,
       name: fields[1] as String,
       description: fields[2] as String,
-      items: (fields[3] as List?)?.cast<ShoppingListItem>() ?? [],
+      items: (fields[3] as List).cast<ShoppingListItem>(),
       storeName: fields[4] as String?,
       shoppingDate: fields[5] as DateTime?,
       isCompleted: fields[6] as bool,
       completedAt: fields[7] as DateTime?,
-      createdAt: fields[8] as DateTime,
+      createdAt: fields[8] as DateTime?,
       createdBy: fields[9] as String,
-      sharedWith: (fields[10] as List?)?.cast<String>() ?? [],
+      sharedWith: (fields[10] as List).cast<String>(),
     );
   }
 

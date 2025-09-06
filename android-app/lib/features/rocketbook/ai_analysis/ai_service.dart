@@ -3,7 +3,76 @@ import 'dart:math';
 import 'package:dio/dio.dart';
 import '../../../core/debug/debug_logger.dart';
 import '../../../core/config/api_config.dart';
+import '../../../data/repositories/settings_repository.dart';
 import '../models/scanned_content.dart';
+
+// Enum per provider AI e OCR
+enum AIProvider {
+  openAI,
+  gemini,
+  huggingFace,
+  mockAI,
+}
+
+enum OCRProvider {
+  trocrHandwritten, // microsoft/trocr-base-handwritten
+  trocrPrinted,     // microsoft/trocr-base-printed
+  tesseract,        // traditional OCR
+  mockOCR,
+}
+
+// Configurazioni modelli
+class AIModelConfig {
+  static const Map<String, Map<String, String>> aiModels = {
+    'openai': {
+      'gpt-4-turbo-preview': 'gpt-4-turbo-preview',
+      'gpt-4': 'gpt-4',
+      'gpt-3.5-turbo': 'gpt-3.5-turbo',
+    },
+    'gemini': {
+      'gemini-pro': 'gemini-pro',
+      'gemini-pro-vision': 'gemini-pro-vision',
+    },
+    'huggingface': {
+      'mistral-7b': 'mistralai/Mistral-7B-Instruct-v0.1',
+      'llama2-7b': 'meta-llama/Llama-2-7b-chat-hf',
+      'flan-t5-large': 'google/flan-t5-large',
+    },
+  };
+
+  static const Map<String, Map<String, String>> ocrModels = {
+    'trocr-handwritten': {
+      'trocr-base-handwritten': 'microsoft/trocr-base-handwritten',
+      'trocr-large-handwritten': 'microsoft/trocr-large-handwritten',
+    },
+    'trocr-printed': {
+      'trocr-base-printed': 'microsoft/trocr-base-printed',
+      'trocr-large-printed': 'microsoft/trocr-large-printed',
+    },
+    'tesseract': {
+      'tesseract-default': 'tesseract-ocr',
+    },
+  };
+
+  static List<String> get aiProviders => aiModels.keys.toList();
+  static List<String> get ocrProviders => ocrModels.keys.toList();
+  
+  static List<String> getAiModelsForProvider(String provider) {
+    return aiModels[provider]?.keys.toList() ?? [];
+  }
+  
+  static List<String> getOcrModelsForProvider(String provider) {
+    return ocrModels[provider]?.keys.toList() ?? [];
+  }
+  
+  static String? getActualModelName(String provider, String modelKey, {bool isOCR = false}) {
+    if (isOCR) {
+      return ocrModels[provider]?[modelKey];
+    } else {
+      return aiModels[provider]?[modelKey];
+    }
+  }
+}
 
 class AIService {
   static AIService? _instance;
@@ -11,14 +80,17 @@ class AIService {
   AIService._();
 
   final Dio _dio = Dio();
+  final SettingsRepository _settingsRepository = SettingsRepository();
   
   // Configuration
   static const String openAIBaseUrl = 'https://api.openai.com/v1';
   static const String geminiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta';
+  static const String huggingFaceBaseUrl = 'https://api-inference.huggingface.co/models';
   
   // API Keys (these should be stored securely in production)
   String? _openAIKey;
   String? _geminiKey;
+  String? _huggingFaceKey;
   
   // Current provider
   AIProvider _currentProvider = AIProvider.mockAI;
@@ -27,37 +99,56 @@ class AIService {
   Future<void> initialize({
     String? openAIKey,
     String? geminiKey,
+    String? huggingFaceKey,
     AIProvider? provider,
   }) async {
     // Use provided keys or configuration
     _openAIKey = openAIKey ?? ApiConfig.actualOpenAIKey;
     _geminiKey = geminiKey ?? ApiConfig.actualGeminiKey;
+    _huggingFaceKey = huggingFaceKey ?? ApiConfig.actualHuggingFaceKey;
     
     DebugLogger().log('🤖 AI Service: Initializing...');
     DebugLogger().log('🔧 Checking API configuration...');
     
+    // Get AI provider from settings
+    final settings = await _settingsRepository.getSettings();
+    final configuredProvider = settings.aiProvider;
+    
+    DebugLogger().log('⚙️ Configured AI provider from settings: $configuredProvider');
+    
     // Check if we have real API keys
     final hasOpenAI = ApiConfig.hasOpenAIKey;
     final hasGemini = ApiConfig.hasGeminiKey;
+    final hasHuggingFace = ApiConfig.hasHuggingFaceKey;
     
     DebugLogger().log('🔑 OpenAI Key available: $hasOpenAI');
     DebugLogger().log('🔑 Gemini Key available: $hasGemini');
+    DebugLogger().log('🔑 HuggingFace Key available: $hasHuggingFace');
     
-    if (hasOpenAI || hasGemini) {
-      // Use real APIs if available
-      if (provider != null) {
-        _currentProvider = provider;
-      } else if (hasOpenAI) {
-        _currentProvider = AIProvider.openAI;
-        DebugLogger().log('✅ Using OpenAI API with real key');
-      } else {
-        _currentProvider = AIProvider.gemini;
-        DebugLogger().log('✅ Using Gemini API with real key');
-      }
+    // Set provider based on configuration and available keys
+    if (provider != null) {
+      _currentProvider = provider;
     } else {
-      // Fall back to simulation
-      _currentProvider = AIProvider.mockAI;
-      DebugLogger().log('🎭 No API keys found - using enhanced simulation');
+      switch (configuredProvider) {
+        case 'openai':
+          _currentProvider = hasOpenAI ? AIProvider.openAI : AIProvider.mockAI;
+          break;
+        case 'gemini':
+          _currentProvider = hasGemini ? AIProvider.gemini : AIProvider.mockAI;
+          break;
+        case 'huggingface':
+          _currentProvider = hasHuggingFace ? AIProvider.huggingFace : AIProvider.mockAI;
+          break;
+        default:
+          _currentProvider = AIProvider.mockAI;
+      }
+    }
+    
+    // Log which provider we're actually using
+    if (_currentProvider != AIProvider.mockAI) {
+      DebugLogger().log('✅ Using real AI provider: $_currentProvider');
+    } else {
+      DebugLogger().log('🎭 Using mock AI (no valid API keys or configured as mock)');
     }
     
     _dio.options.connectTimeout = const Duration(seconds: 30);
@@ -73,6 +164,8 @@ class AIService {
         return await _analyzeWithOpenAI(scannedContent);
       case AIProvider.gemini:
         return await _analyzeWithGemini(scannedContent);
+      case AIProvider.huggingFace:
+        return await _analyzeWithHuggingFace(scannedContent);
       case AIProvider.mockAI:
         return _mockAnalysis(scannedContent);
     }
@@ -90,6 +183,13 @@ class AIService {
     try {
       DebugLogger().log('🚀 AI Service: Starting real OpenAI analysis...');
       DebugLogger().log('🔑 OPENAI DEBUG: API Key configurata: ${_openAIKey?.substring(0, 10)}...');
+      
+      // Get the configured model from settings
+      final settings = await _settingsRepository.getSettings();
+      final configuredModel = settings.aiModel;
+      
+      DebugLogger().log('⚙️ Using configured model: $configuredModel');
+      
       final prompt = _buildAnalysisPrompt(scannedContent);
       
       DebugLogger().log('📤 AI Service: Sending request to OpenAI API');
@@ -102,7 +202,7 @@ class AIService {
           },
         ),
         data: {
-          'model': 'gpt-4-turbo-preview',
+          'model': configuredModel,
           'messages': [
             {
               'role': 'system',
@@ -147,11 +247,18 @@ class AIService {
 
     try {
       DebugLogger().log('🚀 AI Service: Starting real Gemini analysis...');
+      
+      // Get the configured model from settings
+      final settings = await _settingsRepository.getSettings();
+      final configuredModel = settings.aiModel;
+      
+      DebugLogger().log('⚙️ Using configured model: $configuredModel');
+      
       final prompt = _buildAnalysisPrompt(scannedContent);
       
       DebugLogger().log('📤 AI Service: Sending request to Gemini API');
       final response = await _dio.post(
-        '$geminiBaseUrl/models/gemini-pro:generateContent?key=$_geminiKey',
+        '$geminiBaseUrl/models/$configuredModel:generateContent?key=$_geminiKey',
         options: Options(
           headers: {
             'Content-Type': 'application/json',
@@ -183,6 +290,67 @@ class AIService {
       
     } catch (e) {
       DebugLogger().log('❌ AI Service: Gemini analysis error: $e');
+      return _fallbackAnalysis(scannedContent);
+    }
+  }
+
+  /// Analyze content with HuggingFace models
+  Future<AIAnalysis> _analyzeWithHuggingFace(ScannedContent scannedContent) async {
+    // Use ApiConfig to check if we have a valid key
+    if (!ApiConfig.hasHuggingFaceKey) {
+      DebugLogger().log('❌ AI Service: HuggingFace API key not configured - falling back to simulation');
+      return _fallbackAnalysis(scannedContent);
+    }
+
+    try {
+      DebugLogger().log('🚀 AI Service: Starting real HuggingFace analysis...');
+      
+      // Get the configured model from settings
+      final settings = await _settingsRepository.getSettings();
+      final configuredModel = settings.aiModel;
+      
+      DebugLogger().log('⚙️ Using configured model: $configuredModel');
+      
+      final prompt = _buildAnalysisPrompt(scannedContent);
+      
+      DebugLogger().log('📤 AI Service: Sending request to HuggingFace API with model: $configuredModel');
+      final response = await _dio.post(
+        '$huggingFaceBaseUrl/$configuredModel',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $_huggingFaceKey',
+            'Content-Type': 'application/json',
+          },
+        ),
+        data: {
+          'inputs': '${_getSystemPrompt()}\n\n$prompt',
+          'parameters': {
+            'max_length': 1500,
+            'temperature': 0.7,
+            'return_full_text': false,
+          },
+        },
+      );
+
+      DebugLogger().log('✅ AI Service: Received response from HuggingFace');
+      
+      // HuggingFace inference API returns different format
+      String content;
+      if (response.data is List && response.data.isNotEmpty) {
+        content = response.data[0]['generated_text'] ?? '';
+      } else if (response.data is Map) {
+        content = response.data['generated_text'] ?? '';
+      } else {
+        content = response.data.toString();
+      }
+      
+      final analysis = _parseAIResponse(content);
+      
+      DebugLogger().log('🎯 AI Service: Analysis completed - ${analysis.keyTopics.length} topics, ${analysis.actionItems.length} actions');
+      return analysis;
+      
+    } catch (e) {
+      DebugLogger().log('❌ AI Service: HuggingFace analysis error: $e');
       return _fallbackAnalysis(scannedContent);
     }
   }
@@ -736,10 +904,4 @@ Analyze with intelligence, context-awareness, and practical focus.
       default: return ContentType.notes;
     }
   }
-}
-
-enum AIProvider {
-  openAI,
-  gemini,
-  mockAI,
 }

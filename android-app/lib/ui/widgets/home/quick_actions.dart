@@ -1,5 +1,6 @@
 // lib/ui/widgets/home/quick_actions.dart
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/services/nfc_service.dart';
 import '../voice_recording_dialog.dart';
@@ -100,7 +101,7 @@ class _QuickActionsState extends State<QuickActions> {
             context,
             icon: Icons.add_rounded,
             title: 'New Note',
-            onTap: () => Navigator.of(context).pushNamed('/note-editor'),
+            onTap: () => context.push('/editor'),
           ),
         ),
         const SizedBox(width: 12),

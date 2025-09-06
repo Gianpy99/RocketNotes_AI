@@ -10,6 +10,7 @@ import 'app/app_simple.dart';
 import 'core/constants/app_constants.dart';
 import 'data/models/note_model.dart';
 import 'data/models/app_settings_model.dart';
+import 'data/models/family_member_model.dart';
 import 'features/rocketbook/ai_analysis/ai_service.dart';
 import 'features/rocketbook/ocr/ocr_service_real.dart';
 import 'core/services/family_service.dart';
@@ -40,15 +41,15 @@ Future<void> main() async {
     Hive.registerAdapter(NoteModelAdapter());
     Hive.registerAdapter(AppSettingsModelAdapter());
 
-    // TODO: FAMILY_FEATURES - Register family member adapter
-    // Hive.registerAdapter(FamilyMemberAdapter());
+    // Register family member adapter
+    Hive.registerAdapter(FamilyMemberAdapter());
 
     // Open Hive boxes
     await Hive.openBox<NoteModel>(AppConstants.notesBox);
     await Hive.openBox<AppSettingsModel>(AppConstants.settingsBox);
 
-    // TODO: FAMILY_FEATURES - Open family member box
-    // await Hive.openBox<FamilyMember>('familyMembers');
+    // Open family member box
+    await Hive.openBox<FamilyMember>('familyMembers');
 
     debugPrint('✅ Hive initialized successfully');
 

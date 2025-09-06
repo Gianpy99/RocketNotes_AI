@@ -44,6 +44,18 @@ class AppSettingsModel extends HiveObject {
   @HiveField(11)
   bool showStats;
 
+  @HiveField(12)
+  String ocrProvider; // microsoft/trocr-base-handwritten, tesseract, etc.
+  
+  @HiveField(13)
+  String aiProvider; // openai, gemini, huggingface, mock
+
+  @HiveField(14)
+  String ocrModel; // specific model for OCR (e.g. trocr-base-handwritten)
+  
+  @HiveField(15)
+  String aiModel; // specific model for AI analysis (e.g. gpt-4-turbo-preview)
+
   AppSettingsModel({
     this.defaultMode = 'work',
     this.themeMode = 0,
@@ -57,6 +69,10 @@ class AppSettingsModel extends HiveObject {
     this.enableBiometric = false,
     this.pinnedTags = const [],
     this.showStats = true,
+    this.ocrProvider = 'trocr-handwritten',
+    this.aiProvider = 'openai',
+    this.ocrModel = 'microsoft/trocr-base-handwritten',
+    this.aiModel = 'gpt-4-turbo-preview',
   });
 
   // Factory constructor with defaults
@@ -72,6 +88,10 @@ class AppSettingsModel extends HiveObject {
       enableBiometric: false,
       pinnedTags: [],
       showStats: true,
+      ocrProvider: 'trocr-handwritten',
+      aiProvider: 'openai',
+      ocrModel: 'microsoft/trocr-base-handwritten',
+      aiModel: 'gpt-4-turbo-preview',
     );
   }
 
@@ -89,6 +109,10 @@ class AppSettingsModel extends HiveObject {
     bool? enableBiometric,
     List<String>? pinnedTags,
     bool? showStats,
+    String? ocrProvider,
+    String? aiProvider,
+    String? ocrModel,
+    String? aiModel,
   }) {
     return AppSettingsModel(
       defaultMode: defaultMode ?? this.defaultMode,
@@ -103,6 +127,10 @@ class AppSettingsModel extends HiveObject {
       enableBiometric: enableBiometric ?? this.enableBiometric,
       pinnedTags: pinnedTags ?? this.pinnedTags,
       showStats: showStats ?? this.showStats,
+      ocrProvider: ocrProvider ?? this.ocrProvider,
+      aiProvider: aiProvider ?? this.aiProvider,
+      ocrModel: ocrModel ?? this.ocrModel,
+      aiModel: aiModel ?? this.aiModel,
     );
   }
 
@@ -136,6 +164,10 @@ class AppSettingsModel extends HiveObject {
       'enableBiometric': enableBiometric,
       'pinnedTags': pinnedTags,
       'showStats': showStats,
+      'ocrProvider': ocrProvider,
+      'aiProvider': aiProvider,
+      'ocrModel': ocrModel,
+      'aiModel': aiModel,
     };
   }
 
@@ -155,6 +187,10 @@ class AppSettingsModel extends HiveObject {
       enableBiometric: json['enableBiometric'] as bool? ?? false,
       pinnedTags: List<String>.from(json['pinnedTags'] as List? ?? []),
       showStats: json['showStats'] as bool? ?? true,
+      ocrProvider: json['ocrProvider'] as String? ?? 'trocr-handwritten',
+      aiProvider: json['aiProvider'] as String? ?? 'openai',
+      ocrModel: json['ocrModel'] as String? ?? 'microsoft/trocr-base-handwritten',
+      aiModel: json['aiModel'] as String? ?? 'gpt-4-turbo-preview',
     );
   }
 }

@@ -1,7 +1,9 @@
 // lib/ui/screens/notes/note_list_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
@@ -154,7 +156,8 @@ class _NoteListScreenState extends ConsumerState<NoteListScreen>
         builder: (context, child) => Transform.scale(
           scale: 0.8 + (_fabAnimationController.value * 0.2),
           child: FloatingActionButton(
-            onPressed: () => Navigator.of(context).pushNamed('/note-editor'),
+            heroTag: 'note_list_fab',
+            onPressed: () => context.push('/editor'),
             backgroundColor: AppColors.primary,
             child: const Icon(
               Icons.add_rounded,
@@ -333,12 +336,33 @@ class _NoteListScreenState extends ConsumerState<NoteListScreen>
               ),
             ],
           ),
+          
+          // Force Refresh Button
+          IconButton(
+            onPressed: () async {
+              debugPrint('🔄 Force refreshing notes...');
+              await ref.read(notesProvider.notifier).loadNotes();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Notes refreshed')),
+                );
+              }
+            },
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'Refresh Notes',
+          ),
         ],
       ),
     );
   }
 
   Widget _buildNotesList(BuildContext context, List<Note> notes, bool isDarkMode) {
+    // Debug: Log notes count and first few notes
+    debugPrint('📋 Building notes list with ${notes.length} notes');
+    if (notes.isNotEmpty) {
+      debugPrint('📝 First note: ${notes[0].title} (ID: ${notes[0].id})');
+    }
+    
     if (notes.isEmpty) {
       return _buildEmptyState(context);
     }
@@ -355,7 +379,8 @@ class _NoteListScreenState extends ConsumerState<NoteListScreen>
 
     return RefreshIndicator(
       onRefresh: () async {
-        ref.invalidate(notesProvider);
+        // Force refresh the notes provider
+        await ref.read(notesProvider.notifier).loadNotes();
       },
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -457,7 +482,7 @@ class _NoteListScreenState extends ConsumerState<NoteListScreen>
           ),
           const SizedBox(height: 24),
           FilledButton.icon(
-            onPressed: () => Navigator.of(context).pushNamed('/note-editor'),
+            onPressed: () => context.push('/editor'),
             icon: const Icon(Icons.add_rounded),
             label: const Text('Create Note'),
           ),
@@ -604,10 +629,7 @@ class _NoteListScreenState extends ConsumerState<NoteListScreen>
   }
 
   void _navigateToNoteEditor(String noteId) {
-    Navigator.of(context).pushNamed(
-      '/note-editor',
-      arguments: noteId,
-    );
+    context.push('/editor/$noteId');
   }
 
   void _showNoteOptions(BuildContext context, Note note) {
@@ -722,14 +744,7 @@ class _NoteListScreenState extends ConsumerState<NoteListScreen>
   }
 
   void _duplicateNote(Note note) {
-    Navigator.of(context).pushNamed(
-      '/note-editor',
-      arguments: {
-        'title': '${note.title} (Copy)',
-        'content': note.content,
-        'tags': note.tags,
-      },
-    );
+    context.push('/editor');
   }
 
   Future<void> _deleteNote(Note note) async {

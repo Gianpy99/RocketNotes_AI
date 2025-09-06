@@ -32,23 +32,17 @@ class CameraStateNotifier extends StateNotifier<CameraState> {
   final dynamic _cameraService; // Può essere CameraService o WebCameraService
 
   CameraStateNotifier(this._cameraService) : super(const CameraState()) {
-    _initializeCamera();
+    _initializeCamera(); // Re-enabled with controlled initialization
   }
 
   Future<void> _initializeCamera() async {
     try {
-      // Per web, non c'è bisogno di initialize
-      if (kIsWeb) {
-        state = state.copyWith(isInitialized: true, error: null);
-      } else {
-        final success = await _cameraService.initialize();
-        if (success) {
-          state = state.copyWith(isInitialized: true, error: null);
-        } else {
-          state = state.copyWith(error: 'Failed to initialize camera');
-        }
-      }
+      debugPrint('🔧 Camera: Initializing camera service...');
+      await _cameraService.initialize();
+      state = state.copyWith(isInitialized: true);
+      debugPrint('✅ Camera: Initialization successful');
     } catch (e) {
+      debugPrint('❌ Camera: Initialization failed - $e');
       state = state.copyWith(error: e.toString());
     }
   }
@@ -451,17 +445,50 @@ class _LoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(color: Colors.white),
-          SizedBox(height: 16),
-          Text(
-            'Initializing Camera...',
-            style: TextStyle(color: Colors.white),
-          ),
-        ],
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.black,
+            Colors.grey[900]!,
+          ],
+        ),
+      ),
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.camera_alt,
+              size: 80,
+              color: Colors.white54,
+            ),
+            SizedBox(height: 24),
+            CircularProgressIndicator(
+              color: Colors.blue,
+              strokeWidth: 3,
+            ),
+            SizedBox(height: 20),
+            Text(
+              'Initializing Camera...',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Please wait while we prepare your camera',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -471,66 +498,136 @@ class _LoadingView extends StatelessWidget {
 class RocketbookOverlayPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.7)
+    // Semi-transparent overlay
+    final overlayPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.3);
+    
+    // Bright corner indicators
+    final cornerPaint = Paint()
+      ..color = Colors.blue
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
+      ..strokeWidth = 4.0;
+    
+    // Text background
+    final textBgPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.7);
 
+    // Define the capture area
     final rect = Rect.fromCenter(
       center: Offset(size.width / 2, size.height / 2),
-      width: size.width * 0.8,
-      height: size.height * 0.6,
+      width: size.width * 0.85,
+      height: size.height * 0.7,
     );
 
-    // Draw corner brackets
-    const cornerLength = 30.0;
+    // Draw semi-transparent overlay everywhere except the capture area
+    final path = Path()
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..addRect(rect)
+      ..fillType = PathFillType.evenOdd;
+    canvas.drawPath(path, overlayPaint);
+
+    // Draw animated corner brackets
+    const cornerLength = 40.0;
+    const cornerOffset = 8.0;
     
     // Top-left corner
-    canvas.drawLine(
-      Offset(rect.left, rect.top + cornerLength),
-      Offset(rect.left, rect.top),
-      paint,
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(rect.left - cornerOffset, rect.top - cornerOffset, cornerLength, 4),
+        const Radius.circular(2),
+      ),
+      cornerPaint,
     );
-    canvas.drawLine(
-      Offset(rect.left, rect.top),
-      Offset(rect.left + cornerLength, rect.top),
-      paint,
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(rect.left - cornerOffset, rect.top - cornerOffset, 4, cornerLength),
+        const Radius.circular(2),
+      ),
+      cornerPaint,
     );
 
     // Top-right corner
-    canvas.drawLine(
-      Offset(rect.right - cornerLength, rect.top),
-      Offset(rect.right, rect.top),
-      paint,
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(rect.right - cornerLength + cornerOffset, rect.top - cornerOffset, cornerLength, 4),
+        const Radius.circular(2),
+      ),
+      cornerPaint,
     );
-    canvas.drawLine(
-      Offset(rect.right, rect.top),
-      Offset(rect.right, rect.top + cornerLength),
-      paint,
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(rect.right - 4 + cornerOffset, rect.top - cornerOffset, 4, cornerLength),
+        const Radius.circular(2),
+      ),
+      cornerPaint,
     );
 
     // Bottom-left corner
-    canvas.drawLine(
-      Offset(rect.left, rect.bottom - cornerLength),
-      Offset(rect.left, rect.bottom),
-      paint,
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(rect.left - cornerOffset, rect.bottom - 4 + cornerOffset, cornerLength, 4),
+        const Radius.circular(2),
+      ),
+      cornerPaint,
     );
-    canvas.drawLine(
-      Offset(rect.left, rect.bottom),
-      Offset(rect.left + cornerLength, rect.bottom),
-      paint,
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(rect.left - cornerOffset, rect.bottom - cornerLength + cornerOffset, 4, cornerLength),
+        const Radius.circular(2),
+      ),
+      cornerPaint,
     );
 
     // Bottom-right corner
-    canvas.drawLine(
-      Offset(rect.right - cornerLength, rect.bottom),
-      Offset(rect.right, rect.bottom),
-      paint,
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(rect.right - cornerLength + cornerOffset, rect.bottom - 4 + cornerOffset, cornerLength, 4),
+        const Radius.circular(2),
+      ),
+      cornerPaint,
     );
-    canvas.drawLine(
-      Offset(rect.right, rect.bottom),
-      Offset(rect.right, rect.bottom - cornerLength),
-      paint,
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(rect.right - 4 + cornerOffset, rect.bottom - cornerLength + cornerOffset, 4, cornerLength),
+        const Radius.circular(2),
+      ),
+      cornerPaint,
+    );
+
+    // Add instruction text
+    final textPainter = TextPainter(
+      text: const TextSpan(
+        text: 'Position your document or notes within the frame',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+    );
+    
+    textPainter.layout(maxWidth: size.width * 0.8);
+    
+    // Draw text background
+    final textRect = Rect.fromCenter(
+      center: Offset(size.width / 2, rect.bottom + 60),
+      width: textPainter.width + 32,
+      height: textPainter.height + 16,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(textRect, const Radius.circular(8)),
+      textBgPaint,
+    );
+    
+    // Draw text
+    textPainter.paint(
+      canvas,
+      Offset(
+        size.width / 2 - textPainter.width / 2,
+        rect.bottom + 60 - textPainter.height / 2,
+      ),
     );
   }
 
@@ -597,45 +694,132 @@ class ImagePreviewScreen extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.close),
-                        label: const Text('Retake'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey[800],
-                          foregroundColor: Colors.white,
+                  // Header with processing options
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[900],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Column(
+                      children: [
+                        Icon(Icons.auto_awesome, color: Colors.blue, size: 32),
+                        SizedBox(height: 8),
+                        Text(
+                          'Choose Processing Method',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () => _processImage(context, ref),
-                        icon: const Icon(Icons.text_fields),
-                        label: const Text('OCR'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
+                        SizedBox(height: 4),
+                        Text(
+                          'Select how you want to process this image',
+                          style: TextStyle(color: Colors.grey, fontSize: 14),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  ElevatedButton.icon(
-                    onPressed: () => _processImageDirectAI(context, ref),
-                    icon: const Icon(Icons.smart_toy),
-                    label: const Text('Direct AI Analysis (Skip OCR)'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(250, 45),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Direct AI: Faster, analyzes image directly',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                    textAlign: TextAlign.center,
+                  
+                  // OCR Option
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: ElevatedButton(
+                      onPressed: () => _processImage(context, ref),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.all(16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.text_fields, size: 24),
+                              SizedBox(width: 8),
+                              Text(
+                                'OCR + AI Analysis',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Extract text first, then analyze with AI',
+                            style: TextStyle(fontSize: 12, color: Colors.white70),
+                          ),
+                          Text(
+                            'Best for handwritten notes & documents',
+                            style: TextStyle(fontSize: 11, color: Colors.white60),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  // Direct AI Option
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    child: ElevatedButton(
+                      onPressed: () => _processImageDirectAI(context, ref),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.purple,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.all(16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.smart_toy, size: 24),
+                              SizedBox(width: 8),
+                              Text(
+                                'Direct AI Analysis',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Skip OCR, analyze image directly with AI',
+                            style: TextStyle(fontSize: 12, color: Colors.white70),
+                          ),
+                          Text(
+                            'Faster processing, good for diagrams & photos',
+                            style: TextStyle(fontSize: 11, color: Colors.white60),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  // Retake option
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.grey,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.camera_alt, size: 20),
+                        SizedBox(width: 8),
+                        Text('Retake Photo', style: TextStyle(fontSize: 16)),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -647,18 +831,36 @@ class ImagePreviewScreen extends ConsumerWidget {
   }
 
   void _processImage(BuildContext context, WidgetRef ref) async {
-    // Show loading dialog
+    // Show enhanced loading dialog
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const AlertDialog(
-        content: Column(
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Processing image...'),
-            Text('This may take a few moments', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            CircularProgressIndicator(color: Colors.blue),
+            SizedBox(height: 20),
+            Text(
+              'Processing Image...',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              '1. Extracting text with OCR\n2. Analyzing content with AI\n3. Generating smart notes',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'This may take 10-30 seconds',
+              style: TextStyle(fontSize: 12, color: Colors.orange),
+            ),
           ],
         ),
       ),
@@ -716,18 +918,36 @@ class ImagePreviewScreen extends ConsumerWidget {
   }
 
   void _processImageDirectAI(BuildContext context, WidgetRef ref) async {
-    // Show loading dialog
+    // Show enhanced loading dialog for Direct AI
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const AlertDialog(
-        content: Column(
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Analyzing image with AI...'),
-            Text('Skipping OCR for faster processing', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            CircularProgressIndicator(color: Colors.purple),
+            SizedBox(height: 20),
+            Text(
+              '🚀 Direct AI Analysis',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              'Analyzing image directly with AI\nSkipping OCR for faster processing',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Usually takes 5-15 seconds',
+              style: TextStyle(fontSize: 12, color: Colors.green),
+            ),
           ],
         ),
       ),

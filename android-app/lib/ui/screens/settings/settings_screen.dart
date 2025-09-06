@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:in_app_review/in_app_review.dart';
@@ -171,7 +172,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               subtitle: 'Manage your data backups',
               leading: const Icon(Icons.backup_rounded),
               trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: () => Navigator.of(context).pushNamed('/backup'),
+              onTap: () => context.push('/backup'),
             ),
             SettingTile.toggle(
               title: 'Auto Backup',

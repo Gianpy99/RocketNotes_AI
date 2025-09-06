@@ -1,6 +1,7 @@
 // lib/ui/widgets/home/note_grid.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:go_router/go_router.dart';
 import '../../../data/models/note_model.dart';
 import '../notes/note_card.dart';
 
@@ -34,10 +35,7 @@ class NoteGrid extends StatelessWidget {
                 child: FadeInAnimation(
                   child: NoteCard(
                     note: notes[index],
-                    onTap: () => Navigator.of(context).pushNamed(
-                      '/note-editor',
-                      arguments: notes[index].id,
-                    ),
+                    onTap: () => context.push('/editor/${notes[index].id}'),
                   ),
                 ),
               ),

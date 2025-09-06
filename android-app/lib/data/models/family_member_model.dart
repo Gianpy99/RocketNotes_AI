@@ -13,7 +13,7 @@ part 'family_member_model.g.dart';
 // - Add voice recognition data
 // - Add calendar integration preferences
 
-@HiveType(typeId: 1)
+@HiveType(typeId: 2)
 class FamilyMember extends HiveObject {
   @HiveField(0)
   final String id;

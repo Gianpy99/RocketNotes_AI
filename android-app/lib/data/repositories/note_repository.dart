@@ -9,8 +9,21 @@ class NoteRepository {
   final Box<NoteModel> notesBox = Hive.box<NoteModel>(AppConstants.notesBox);
 
   Future<List<NoteModel>> getAllNotes() async {
-    return notesBox.values.toList()
+    DebugLogger().log('🔍 Repository: Getting all notes from box...');
+    DebugLogger().log('📦 Box status: isOpen=${notesBox.isOpen}, length=${notesBox.length}');
+    
+    final notes = notesBox.values.toList()
       ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    
+    DebugLogger().log('📋 Repository: Loaded ${notes.length} notes');
+    
+    // Debug: List all notes
+    for (int i = 0; i < notes.length; i++) {
+      final note = notes[i];
+      DebugLogger().log('📝 Note $i: "${note.title}" (${note.mode}) - ${note.content.substring(0, note.content.length > 50 ? 50 : note.content.length)}...');
+    }
+    
+    return notes;
   }
 
   Future<List<NoteModel>> getNotesByMode(String mode) async {

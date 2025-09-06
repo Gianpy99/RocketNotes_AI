@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RocketNotes AI Icon Generator</title>
+    <style>
+        body { font-family: Arial; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
+        .icon-preview { margin: 20px 0; text-align: center; }
+        canvas { border: 2px solid #ddd; margin: 10px; background: white; }
+        .size-info { font-size: 12px; color: #666; margin-top: 5px; }
+        button { background: #FF8C00; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #FF7F00; }
+        .download-section { margin-top: 30px; padding: 20px; background: #fff3cd; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 RocketNotes AI - Generatore Icone Calderone</h1>
+        <p>Questo generatore crea icone temporanee con il tema del calderone per RocketNotes AI.</p>
+        
+        <div class="icon-preview">
+            <h3>Anteprima Icone:</h3>
+            
+            <canvas id="icon48" width="48" height="48"></canvas>
+            <div class="size-info">MDPI - 48x48px</div>
+            
+            <canvas id="icon72" width="72" height="72"></canvas>
+            <div class="size-info">HDPI - 72x72px</div>
+            
+            <canvas id="icon96" width="96" height="96"></canvas>
+            <div class="size-info">XHDPI - 96x96px</div>
+            
+            <canvas id="icon144" width="144" height="144"></canvas>
+            <div class="size-info">XXHDPI - 144x144px</div>
+            
+            <canvas id="icon192" width="192" height="192"></canvas>
+            <div class="size-info">XXXHDPI - 192x192px</div>
+        </div>
+        
+        <button onclick="generateIcons()">🎨 Genera Icone Calderone</button>
+        
+        <div class="download-section">
+            <h3>📥 Download Icone:</h3>
+            <p>Dopo aver generato le icone, clicca su ciascuna per scaricarla:</p>
+            <div id="download-links"></div>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 15px; background: #e7f3ff; border-radius: 5px;">
+            <h4>📋 Istruzioni:</h4>
+            <ol>
+                <li>Clicca "Genera Icone Calderone" per creare le icone</li>
+                <li>Clicca su ogni icona per scaricarla</li>
+                <li>Rinomina i file in "ic_launcher.png"</li>
+                <li>Copia nelle rispettive cartelle mipmap</li>
+                <li>Esegui "flutter clean && flutter build apk"</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function drawCauldron(canvas, size) {
+            const ctx = canvas.getContext('2d');
+            const center = size / 2;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Create gradient background
+            const gradient = ctx.createRadialGradient(center, center, 0, center, center, center);
+            gradient.addColorStop(0, '#FFD700');
+            gradient.addColorStop(0.7, '#FF8C00');
+            gradient.addColorStop(1, '#FF6B00');
+            
+            // Background circle
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(center, center, center - 2, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Cauldron base (simplified)
+            const cauldronSize = size * 0.7;
+            const cauldronX = (size - cauldronSize) / 2;
+            const cauldronY = size * 0.25;
+            
+            // Cauldron body
+            ctx.fillStyle = '#8B4513';
+            ctx.strokeStyle = '#654321';
+            ctx.lineWidth = size * 0.02;
+            
+            ctx.beginPath();
+            ctx.ellipse(center, cauldronY + cauldronSize * 0.8, 
+                       cauldronSize * 0.4, cauldronSize * 0.15, 0, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Cauldron rim
+            ctx.fillStyle = '#A0522D';
+            ctx.beginPath();
+            ctx.ellipse(center, cauldronY + cauldronSize * 0.2, 
+                       cauldronSize * 0.45, cauldronSize * 0.1, 0, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Steam/magic effect
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = size * 0.015;
+            ctx.lineCap = 'round';
+            
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                const steamX = center + (i - 1) * size * 0.1;
+                ctx.moveTo(steamX, cauldronY);
+                
+                // Wavy steam
+                for (let y = 0; y < size * 0.3; y += size * 0.05) {
+                    const waveX = steamX + Math.sin(y * 0.1 + i) * size * 0.05;
+                    ctx.lineTo(waveX, cauldronY - y);
+                }
+                ctx.stroke();
+            }
+            
+            // Add sparkles
+            ctx.fillStyle = '#FFFF00';
+            for (let i = 0; i < 5; i++) {
+                const sparkleX = center + (Math.random() - 0.5) * size * 0.8;
+                const sparkleY = center + (Math.random() - 0.5) * size * 0.8;
+                const sparkleSize = size * 0.02;
+                
+                ctx.beginPath();
+                ctx.arc(sparkleX, sparkleY, sparkleSize, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+        
+        function generateIcons() {
+            const sizes = [48, 72, 96, 144, 192];
+            const downloadLinks = document.getElementById('download-links');
+            downloadLinks.innerHTML = '';
+            
+            sizes.forEach(size => {
+                const canvas = document.getElementById(`icon${size}`);
+                drawCauldron(canvas, size);
+                
+                // Create download link
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `ic_launcher_${size}x${size}.png`;
+                    link.textContent = `📥 Download ${size}x${size}px`;
+                    link.style.display = 'inline-block';
+                    link.style.margin = '5px 10px';
+                    link.style.padding = '8px 12px';
+                    link.style.backgroundColor = '#28a745';
+                    link.style.color = 'white';
+                    link.style.textDecoration = 'none';
+                    link.style.borderRadius = '3px';
+                    
+                    downloadLinks.appendChild(link);
+                });
+            });
+        }
+        
+        // Generate icons on page load
+        window.onload = function() {
+            generateIcons();
+        };
+    </script>
+</body>
+</html>
