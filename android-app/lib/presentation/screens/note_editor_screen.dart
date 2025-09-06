@@ -161,12 +161,16 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
 
     final currentMode = ref.read(appModeProvider);
     final now = DateTime.now();
+    
+    debugPrint('[SAVE NOTE] 🔍 Current app mode from provider: $currentMode');
+    debugPrint('[SAVE NOTE] 📝 Creating/updating note with mode: $currentMode');
 
     final note = _currentNote?.copyWith(
       title: _titleController.text.trim().isEmpty 
           ? 'Untitled Note' 
           : _titleController.text.trim(),
       content: _contentController.text,
+      mode: currentMode,
       updatedAt: now,
       tags: _tags,
     ) ?? NoteModel(

@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:math';
+import 'dart:math' as math;
 import 'package:dio/dio.dart';
 import '../../../core/debug/debug_logger.dart';
 import '../../../core/config/api_config.dart';
@@ -415,9 +415,11 @@ class AIService {
       // Get the configured model from settings
       final settings = await _settingsRepository.getSettings();
       final bool hasImages = scannedContent.imagePath.isNotEmpty;
-      final configuredModel = hasImages 
-          ? settings.imageAnalysisModel
-          : settings.textSummarizationModel;
+      
+      // Use effective models that auto-select correct models for the provider
+      final String configuredModel = hasImages 
+          ? settings.getEffectiveImageModel()
+          : settings.getEffectiveTextModel();
       
       DebugLogger().log('⚙️ Using configured model: $configuredModel');
       
@@ -454,7 +456,7 @@ class AIService {
       final content = response.data['choices'][0]['message']['content'];
       
       // Log the raw response for debugging
-      DebugLogger().log('🔍 Raw OpenAI response: ${content.toString().substring(0, min(200, content.toString().length))}...');
+      DebugLogger().log('🔍 Raw OpenAI response: ${content.toString().substring(0, math.min(200, content.toString().length))}...');
       
       final analysis = _parseAIResponse(content);
       
@@ -482,9 +484,11 @@ class AIService {
       // Get the configured model from settings
       final settings = await _settingsRepository.getSettings();
       final bool hasImages = scannedContent.imagePath.isNotEmpty;
-      final configuredModel = hasImages 
-          ? settings.imageAnalysisModel
-          : settings.textSummarizationModel;
+      
+      // Use effective models that auto-select correct models for the provider
+      final String configuredModel = hasImages 
+          ? settings.getEffectiveImageModel()
+          : settings.getEffectiveTextModel();
       
       DebugLogger().log('⚙️ Using configured model: $configuredModel');
       
@@ -516,8 +520,107 @@ class AIService {
       );
 
       DebugLogger().log('✅ AI Service: Received response from Gemini');
-      final content = response.data['candidates'][0]['content']['parts'][0]['text'];
-      final analysis = _parseAIResponse(content);
+      DebugLogger().log('🔍 Raw response type: ${response.data.runtimeType}');
+      DebugLogger().log('🔍 Raw response preview: ${response.data.toString().substring(0, math.min(500, response.data.toString().length))}...');
+      
+      // Safely extract content with comprehensive null checks
+      final responseData = response.data;
+      DebugLogger().log('🔍 Response data null check: ${responseData == null}');
+      
+      if (responseData == null) {
+        DebugLogger().log('❌ Response data is completely null');
+        throw Exception('Gemini API returned null response');
+      }
+      
+      DebugLogger().log('🔍 Response data keys: ${responseData is Map ? (responseData as Map).keys.toList() : 'Not a Map'}');
+      
+      if (responseData is! Map<String, dynamic>) {
+        DebugLogger().log('❌ Response data is not a Map: ${responseData.runtimeType}');
+        throw Exception('Invalid response format from Gemini API');
+      }
+      
+      final responseMap = responseData as Map<String, dynamic>;
+      
+      if (!responseMap.containsKey('candidates') || responseMap['candidates'] == null) {
+        DebugLogger().log('❌ No candidates key or null candidates: ${responseMap.keys.toList()}');
+        throw Exception('Empty or invalid response structure from Gemini API');
+      }
+      
+      final candidates = responseMap['candidates'];
+      DebugLogger().log('🔍 Candidates type: ${candidates.runtimeType}, length: ${candidates is List ? candidates.length : 'Not a List'}');
+      
+      if (candidates is! List || candidates.isEmpty) {
+        DebugLogger().log('❌ Candidates is not a List or is empty');
+        throw Exception('Invalid candidates in Gemini response');
+      }
+      
+      final candidatesList = candidates as List;
+      final candidate = candidatesList[0];
+      DebugLogger().log('🔍 First candidate type: ${candidate.runtimeType}');
+      DebugLogger().log('🔍 First candidate keys: ${candidate is Map ? (candidate as Map).keys.toList() : 'Not a Map'}');
+      
+      if (candidate is! Map<String, dynamic>) {
+        DebugLogger().log('❌ Candidate is not a Map: ${candidate.runtimeType}');
+        throw Exception('Invalid candidate structure from Gemini API');
+      }
+      
+      final candidateMap = candidate as Map<String, dynamic>;
+      
+      if (!candidateMap.containsKey('content') || candidateMap['content'] == null) {
+        DebugLogger().log('❌ No content in candidate: ${candidateMap.keys.toList()}');
+        throw Exception('No content in Gemini candidate');
+      }
+      
+      final content = candidateMap['content'];
+      DebugLogger().log('🔍 Content type: ${content.runtimeType}');
+      DebugLogger().log('🔍 Content keys: ${content is Map ? (content as Map).keys.toList() : 'Not a Map'}');
+      
+      if (content is! Map<String, dynamic>) {
+        DebugLogger().log('❌ Content is not a Map: ${content.runtimeType}');
+        throw Exception('Invalid content structure from Gemini API');
+      }
+      
+      final contentMap = content as Map<String, dynamic>;
+      
+      if (!contentMap.containsKey('parts') || contentMap['parts'] == null) {
+        DebugLogger().log('❌ No parts in content: ${contentMap.keys.toList()}');
+        throw Exception('No parts in Gemini content');
+      }
+      
+      final parts = contentMap['parts'];
+      DebugLogger().log('🔍 Parts type: ${parts.runtimeType}, length: ${parts is List ? parts.length : 'Not a List'}');
+      
+      if (parts is! List || parts.isEmpty) {
+        DebugLogger().log('❌ Parts is not a List or is empty');
+        throw Exception('Invalid parts in Gemini content');
+      }
+      
+      final partsList = parts as List;
+      final firstPart = partsList[0];
+      DebugLogger().log('🔍 First part type: ${firstPart.runtimeType}');
+      DebugLogger().log('🔍 First part keys: ${firstPart is Map ? (firstPart as Map).keys.toList() : 'Not a Map'}');
+      
+      if (firstPart is! Map<String, dynamic>) {
+        DebugLogger().log('❌ First part is not a Map: ${firstPart.runtimeType}');
+        throw Exception('Invalid part structure from Gemini API');
+      }
+      
+      final partMap = firstPart as Map<String, dynamic>;
+      
+      if (!partMap.containsKey('text') || partMap['text'] == null) {
+        DebugLogger().log('❌ No text in part: ${partMap.keys.toList()}');
+        throw Exception('No text content in Gemini part');
+      }
+      
+      final textContent = partMap['text'];
+      DebugLogger().log('🔍 Text content type: ${textContent.runtimeType}, length: ${textContent is String ? textContent.length : 'Not a String'}');
+      
+      if (textContent is! String) {
+        DebugLogger().log('❌ Text content is not a String: ${textContent.runtimeType}');
+        throw Exception('Invalid text content from Gemini API');
+      }
+      
+      final analysis = _parseAIResponse(textContent);
       
       DebugLogger().log('🎯 AI Service: Analysis completed - ${analysis.keyTopics.length} topics, ${analysis.actionItems.length} actions');
       return analysis;
@@ -542,9 +645,11 @@ class AIService {
       // Get the configured model from settings
       final settings = await _settingsRepository.getSettings();
       final bool hasImages = scannedContent.imagePath.isNotEmpty;
-      final configuredModel = hasImages 
-          ? settings.imageAnalysisModel
-          : settings.textSummarizationModel;
+      
+      // Use effective models that auto-select correct models for the provider
+      final String configuredModel = hasImages 
+          ? settings.getEffectiveImageModel()
+          : settings.getEffectiveTextModel();
       
       DebugLogger().log('⚙️ Using configured model: $configuredModel');
       

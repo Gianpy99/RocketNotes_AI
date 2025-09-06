@@ -34,56 +34,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       });
     }
     _listenToDeepLinks();
-    
-    // Create test notes for debugging
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _createTestNotes();
-    });
-  }
-
-  Future<void> _createTestNotes() async {
-    try {
-      debugPrint('🧪 Creating test notes for debugging...');
-      
-      final notesNotifier = ref.read(notesProvider.notifier);
-      
-      // Create test notes
-      final testNotes = [
-        NoteModel(
-          id: 'test_work_${DateTime.now().millisecondsSinceEpoch}',
-          title: 'Test Work Note',
-          content: 'This is a test work note to verify the notes system.',
-          mode: 'work',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-          tags: ['test', 'work'],
-          isArchived: false,
-          isFavorite: false,
-        ),
-        NoteModel(
-          id: 'test_personal_${DateTime.now().millisecondsSinceEpoch + 1}',
-          title: 'Test Personal Note', 
-          content: 'This is a test personal note to verify the notes system.',
-          mode: 'personal',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-          tags: ['test', 'personal'],
-          isArchived: false,
-          isFavorite: false,
-        ),
-      ];
-      
-      for (final note in testNotes) {
-        await notesNotifier.saveNote(note);
-        debugPrint('✅ Test note created: ${note.title}');
-      }
-      
-      debugPrint('🧪 Test notes creation completed');
-      
-    } catch (e, stackTrace) {
-      debugPrint('❌ Error creating test notes: $e');
-      debugPrint('Stack trace: $stackTrace');
-    }
   }
 
   void _listenToDeepLinks() {

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
 import '../../../core/debug/debug_logger.dart';
 import '../../../core/config/api_config.dart';
 import '../../../data/repositories/settings_repository.dart';
@@ -93,8 +94,40 @@ class OCRService {
 
   /// Estrai testo usando Google ML Kit
   Future<String> _extractWithGoogleMLKit(Uint8List imageBytes) async {
-    DebugLogger().log('🔍 OCR Service: Google ML Kit extraction not yet implemented - using simulation');
-    return _mockOCR(imageBytes);
+    DebugLogger().log('🔍 OCR Service: Starting Google ML Kit extraction');
+    
+    try {
+      // Create InputImage from bytes
+      final inputImage = InputImage.fromBytes(
+        bytes: imageBytes,
+        metadata: InputImageMetadata(
+          size: const Size(800, 600), // Default size - you may want to calculate from actual image
+          rotation: InputImageRotation.rotation0deg,
+          format: InputImageFormat.nv21,
+          bytesPerRow: 800 * 4, // Assuming RGBA
+        ),
+      );
+      
+      // Initialize text recognizer
+      final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+      
+      // Process the image
+      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+      
+      // Extract text
+      String extractedText = recognizedText.text;
+      
+      // Clean up
+      textRecognizer.close();
+      
+      DebugLogger().log('✅ OCR Service: Google ML Kit extraction completed - ${extractedText.length} characters');
+      return extractedText.trim();
+      
+    } catch (e) {
+      DebugLogger().log('❌ OCR Service: Google ML Kit extraction error: $e');
+      DebugLogger().log('🔄 OCR Service: Falling back to mock OCR');
+      return _mockOCR(imageBytes);
+    }
   }
 
   /// Estrai testo usando Tesseract (implementazione placeholder)

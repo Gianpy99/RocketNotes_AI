@@ -37,18 +37,47 @@ final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
 // Mode Provider (Work/Personal)
 // ==========================================
 final appModeProvider = StateNotifierProvider<AppModeNotifier, String>((ref) {
-  return AppModeNotifier();
+  final settingsNotifier = ref.read(appSettingsProvider.notifier);
+  return AppModeNotifier(settingsNotifier, ref);
 });
 
 class AppModeNotifier extends StateNotifier<String> {
-  AppModeNotifier() : super('personal');
+  final AppSettingsNotifier _settingsNotifier;
+  final Ref _ref;
+  
+  AppModeNotifier(this._settingsNotifier, this._ref) : super('personal') {
+    _initializeFromSettings();
+  }
+
+  void _initializeFromSettings() {
+    // Ascoltiamo i cambiamenti delle impostazioni
+    _ref.listen(appSettingsProvider, (previous, next) {
+      next.whenData((settings) {
+        if (state != settings.defaultMode) {
+          debugPrint('[APP MODE] 🔄 Syncing mode from settings: ${settings.defaultMode}');
+          state = settings.defaultMode;
+        }
+      });
+    });
+    
+    // Impostiamo il valore iniziale dalle impostazioni correnti
+    final currentSettings = _ref.read(appSettingsProvider).valueOrNull;
+    if (currentSettings != null) {
+      debugPrint('[APP MODE] 🎯 Initial mode from settings: ${currentSettings.defaultMode}');
+      state = currentSettings.defaultMode;
+    }
+  }
 
   void setMode(String mode) {
+    debugPrint('[APP MODE] 🔧 Setting mode to: $mode');
     state = mode;
+    // Salviamo anche nelle impostazioni
+    _settingsNotifier.updateDefaultMode(mode);
   }
 
   void toggleMode() {
-    state = state == 'work' ? 'personal' : 'work';
+    final newMode = state == 'work' ? 'personal' : 'work';
+    setMode(newMode);
   }
 }
 

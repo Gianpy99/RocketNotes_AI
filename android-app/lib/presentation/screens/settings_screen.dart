@@ -645,6 +645,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         return 'GPT-5 Nano';
       case 'gpt-4o-mini-transcribe':
         return 'GPT-4o Mini Transcribe';
+      case 'gpt-4o-transcribe':
+        return 'GPT-4o Transcribe';
+      case 'whisper':
+        return 'Whisper';
       case 'gemini-pro':
         return 'Gemini Pro';
       case 'gemini-pro-vision':

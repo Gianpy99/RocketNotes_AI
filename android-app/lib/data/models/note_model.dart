@@ -116,6 +116,7 @@ class NoteModel extends HiveObject {
   NoteModel copyWith({
     String? content,
     String? title,
+    String? mode,
     DateTime? updatedAt,
     List<String>? tags,
     String? aiSummary,
@@ -129,7 +130,7 @@ class NoteModel extends HiveObject {
     return NoteModel(
       id: id,
       content: content ?? this.content,
-      mode: mode,
+      mode: mode ?? this.mode,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
       title: title ?? this.title,

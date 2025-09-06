@@ -113,6 +113,70 @@ class AppSettingsModel extends HiveObject {
   String get effectiveOpenAIServiceTier => openAIServiceTier ?? 'flex';
   String get effectiveAudioTranscriptionModel => audioTranscriptionModel ?? 'gpt-4o-mini-transcribe';
 
+  // Helper methods to get appropriate models for each provider
+  String getDefaultTextModel(String provider) {
+    switch (provider.toLowerCase()) {
+      case 'gemini':
+        return 'gemini-2.5-flash';
+      case 'openai':
+        return 'gpt-5-mini';
+      case 'huggingface':
+        return 'microsoft/DialoGPT-medium';
+      default:
+        return 'gpt-5-mini';
+    }
+  }
+
+  String getDefaultImageModel(String provider) {
+    switch (provider.toLowerCase()) {
+      case 'gemini':
+        return 'gemini-2.5-flash';
+      case 'openai':
+        return 'gpt-5-mini';
+      case 'huggingface':
+        return 'microsoft/DialoGPT-medium';
+      default:
+        return 'gpt-5-mini';
+    }
+  }
+
+  // Get effective models with provider-specific defaults
+  String getEffectiveTextModel() {
+    final provider = effectiveAiProvider;
+    final configuredModel = textSummarizationModel;
+    
+    // If no model configured or wrong provider model, use default for current provider
+    if (configuredModel == null || !_isModelCompatibleWithProvider(configuredModel, provider)) {
+      return getDefaultTextModel(provider);
+    }
+    return configuredModel;
+  }
+
+  String getEffectiveImageModel() {
+    final provider = effectiveAiProvider;
+    final configuredModel = imageAnalysisModel;
+    
+    // If no model configured or wrong provider model, use default for current provider
+    if (configuredModel == null || !_isModelCompatibleWithProvider(configuredModel, provider)) {
+      return getDefaultImageModel(provider);
+    }
+    return configuredModel;
+  }
+
+  // Check if a model is compatible with a provider
+  bool _isModelCompatibleWithProvider(String model, String provider) {
+    switch (provider.toLowerCase()) {
+      case 'gemini':
+        return model.startsWith('gemini');
+      case 'openai':
+        return model.startsWith('gpt') || model.startsWith('o1');
+      case 'huggingface':
+        return !model.startsWith('gemini') && !model.startsWith('gpt') && !model.startsWith('o1');
+      default:
+        return true;
+    }
+  }
+
   // Copy with method
   AppSettingsModel copyWith({
     String? defaultMode,
