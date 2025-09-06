@@ -189,39 +189,9 @@ class CameraService {
   Future<void> dispose() async {
     debugPrint('🔧 CameraService: Disposing camera...');
     _isCapturing = false;
-    
-    try {
-      if (_controller != null) {
-        // Stop preview first
-        if (_controller!.value.isInitialized) {
-          await _controller!.pausePreview();
-        }
-        // Dispose controller
-        await _controller!.dispose();
-      }
-    } catch (e) {
-      debugPrint('Warning: Error during camera disposal: $e');
-    } finally {
-      _controller = null;
-      _isInitialized = false;
-      debugPrint('✅ CameraService: Camera disposed successfully');
-    }
-  }
-
-  /// Force release camera resources
-  Future<void> forceRelease() async {
-    debugPrint('🔧 CameraService: Force releasing camera resources...');
-    _isCapturing = false;
+    await _controller?.dispose();
+    _controller = null;
     _isInitialized = false;
-    
-    try {
-      await _controller?.dispose();
-    } catch (e) {
-      debugPrint('Warning: Error during force release: $e');
-    } finally {
-      _controller = null;
-      debugPrint('✅ CameraService: Camera force released');
-    }
   }
 
   /// Stop camera preview completely

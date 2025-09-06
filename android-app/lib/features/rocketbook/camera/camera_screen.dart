@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:camera/camera.dart';
 import 'package:photo_view/photo_view.dart';
@@ -62,6 +63,9 @@ class CameraStateNotifier extends StateNotifier<CameraState> {
         // Add a small delay to ensure camera is ready
         await Future.delayed(const Duration(milliseconds: 100));
         imagePath = await _cameraService.capturePhoto();
+        
+        // Wait a bit more for the camera to process the pause/resume
+        await Future.delayed(const Duration(milliseconds: 300));
       }
       
       state = state.copyWith(isCapturing: false);
@@ -71,6 +75,20 @@ class CameraStateNotifier extends StateNotifier<CameraState> {
       state = state.copyWith(isCapturing: false, error: e.toString());
       _isCapturing = false;
       return null;
+    }
+  }
+
+  /// Stop camera preview when not needed
+  Future<void> stopPreview() async {
+    if (!kIsWeb) {
+      await _cameraService.stopPreview();
+    }
+  }
+
+  /// Start camera preview when needed
+  Future<void> startPreview() async {
+    if (!kIsWeb) {
+      await _cameraService.startPreview();
     }
   }
 
@@ -87,21 +105,30 @@ class CameraStateNotifier extends StateNotifier<CameraState> {
     }
   }
 
-  Future<void> setZoomLevel(double zoom) async {
+  /// Method to properly stop and release camera when leaving the screen
+  Future<void> releaseCamera() async {
+    debugPrint('🔧 Camera: Releasing camera on navigation...');
+    _isCapturing = false;
+    
     if (!kIsWeb) {
-      await _cameraService.setZoomLevel(zoom);
-      state = state.copyWith(zoomLevel: zoom);
+      await _cameraService.forceRelease();
+      state = state.copyWith(isInitialized: false);
     }
+    debugPrint('✅ Camera: Camera released successfully');
   }
 
   @override
   void dispose() {
     debugPrint('🔧 Camera: Disposing camera state notifier...');
     _isCapturing = false;
+    
+    // Force release camera resources
     if (!kIsWeb) {
-      _cameraService.dispose();
+      _cameraService.forceRelease();
     }
+    
     super.dispose();
+    debugPrint('✅ Camera: State notifier disposed');
   }
 }
 
@@ -119,20 +146,54 @@ class RocketbookCameraScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarBrightness: Brightness.dark,
+          statusBarIconBrightness: Brightness.light,
         ),
-        title: const Text(
-          'Scan Rocketbook',
-          style: TextStyle(color: Colors.white),
+        leading: IconButton(
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.close, color: Colors.white, size: 20),
+          ),
+          onPressed: () async {
+            // Release camera before leaving
+            cameraNotifier.releaseCamera();
+            Navigator.of(context).pop();
+          },
+        ),
+        title: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Text(
+            'Scan RocketBook',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(
-              _getFlashIcon(cameraState.flashMode),
-              color: Colors.white,
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.5),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _getFlashIcon(cameraState.flashMode),
+                color: Colors.white,
+                size: 20,
+              ),
             ),
             onPressed: () => _toggleFlash(cameraNotifier, cameraState.flashMode),
           ),
@@ -212,14 +273,10 @@ class RocketbookCameraScreen extends ConsumerWidget {
           child: _buildControls(context, notifier, state),
         ),
 
-        // Zoom slider
-        if (state.isInitialized)
-          Positioned(
-            right: 16,
-            top: 100,
-            bottom: 200,
-            child: _buildZoomSlider(notifier, state),
-          ),
+        // RocketBook detection overlay
+        Positioned.fill(
+          child: _buildRocketBookOverlay(),
+        ),
       ],
     );
   }
@@ -230,7 +287,7 @@ class RocketbookCameraScreen extends ConsumerWidget {
     CameraState state,
   ) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.bottomCenter,
@@ -246,12 +303,18 @@ class RocketbookCameraScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             // Gallery button
-            IconButton(
-              onPressed: () => _pickFromGallery(context),
-              icon: const Icon(
-                Icons.photo_library,
-                color: Colors.white,
-                size: 32,
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.5),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                onPressed: () => _pickFromGallery(context),
+                icon: const Icon(
+                  Icons.photo_library_outlined,
+                  color: Colors.white,
+                  size: 28,
+                ),
               ),
             ),
 
@@ -259,32 +322,48 @@ class RocketbookCameraScreen extends ConsumerWidget {
             GestureDetector(
               onTap: state.isCapturing ? null : () => _capturePhoto(context, notifier, state),
               child: Container(
-                width: 80,
-                height: 80,
+                width: 84,
+                height: 84,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 4),
-                  color: state.isCapturing ? Colors.grey : Colors.transparent,
+                  color: state.isCapturing 
+                    ? Colors.white.withValues(alpha: 0.3) 
+                    : Colors.transparent,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: state.isCapturing
                     ? const CircularProgressIndicator(
                         color: Colors.white,
+                        strokeWidth: 3,
                       )
                     : const Icon(
                         Icons.camera_alt,
                         color: Colors.white,
-                        size: 32,
+                        size: 36,
                       ),
               ),
             ),
 
             // Switch camera button
-            IconButton(
-              onPressed: () => notifier.switchCamera(),
-              icon: const Icon(
-                Icons.flip_camera_ios,
-                color: Colors.white,
-                size: 32,
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.5),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                onPressed: () => notifier.switchCamera(),
+                icon: const Icon(
+                  Icons.flip_camera_ios_outlined,
+                  color: Colors.white,
+                  size: 28,
+                ),
               ),
             ),
           ],
@@ -293,17 +372,57 @@ class RocketbookCameraScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildZoomSlider(CameraStateNotifier notifier, CameraState state) {
-    return RotatedBox(
-      quarterTurns: 3,
-      child: Slider(
-        value: state.zoomLevel,
-        min: 1.0,
-        max: 8.0,
-        divisions: 28,
-        onChanged: (value) => notifier.setZoomLevel(value),
-        activeColor: Colors.white,
-        inactiveColor: Colors.white38,
+  /// Build RocketBook detection overlay
+  Widget _buildRocketBookOverlay() {
+    return Container(
+      margin: const EdgeInsets.all(60),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.7),
+          width: 2,
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          // Top instruction
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            margin: const EdgeInsets.only(top: 16),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.7),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Text(
+              'Align RocketBook page within frame',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const Spacer(),
+          // Corner markers
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildCornerMarker(),
+              _buildCornerMarker(),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCornerMarker() {
+    return Container(
+      width: 20,
+      height: 20,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white, width: 2),
+        borderRadius: BorderRadius.circular(4),
       ),
     );
   }

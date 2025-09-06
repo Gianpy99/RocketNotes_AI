@@ -25,9 +25,10 @@ enum OCRProvider {
 class AIModelConfig {
   static const Map<String, Map<String, String>> aiModels = {
     'openai': {
-      'gpt-4-turbo-preview': 'gpt-4-turbo-preview',
-      'gpt-4': 'gpt-4',
-      'gpt-3.5-turbo': 'gpt-3.5-turbo',
+      'gpt-4o': 'gpt-4o',                          // Latest GPT-4 with vision
+      'gpt-4-turbo': 'gpt-4-turbo',                // GPT-4 Turbo
+      'gpt-4': 'gpt-4',                            // Standard GPT-4
+      'gpt-3.5-turbo': 'gpt-3.5-turbo',            // Cost-effective option
     },
     'gemini': {
       'gemini-pro': 'gemini-pro',
@@ -49,27 +50,22 @@ class AIModelConfig {
       'trocr-base-printed': 'microsoft/trocr-base-printed',
       'trocr-large-printed': 'microsoft/trocr-large-printed',
     },
-    'tesseract': {
-      'tesseract-default': 'tesseract-ocr',
-    },
   };
 
-  static List<String> get aiProviders => aiModels.keys.toList();
-  static List<String> get ocrProviders => ocrModels.keys.toList();
-  
-  static List<String> getAiModelsForProvider(String provider) {
-    return aiModels[provider]?.keys.toList() ?? [];
-  }
-  
-  static List<String> getOcrModelsForProvider(String provider) {
-    return ocrModels[provider]?.keys.toList() ?? [];
-  }
-  
-  static String? getActualModelName(String provider, String modelKey, {bool isOCR = false}) {
-    if (isOCR) {
-      return ocrModels[provider]?[modelKey];
-    } else {
-      return aiModels[provider]?[modelKey];
+  /// Get optimal model for the task
+  static String getOptimalModel(String provider, {bool requiresVision = false, bool prioritizeCost = true}) {
+    switch (provider.toLowerCase()) {
+      case 'openai':
+        if (requiresVision) {
+          return 'gpt-4o'; // Best for vision tasks
+        }
+        return prioritizeCost ? 'gpt-3.5-turbo' : 'gpt-4-turbo';
+      case 'gemini':
+        return requiresVision ? 'gemini-pro-vision' : 'gemini-pro';
+      case 'huggingface':
+        return 'meta-llama/Llama-2-7b-chat-hf'; // Default HF model
+      default:
+        return 'gpt-3.5-turbo';
     }
   }
 }
@@ -176,19 +172,20 @@ class AIService {
     // Use ApiConfig to check if we have a valid key
     if (!ApiConfig.hasOpenAIKey) {
       DebugLogger().log('❌ AI Service: OpenAI API key not configured - falling back to simulation');
-      DebugLogger().log('🔑 Current key: ${_openAIKey?.substring(0, 10)}...');
       return _fallbackAnalysis(scannedContent);
     }
 
     try {
       DebugLogger().log('🚀 AI Service: Starting real OpenAI analysis...');
-      DebugLogger().log('🔑 OPENAI DEBUG: API Key configurata: ${_openAIKey?.substring(0, 10)}...');
       
-      // Get the configured model from settings
-      final settings = await _settingsRepository.getSettings();
-      final configuredModel = settings.aiModel;
+      // Smart model selection: Use cost-effective model for text-only analysis
+      final bool hasImages = scannedContent.imagePath != null;
+      final String optimalModel = AIModelConfig.getOptimalModel('openai', 
+        requiresVision: hasImages, 
+        prioritizeCost: true  // Prioritize cost-effectiveness
+      );
       
-      DebugLogger().log('⚙️ Using configured model: $configuredModel');
+      DebugLogger().log('⚙️ Selected optimal model: $optimalModel (vision: $hasImages)');
       
       final prompt = _buildAnalysisPrompt(scannedContent);
       
@@ -202,7 +199,7 @@ class AIService {
           },
         ),
         data: {
-          'model': configuredModel,
+          'model': optimalModel,  // Use optimal model instead of configured
           'messages': [
             {
               'role': 'system',
@@ -214,8 +211,7 @@ class AIService {
             },
           ],
           'temperature': 0.3,
-          'max_tokens': 1500,
-          'response_format': {'type': 'json_object'},
+          'max_tokens': 2000,  // Increased for structured response
         },
       );
 
@@ -482,172 +478,212 @@ class AIService {
     }
   }
 
-  /// Build analysis prompt for AI
+  /// Build analysis prompt for AI - RocketBook focused
   String _buildAnalysisPrompt(ScannedContent scannedContent) {
     final buffer = StringBuffer();
     
-    buffer.writeln('COMPREHENSIVE CONTENT ANALYSIS REQUEST:');
-    buffer.writeln('Please analyze the following scanned content with deep understanding and provide actionable insights.');
+    buffer.writeln('ROCKETBOOK PAGE ANALYSIS REQUEST:');
     buffer.writeln('');
     
-    buffer.writeln('=== PRIMARY TEXT CONTENT ===');
+    // Check if it looks like a RocketBook page
+    bool hasRocketBookIndicators = _detectRocketBookPage(scannedContent.rawText);
+    if (hasRocketBookIndicators) {
+      buffer.writeln('📓 DETECTED: RocketBook page with symbols/structure');
+    } else {
+      buffer.writeln('📝 DETECTED: General handwritten/printed notes');
+    }
+    buffer.writeln('');
+    
+    buffer.writeln('=== SCANNED TEXT CONTENT ===');
     if (scannedContent.rawText.isNotEmpty) {
       buffer.writeln(scannedContent.rawText);
     } else {
-      buffer.writeln('[No text content detected - analyze any visual elements present]');
+      buffer.writeln('[No text detected - analyze visual elements if present]');
     }
     
+    // Add tables if present
     if (scannedContent.tables.isNotEmpty) {
       buffer.writeln('');
-      buffer.writeln('=== STRUCTURED DATA (TABLES) ===');
+      buffer.writeln('=== STRUCTURED DATA ===');
       for (int i = 0; i < scannedContent.tables.length; i++) {
         final table = scannedContent.tables[i];
-        buffer.writeln('📊 Table ${i + 1} (${table.rows.length} rows):');
-        for (int rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-          final row = table.rows[rowIndex];
-          buffer.writeln('  Row ${rowIndex + 1}: ${row.join(' | ')}');
+        buffer.writeln('Table ${i + 1}:');
+        for (final row in table.rows) {
+          buffer.writeln('  ${row.join(' | ')}');
         }
-        buffer.writeln('');
       }
     }
     
-    if (scannedContent.diagrams.isNotEmpty) {
-      buffer.writeln('');
-      buffer.writeln('=== VISUAL ELEMENTS (DIAGRAMS) ===');
-      for (int i = 0; i < scannedContent.diagrams.length; i++) {
-        final diagram = scannedContent.diagrams[i];
-        buffer.writeln('🎨 Diagram ${i + 1}:');
-        buffer.writeln('  Type: ${diagram.type}');
-        buffer.writeln('  Description: ${diagram.description}');
-        if (diagram.elements.isNotEmpty) {
-          buffer.writeln('  Elements: ${diagram.elements.keys.join(', ')}');
-        }
-        buffer.writeln('');
-      }
-    }
-    
-    // Add OCR metadata context
+    // Add technical context
     buffer.writeln('');
-    buffer.writeln('=== TECHNICAL CONTEXT ===');
-    buffer.writeln('OCR Engine: ${scannedContent.ocrMetadata.engine}');
+    buffer.writeln('=== SCAN QUALITY ===');
     buffer.writeln('OCR Confidence: ${(scannedContent.ocrMetadata.overallConfidence * 100).toStringAsFixed(1)}%');
-    buffer.writeln('Processing Time: ${scannedContent.ocrMetadata.processingTime.inMilliseconds}ms');
+    buffer.writeln('');
     
-    buffer.writeln('');
-    buffer.writeln('=== ANALYSIS INSTRUCTIONS ===');
-    buffer.writeln('Please provide a comprehensive analysis that includes:');
-    buffer.writeln('1. Intelligent understanding of the content purpose and context');
-    buffer.writeln('2. Extraction of actionable items with realistic priorities');
-    buffer.writeln('3. Smart categorization and meaningful tag suggestions');
-    buffer.writeln('4. Insights that help the user organize and act on this information');
-    buffer.writeln('5. Detection of any time-sensitive elements or deadlines');
-    buffer.writeln('');
-    buffer.writeln('Focus on practical value and actionable insights. Be thorough but concise.');
+    buffer.writeln('Please analyze this content and provide a structured response following the exact format specified in the system prompt.');
     
     return buffer.toString();
   }
 
-  /// System prompt for AI analysis
+  /// Detect if this looks like a RocketBook page
+  bool _detectRocketBookPage(String text) {
+    final rocketBookIndicators = [
+      '□', '○', '△', '◇', '♠', '♦', '♣', '♥', // Common RocketBook symbols
+      'rocketbook', 'rocket book',
+      'reusable', 'erasable',
+      'scan to', 'send to',
+    ];
+    
+    final lowerText = text.toLowerCase();
+    return rocketBookIndicators.any((indicator) => lowerText.contains(indicator));
+  }
+
+  /// System prompt for AI analysis - Unified structured response
   String _getSystemPrompt() {
     return '''
-You are an advanced AI assistant specialized in analyzing scanned notes, documents, and handwritten content with deep understanding capabilities. 
+You are an AI assistant specialized in analyzing RocketBook scanned pages and handwritten/printed notes. 
 
-ANALYSIS OBJECTIVES:
-- Extract and understand ALL textual content including handwritten text, printed text, diagrams, and visual elements
-- Identify document structure, organization patterns, and information hierarchy  
-- Recognize actionable items, deadlines, priorities, and follow-up requirements
-- Provide contextual insights that help users understand and organize their content
-- Suggest relevant categorizations and meaningful metadata
+Your task is to provide a STRUCTURED analysis that follows this EXACT format for consistent parsing:
 
-ENHANCED ANALYSIS REQUIREMENTS:
-1. CONTENT COMPREHENSION: Understand not just what is written, but the meaning, context, and relationships between different parts
-2. SMART CATEGORIZATION: Identify document type and suggest appropriate organizational structure
-3. ACTIONABLE EXTRACTION: Find tasks, deadlines, people mentioned, important dates, and follow-up items
-4. CONTEXTUAL INSIGHTS: Provide meaningful observations about the content's purpose, urgency, and next steps
-5. INTELLIGENT TAGGING: Suggest tags that reflect both content topics and functional categories
+RESPONSE FORMAT (ALWAYS use this structure):
+```
+TITLE: [Create a descriptive title based on content]
 
-OUTPUT FORMAT (strict JSON):
-{
-  "summary": "Comprehensive summary capturing key points and main purpose (150-300 chars)",
-  "keyTopics": ["main_topic", "secondary_topic", "detailed_concept", "technical_term", "subject_area"],
-  "suggestedTags": ["functional_tag", "topic_tag", "priority_tag", "project_tag", "context_tag"],
-  "suggestedTitle": "Descriptive and specific title that captures the essence of the content",
-  "contentType": "notes|meeting|todo|brainstorm|technical|personal|mixed|research|planning|reference",
-  "sentiment": 0.7,
-  "actionItems": [
-    {
-      "text": "Specific, clear action item with context",
-      "priority": "low|medium|high|urgent",
-      "dueDate": "YYYY-MM-DD or null"
-    }
-  ],
-  "insights": {
-    "main_theme": "Core theme or purpose of the document",
-    "key_concepts": ["concept1", "concept2", "concept3"],
-    "urgency_level": "low|medium|high",
-    "requires_followup": true|false,
-    "estimated_completion_time": "time estimate for any tasks identified",
-    "related_projects": ["project names if identifiable"],
-    "people_mentioned": ["names of people referenced"],
-    "important_dates": ["dates found in the content"],
-    "technical_complexity": "low|medium|high",
-    "information_density": "sparse|moderate|dense"
-  }
-}
+SHORT_DESCRIPTION: [2-3 sentence summary of the main content and purpose]
 
-ANALYSIS PRINCIPLES:
-- Be thorough but concise
-- Focus on practical usefulness for the user
-- Extract maximum value from the scanned content
-- Provide insights that go beyond simple text extraction
-- Help users better organize and act on their information
+ROCKETBOOK_PAGE_TYPE: [meeting|notes|todo|brainstorm|technical|planning|personal|mixed|research]
 
-Analyze with intelligence, context-awareness, and practical focus.
+SUMMARY: [Comprehensive summary of all content, including key points, ideas, and observations]
+
+TASKS: [List each actionable item found, one per line with format "- Task description"]
+
+DEADLINES: [List any dates, deadlines, or time-sensitive items found, format "- Date/deadline: description"]
+
+PEOPLE_MENTIONED: [List names of people referenced in the content]
+
+KEY_TOPICS: [Main subjects and themes covered, separated by commas]
+
+PRIORITY_LEVEL: [low|medium|high|urgent]
+
+NEXT_ACTIONS: [Suggested follow-up steps based on content analysis]
+```
+
+ANALYSIS GUIDELINES:
+- Be thorough and accurate in text extraction
+- Identify RocketBook page symbols and their meanings if present
+- Extract ALL actionable items and deadlines
+- Suggest practical next steps
+- Maintain consistency in response structure
+- Focus on practical utility for note organization
+
+IMPORTANT: Always follow the exact format above. Do not deviate from this structure as it enables automatic parsing.
 ''';
   }
 
-  /// Parse AI response from JSON
+  /// Parse AI response - supports both structured format and JSON fallback
   AIAnalysis _parseAIResponse(String response) {
     try {
       DebugLogger().log('🔍 Parsing AI response of length: ${response.length}');
       
-      // First try to find and parse JSON
-      final jsonMatch = RegExp(r'\{.*\}', dotAll: true).firstMatch(response);
-      if (jsonMatch == null) {
-        DebugLogger().log('⚠️ No JSON found, attempting text parsing...');
-        return _parseTextResponse(response);
+      // First try structured format parsing
+      if (response.contains('TITLE:') && response.contains('SUMMARY:')) {
+        DebugLogger().log('📋 Detected structured format response');
+        return _parseStructuredResponse(response);
       }
       
-      final jsonString = jsonMatch.group(0)!;
-      DebugLogger().log('🔍 Found JSON: ${jsonString.substring(0, min(100, jsonString.length))}...');
+      // Fallback to JSON parsing
+      final jsonMatch = RegExp(r'\{.*\}', dotAll: true).firstMatch(response);
+      if (jsonMatch != null) {
+        DebugLogger().log('📄 Detected JSON format response');
+        return _parseJsonResponse(jsonMatch.group(0)!);
+      }
       
-      final jsonData = json.decode(jsonString);
-      
-      final actionItems = (jsonData['actionItems'] as List?)
-          ?.map((item) => ActionItem(
-                text: item['text'] ?? '',
-                priority: _parsePriority(item['priority']),
-                dueDate: item['dueDate'] != null ? DateTime.tryParse(item['dueDate']) : null,
-              ))
-          .toList() ?? [];
-      
-      DebugLogger().log('✅ Successfully parsed JSON response');
-      return AIAnalysis(
-        summary: jsonData['summary'] ?? '',
-        keyTopics: List<String>.from(jsonData['keyTopics'] ?? []),
-        suggestedTags: List<String>.from(jsonData['suggestedTags'] ?? []),
-        suggestedTitle: jsonData['suggestedTitle'] ?? 'Untitled Note',
-        contentType: _parseContentType(jsonData['contentType']),
-        sentiment: (jsonData['sentiment'] as num?)?.toDouble() ?? 0.0,
-        actionItems: actionItems,
-        insights: Map<String, dynamic>.from(jsonData['insights'] ?? {}),
-      );
+      // Last resort: text parsing
+      DebugLogger().log('⚠️ No structured format found, attempting text parsing...');
+      return _parseTextResponse(response);
       
     } catch (e) {
       DebugLogger().log('❌ Error parsing AI response: $e');
-      DebugLogger().log('🔄 Falling back to text parsing...');
       return _parseTextResponse(response);
     }
+  }
+
+  /// Parse the new structured format
+  AIAnalysis _parseStructuredResponse(String response) {
+    final Map<String, String> sections = {};
+    
+    // Extract sections using regex
+    final sectionPattern = RegExp(r'(\w+(?:_\w+)*):\s*(.+?)(?=\n\w+(?:_\w+)*:|$)', dotAll: true);
+    final matches = sectionPattern.allMatches(response);
+    
+    for (final match in matches) {
+      final key = match.group(1)?.toLowerCase() ?? '';
+      final value = match.group(2)?.trim() ?? '';
+      sections[key] = value;
+    }
+    
+    // Parse tasks
+    final tasks = <ActionItem>[];
+    final tasksText = sections['tasks'] ?? '';
+    if (tasksText.isNotEmpty) {
+      final taskLines = tasksText.split('\n')
+          .where((line) => line.trim().startsWith('-'))
+          .map((line) => line.trim().substring(1).trim());
+      
+      for (final task in taskLines) {
+        if (task.isNotEmpty) {
+          tasks.add(ActionItem(
+            text: task,
+            priority: _inferPriority(task, sections['priority_level'] ?? 'medium'),
+            dueDate: null,
+          ));
+        }
+      }
+    }
+    
+    // Parse deadlines
+    final deadlines = <String>[];
+    final deadlinesText = sections['deadlines'] ?? '';
+    if (deadlinesText.isNotEmpty) {
+      deadlines.addAll(deadlinesText.split('\n')
+          .where((line) => line.trim().startsWith('-'))
+          .map((line) => line.trim().substring(1).trim()));
+    }
+    
+    // Parse key topics
+    final keyTopics = (sections['key_topics'] ?? '')
+        .split(',')
+        .map((topic) => topic.trim())
+        .where((topic) => topic.isNotEmpty)
+        .take(10)
+        .toList();
+    
+    // Parse people mentioned
+    final peopleMentioned = (sections['people_mentioned'] ?? '')
+        .split(',')
+        .map((person) => person.trim())
+        .where((person) => person.isNotEmpty)
+        .toList();
+    
+    DebugLogger().log('✅ Successfully parsed structured response: ${tasks.length} tasks, ${keyTopics.length} topics');
+    
+    return AIAnalysis(
+      summary: sections['summary'] ?? 'RocketBook page analysis',
+      keyTopics: keyTopics,
+      suggestedTags: _generateTagsFromStructured(sections),
+      suggestedTitle: sections['title'] ?? 'RocketBook Note',
+      contentType: _parseContentTypeFromString(sections['rocketbook_page_type'] ?? 'notes'),
+      sentiment: _inferSentimentFromPriority(sections['priority_level'] ?? 'medium'),
+      actionItems: tasks,
+      insights: {
+        'page_type': sections['rocketbook_page_type'] ?? 'unknown',
+        'priority_level': sections['priority_level'] ?? 'medium',
+        'next_actions': sections['next_actions'] ?? '',
+        'deadlines': deadlines,
+        'people_mentioned': peopleMentioned,
+        'short_description': sections['short_description'] ?? '',
+      },
+    );
   }
 
   /// Parse non-JSON text response as fallback
@@ -902,6 +938,121 @@ Analyze with intelligence, context-awareness, and practical focus.
       case 'personal': return ContentType.personal;
       case 'mixed': return ContentType.mixed;
       default: return ContentType.notes;
+    }
+  }
+
+  // =============================================
+  // STRUCTURED RESPONSE PARSING HELPERS
+  // =============================================
+
+  /// Parse JSON response (fallback)
+  AIAnalysis _parseJsonResponse(String jsonString) {
+    final jsonData = json.decode(jsonString);
+    
+    final actionItems = (jsonData['actionItems'] as List?)
+        ?.map((item) => ActionItem(
+              text: item['text'] ?? '',
+              priority: _parsePriority(item['priority']),
+              dueDate: item['dueDate'] != null ? DateTime.tryParse(item['dueDate']) : null,
+            ))
+        .toList() ?? [];
+    
+    return AIAnalysis(
+      summary: jsonData['summary'] ?? '',
+      keyTopics: List<String>.from(jsonData['keyTopics'] ?? []),
+      suggestedTags: List<String>.from(jsonData['suggestedTags'] ?? []),
+      suggestedTitle: jsonData['suggestedTitle'] ?? 'Untitled Note',
+      contentType: _parseContentType(jsonData['contentType']),
+      sentiment: (jsonData['sentiment'] as num?)?.toDouble() ?? 0.0,
+      actionItems: actionItems,
+      insights: Map<String, dynamic>.from(jsonData['insights'] ?? {}),
+    );
+  }
+
+  /// Infer priority from task text and overall priority level
+  Priority _inferPriority(String taskText, String overallPriority) {
+    final lowerTask = taskText.toLowerCase();
+    
+    // Check for urgent keywords
+    if (lowerTask.contains('urgent') || lowerTask.contains('asap') || 
+        lowerTask.contains('immediately') || lowerTask.contains('critical')) {
+      return Priority.urgent;
+    }
+    
+    // Check for high priority keywords
+    if (lowerTask.contains('important') || lowerTask.contains('deadline') || 
+        lowerTask.contains('due') || overallPriority == 'high') {
+      return Priority.high;
+    }
+    
+    // Check for low priority keywords
+    if (lowerTask.contains('when time') || lowerTask.contains('optional') || 
+        lowerTask.contains('later') || overallPriority == 'low') {
+      return Priority.low;
+    }
+    
+    return Priority.medium; // Default
+  }
+
+  /// Parse content type from string
+  ContentType _parseContentTypeFromString(String typeString) {
+    switch (typeString.toLowerCase()) {
+      case 'meeting': return ContentType.meeting;
+      case 'todo': return ContentType.todo;
+      case 'brainstorm': return ContentType.brainstorm;
+      case 'technical': return ContentType.technical;
+      case 'planning': return ContentType.brainstorm; // Map planning to brainstorm
+      case 'personal': return ContentType.personal;
+      case 'research': return ContentType.technical; // Map research to technical
+      case 'mixed': return ContentType.mixed;
+      default: return ContentType.notes;
+    }
+  }
+
+  /// Generate tags from structured sections
+  List<String> _generateTagsFromStructured(Map<String, String> sections) {
+    final tags = <String>[];
+    
+    // Add page type tag
+    final pageType = sections['rocketbook_page_type'] ?? '';
+    if (pageType.isNotEmpty) {
+      tags.add(pageType);
+    }
+    
+    // Add priority tag
+    final priority = sections['priority_level'] ?? '';
+    if (priority.isNotEmpty && priority != 'medium') {
+      tags.add('priority-$priority');
+    }
+    
+    // Add RocketBook tag
+    tags.add('rocketbook');
+    
+    // Add AI analysis tag
+    tags.add('ai-analyzed');
+    
+    // Extract key topic tags
+    final keyTopics = sections['key_topics'] ?? '';
+    if (keyTopics.isNotEmpty) {
+      final topics = keyTopics.split(',').take(3);
+      for (final topic in topics) {
+        final cleanTopic = topic.trim().toLowerCase().replaceAll(RegExp(r'[^\w]'), '-');
+        if (cleanTopic.isNotEmpty && cleanTopic.length <= 20) {
+          tags.add(cleanTopic);
+        }
+      }
+    }
+    
+    return tags.take(8).toList(); // Limit to 8 tags
+  }
+
+  /// Infer sentiment from priority level
+  double _inferSentimentFromPriority(String priorityLevel) {
+    switch (priorityLevel.toLowerCase()) {
+      case 'urgent': return -0.3; // Slightly negative (stressful)
+      case 'high': return 0.1;    // Slightly positive (important)
+      case 'low': return 0.5;     // Positive (relaxed)
+      default: return 0.0;        // Neutral
     }
   }
 }
