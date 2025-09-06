@@ -156,6 +156,26 @@ final recentNotesProvider = FutureProviderFamily<List<NoteModel>, int>((ref, day
   return allNotes.where((note) => note.createdAt.isAfter(cutoffDate)).toList();
 });
 
+// Recent Work Notes Provider
+final recentWorkNotesProvider = FutureProviderFamily<List<NoteModel>, int>((ref, days) async {
+  final repository = ref.read(noteRepositoryProvider);
+  final allNotes = await repository.getAllNotes();
+  final cutoffDate = DateTime.now().subtract(Duration(days: days));
+  return allNotes
+      .where((note) => note.mode == 'work' && note.createdAt.isAfter(cutoffDate))
+      .toList();
+});
+
+// Recent Personal Notes Provider
+final recentPersonalNotesProvider = FutureProviderFamily<List<NoteModel>, int>((ref, days) async {
+  final repository = ref.read(noteRepositoryProvider);
+  final allNotes = await repository.getAllNotes();
+  final cutoffDate = DateTime.now().subtract(Duration(days: days));
+  return allNotes
+      .where((note) => note.mode == 'personal' && note.createdAt.isAfter(cutoffDate))
+      .toList();
+});
+
 // Search Notes Provider
 final searchNotesProvider = FutureProviderFamily<List<NoteModel>, String>((ref, query) async {
   final repository = ref.read(noteRepositoryProvider);

@@ -258,11 +258,9 @@ class RocketbookCameraScreen extends ConsumerWidget {
           child: CameraPreview(controller),
         ),
 
-        // Overlay for Rocketbook detection
+        // Simple frame overlay (non-blocking)
         Positioned.fill(
-          child: CustomPaint(
-            painter: RocketbookOverlayPainter(),
-          ),
+          child: _buildSimpleFrameOverlay(),
         ),
 
         // Controls
@@ -271,11 +269,6 @@ class RocketbookCameraScreen extends ConsumerWidget {
           left: 0,
           right: 0,
           child: _buildControls(context, notifier, state),
-        ),
-
-        // RocketBook detection overlay
-        Positioned.fill(
-          child: _buildRocketBookOverlay(),
         ),
       ],
     );
@@ -318,35 +311,35 @@ class RocketbookCameraScreen extends ConsumerWidget {
               ),
             ),
 
-            // Capture button
+            // Capture button - made larger and more accessible
             GestureDetector(
               onTap: state.isCapturing ? null : () => _capturePhoto(context, notifier, state),
               child: Container(
-                width: 84,
-                height: 84,
+                width: 100,
+                height: 100,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 4),
+                  border: Border.all(color: Colors.white, width: 5),
                   color: state.isCapturing 
                     ? Colors.white.withValues(alpha: 0.3) 
                     : Colors.transparent,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
+                      color: Colors.black.withValues(alpha: 0.5),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
                     ),
                   ],
                 ),
                 child: state.isCapturing
                     ? const CircularProgressIndicator(
                         color: Colors.white,
-                        strokeWidth: 3,
+                        strokeWidth: 4,
                       )
                     : const Icon(
                         Icons.camera_alt,
                         color: Colors.white,
-                        size: 36,
+                        size: 42,
                       ),
               ),
             ),
@@ -372,57 +365,77 @@ class RocketbookCameraScreen extends ConsumerWidget {
     );
   }
 
-  /// Build RocketBook detection overlay
-  Widget _buildRocketBookOverlay() {
-    return Container(
-      margin: const EdgeInsets.all(60),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.7),
-          width: 2,
+  /// Build simple frame overlay that doesn't block touches
+  Widget _buildSimpleFrameOverlay() {
+    return IgnorePointer(
+      child: Container(
+        margin: const EdgeInsets.all(40),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.5),
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(8),
         ),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          // Top instruction
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            margin: const EdgeInsets.only(top: 16),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text(
-              'Align RocketBook page within frame',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+        child: Stack(
+          children: [
+            // Top center hint
+            Positioned(
+              top: 20,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'Frame your document',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
               ),
             ),
-          ),
-          const Spacer(),
-          // Corner markers
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildCornerMarker(),
-              _buildCornerMarker(),
-            ],
-          ),
-        ],
+            // Corner markers
+            Positioned(
+              top: 0,
+              left: 0,
+              child: _buildSimpleCornerMarker(),
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: _buildSimpleCornerMarker(),
+            ),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              child: _buildSimpleCornerMarker(),
+            ),
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: _buildSimpleCornerMarker(),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildCornerMarker() {
+  Widget _buildSimpleCornerMarker() {
     return Container(
-      width: 20,
-      height: 20,
+      width: 12,
+      height: 12,
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white, width: 2),
-        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: Colors.white, width: 1.5),
+        borderRadius: BorderRadius.circular(2),
       ),
     );
   }
@@ -640,147 +653,6 @@ class _LoadingView extends StatelessWidget {
       ),
     );
   }
-}
-
-// Custom painter per l'overlay Rocketbook
-class RocketbookOverlayPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Semi-transparent overlay
-    final overlayPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.3);
-    
-    // Bright corner indicators
-    final cornerPaint = Paint()
-      ..color = Colors.blue
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4.0;
-    
-    // Text background
-    final textBgPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.7);
-
-    // Define the capture area
-    final rect = Rect.fromCenter(
-      center: Offset(size.width / 2, size.height / 2),
-      width: size.width * 0.85,
-      height: size.height * 0.7,
-    );
-
-    // Draw semi-transparent overlay everywhere except the capture area
-    final path = Path()
-      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
-      ..addRect(rect)
-      ..fillType = PathFillType.evenOdd;
-    canvas.drawPath(path, overlayPaint);
-
-    // Draw animated corner brackets
-    const cornerLength = 40.0;
-    const cornerOffset = 8.0;
-    
-    // Top-left corner
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(rect.left - cornerOffset, rect.top - cornerOffset, cornerLength, 4),
-        const Radius.circular(2),
-      ),
-      cornerPaint,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(rect.left - cornerOffset, rect.top - cornerOffset, 4, cornerLength),
-        const Radius.circular(2),
-      ),
-      cornerPaint,
-    );
-
-    // Top-right corner
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(rect.right - cornerLength + cornerOffset, rect.top - cornerOffset, cornerLength, 4),
-        const Radius.circular(2),
-      ),
-      cornerPaint,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(rect.right - 4 + cornerOffset, rect.top - cornerOffset, 4, cornerLength),
-        const Radius.circular(2),
-      ),
-      cornerPaint,
-    );
-
-    // Bottom-left corner
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(rect.left - cornerOffset, rect.bottom - 4 + cornerOffset, cornerLength, 4),
-        const Radius.circular(2),
-      ),
-      cornerPaint,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(rect.left - cornerOffset, rect.bottom - cornerLength + cornerOffset, 4, cornerLength),
-        const Radius.circular(2),
-      ),
-      cornerPaint,
-    );
-
-    // Bottom-right corner
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(rect.right - cornerLength + cornerOffset, rect.bottom - 4 + cornerOffset, cornerLength, 4),
-        const Radius.circular(2),
-      ),
-      cornerPaint,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(rect.right - 4 + cornerOffset, rect.bottom - cornerLength + cornerOffset, 4, cornerLength),
-        const Radius.circular(2),
-      ),
-      cornerPaint,
-    );
-
-    // Add instruction text
-    final textPainter = TextPainter(
-      text: const TextSpan(
-        text: 'Position your document or notes within the frame',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      textAlign: TextAlign.center,
-      textDirection: TextDirection.ltr,
-    );
-    
-    textPainter.layout(maxWidth: size.width * 0.8);
-    
-    // Draw text background
-    final textRect = Rect.fromCenter(
-      center: Offset(size.width / 2, rect.bottom + 60),
-      width: textPainter.width + 32,
-      height: textPainter.height + 16,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(textRect, const Radius.circular(8)),
-      textBgPaint,
-    );
-    
-    // Draw text
-    textPainter.paint(
-      canvas,
-      Offset(
-        size.width / 2 - textPainter.width / 2,
-        rect.bottom + 60 - textPainter.height / 2,
-      ),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 // Image preview screen

@@ -139,7 +139,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final currentMode = ref.watch(appModeProvider);
-    final recentNotes = ref.watch(recentNotesProvider(7)); // Get notes from last 7 days
+    final recentWorkNotes = ref.watch(recentWorkNotesProvider(7)); // Get work notes from last 7 days
+    final recentPersonalNotes = ref.watch(recentPersonalNotesProvider(7)); // Get personal notes from last 7 days
 
     return Stack(
       children: [
@@ -348,59 +349,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Recent Notes
-                  recentNotes.when(
-                    data: (notes) {
-                      if (notes.isNotEmpty) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Recent Notes',
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            ...notes.take(3).map((note) => Card(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  child: ListTile(
-                                    leading: CircleAvatar(
-                                      backgroundColor: note.mode == 'work'
-                                          ? AppColors.workBlue
-                                          : AppColors.personalGreen,
-                                      child: Icon(
-                                        note.mode == 'work' ? Icons.work : Icons.home,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                    ),
-                                    title: Text(
-                                      note.title,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    subtitle: Text(
-                                      note.content,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    trailing: Text(
-                                      _formatDate(note.updatedAt),
-                                      style: Theme.of(context).textTheme.bodySmall,
-                                    ),
-                                    onTap: () => context.push('/editor?id=${note.id}'),
-                                  ),
-                                )),
-                          ],
-                        );
-                      } else {
-                        return const SizedBox.shrink();
-                      }
-                    },
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (error, stack) => const SizedBox.shrink(),
-                  ),
+                  // Recent Notes - Show based on current mode
+                  currentMode == 'work' 
+                    ? _buildRecentNotesSection(context, recentWorkNotes, 'Recent Work Notes')
+                    : _buildRecentNotesSection(context, recentPersonalNotes, 'Recent Personal Notes'),
                 ],
               ),
             ),
@@ -442,6 +394,118 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
+  }
+
+  Widget _buildRecentNotesSection(BuildContext context, AsyncValue<List<NoteModel>> notesAsync, String title) {
+    return notesAsync.when(
+      data: (notes) {
+        if (notes.isNotEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ...notes.take(3).map((note) => Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: note.mode == 'work'
+                            ? AppColors.workBlue
+                            : AppColors.personalGreen,
+                        child: Icon(
+                          note.mode == 'work' ? Icons.work : Icons.home,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      title: Text(
+                        note.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        note.content,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: Text(
+                        _formatDate(note.updatedAt),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      onTap: () => context.push('/editor?id=${note.id}'),
+                    ),
+                  )),
+            ],
+          );
+        } else {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Theme.of(context).dividerColor,
+                    style: BorderStyle.solid,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.note_add_outlined,
+                      size: 48,
+                      color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.5),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No recent notes',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Create your first note to get started',
+                      style: Theme.of(context).textTheme.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }
+      },
+      loading: () => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Center(child: CircularProgressIndicator()),
+        ],
+      ),
+      error: (error, stack) => const SizedBox.shrink(),
+    );
   }
 
 }

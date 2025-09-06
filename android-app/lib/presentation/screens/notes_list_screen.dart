@@ -201,13 +201,28 @@ class _NotesListScreenState extends ConsumerState<NotesListScreen>
       );
     }
 
-    return ListView.builder(
+    return ListView(
       padding: const EdgeInsets.all(16),
-      itemCount: filteredNotes.length,
-      itemBuilder: (context, index) {
-        final note = filteredNotes[index];
-        return _buildNoteCard(note);
-      },
+      children: [
+        // Recent Notes Section (only if no search query)
+        if (_searchQuery.isEmpty) ...[
+          _buildRecentNotesSection(filteredNotes, mode),
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 16),
+        ],
+        
+        // All Notes Section
+        Text(
+          'All Notes',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 12),
+        
+        ...filteredNotes.map((note) => _buildNoteCard(note)),
+      ],
     );
   }
 
@@ -284,6 +299,83 @@ class _NotesListScreenState extends ConsumerState<NotesListScreen>
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildRecentNotesSection(List<NoteModel> allNotes, String? mode) {
+    // Get recent notes (last 7 days)
+    final cutoffDate = DateTime.now().subtract(const Duration(days: 7));
+    final recentNotes = allNotes
+        .where((note) => note.updatedAt.isAfter(cutoffDate))
+        .take(3)
+        .toList();
+
+    if (recentNotes.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.access_time,
+              size: 20,
+              color: Theme.of(context).primaryColor,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Recent Notes',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).primaryColor,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ...recentNotes.map((note) => Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              elevation: 2,
+              child: ListTile(
+                onTap: () => context.push('/editor/${note.id}'),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: note.mode == 'work' 
+                        ? Colors.blue.withValues(alpha: 0.1)
+                        : Colors.green.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    note.mode == 'work' ? Icons.work : Icons.person,
+                    size: 20,
+                    color: note.mode == 'work' ? Colors.blue : Colors.green,
+                  ),
+                ),
+                title: Text(
+                  note.title.isNotEmpty ? note.title : 'Untitled',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Text(
+                  note.content,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                trailing: Text(
+                  _formatDate(note.updatedAt),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            )),
+      ],
     );
   }
 
