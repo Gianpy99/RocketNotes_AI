@@ -48,5 +48,6 @@ app.*.map.json
 lib/core/config/api_config.dart
 .env
 .env.local
+**/google-services.json
 .env.production
 .env.staging
