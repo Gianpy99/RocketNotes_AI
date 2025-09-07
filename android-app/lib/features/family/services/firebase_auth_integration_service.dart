@@ -1,12 +1,3 @@
-/// Firebase Auth Integration Service
-///
-/// Handles Firebase Authentication integration for family membership claims.
-/// Manages user authentication state, custom claims, and family membership persistence.
-/// Integrates with Firebase Auth to maintain secure family membership information.
-///
-/// This service provides a bridge between Firebase Auth and the family management system,
-/// ensuring secure and consistent user authentication and authorization.
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../../../models/family_member.dart';

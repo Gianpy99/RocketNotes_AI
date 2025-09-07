@@ -1,11 +1,3 @@
-/// Firebase Configuration for Family Management Features
-///
-/// This file configures Firebase services specifically for family management:
-/// - Authentication for family members
-/// - Firestore collections for families, members, and shared notes
-/// - Security rules for family data access
-/// - Real-time listeners for family state synchronization
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';

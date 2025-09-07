@@ -1,10 +1,3 @@
-/// Authentication Providers for Family Features
-///
-/// This file contains authentication-related providers specifically for family features:
-/// - Family-aware authentication state
-/// - User profile management with family context
-/// - Authentication guards for family operations
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../firebase_config.dart';

@@ -1,12 +1,3 @@
-/// Permission Service
-///
-/// Core business logic for permission management within families.
-/// Handles permission validation, role-based access control, and permission inheritance.
-/// Integrates with Firebase Auth and Firestore for secure permission enforcement.
-///
-/// This service acts as the central authority for all permission-related operations,
-/// ensuring consistent and secure access control across the family management system.
-
 import '../../../models/family_member.dart';
 import '../../../models/shared_note.dart';
 import '../../../models/note_permission.dart';

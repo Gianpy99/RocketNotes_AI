@@ -1,12 +1,3 @@
-/// Riverpod Providers for Family State Management
-///
-/// This file contains all the Riverpod providers for managing family-related state:
-/// - Family data and current family selection
-/// - Family members and their permissions
-/// - Family invitations and pending requests
-/// - Shared notes and permissions
-/// - Authentication state for family features
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';

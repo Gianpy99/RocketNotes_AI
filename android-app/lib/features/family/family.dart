@@ -1,21 +1,3 @@
-/// Family Management Feature
-///
-/// This feature provides comprehensive family management capabilities including:
-/// - Family creation and management
-/// - Member invitations and permissions
-/// - Note sharing within families
-/// - Real-time collaboration
-/// - Audit logging and security
-///
-/// Architecture:
-/// - Models: Data structures and business logic
-/// - Services: Firebase integration and API calls
-/// - Providers: State management with Riverpod
-/// - Screens: UI components for family management
-/// - Widgets: Reusable UI components
-
-library family_feature;
-
 // TODO: Export models when implemented
 // export 'models/family.dart';
 // export 'models/family_member.dart';

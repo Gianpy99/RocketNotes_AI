@@ -132,7 +132,7 @@ class _ManagePermissionsScreenState extends ConsumerState<ManagePermissionsScree
                 child: Column(
                   children: [
                     DropdownButtonFormField<FamilyRole>(
-                      value: _selectedRole,
+                      initialValue: _selectedRole,
                       decoration: const InputDecoration(
                         labelText: 'Family Role',
                         border: OutlineInputBorder(),

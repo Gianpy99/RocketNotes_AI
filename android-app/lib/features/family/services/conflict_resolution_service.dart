@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -449,21 +450,43 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
             Row(
               children: [
                 Expanded(
-                  child: RadioListTile<bool>(
-                    title: const Text('Keep Yours', style: TextStyle(fontSize: 14)),
-                    value: true,
-                    groupValue: _resolutions[conflict.field],
-                    onChanged: (value) => setState(() => _resolutions[conflict.field] = value),
-                    dense: true,
+                  child: InkWell(
+                    onTap: () => setState(() => _resolutions[conflict.field] = true),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _resolutions[conflict.field] == true
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_unchecked,
+                          size: 20,
+                          color: _resolutions[conflict.field] == true
+                              ? Theme.of(context).primaryColor
+                              : Colors.grey,
+                        ),
+                        const SizedBox(width: 8),
+                        const Text('Keep Yours', style: TextStyle(fontSize: 14)),
+                      ],
+                    ),
                   ),
                 ),
                 Expanded(
-                  child: RadioListTile<bool>(
-                    title: const Text('Keep Server', style: TextStyle(fontSize: 14)),
-                    value: false,
-                    groupValue: _resolutions[conflict.field],
-                    onChanged: (value) => setState(() => _resolutions[conflict.field] = value),
-                    dense: true,
+                  child: InkWell(
+                    onTap: () => setState(() => _resolutions[conflict.field] = false),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _resolutions[conflict.field] == false
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_unchecked,
+                          size: 20,
+                          color: _resolutions[conflict.field] == false
+                              ? Theme.of(context).primaryColor
+                              : Colors.grey,
+                        ),
+                        const SizedBox(width: 8),
+                        const Text('Keep Server', style: TextStyle(fontSize: 14)),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -547,25 +570,43 @@ Future<bool> handleSaveConflicts({
   }
 
   // Show conflict resolution dialog
-  final resolved = await showDialog<bool>(
+  final completer = Completer<bool>();
+
+  if (!context.mounted) {
+    return false;
+  }
+
+  showDialog<bool>(
     context: context,
     barrierDismissible: false,
-    builder: (context) => ConflictResolutionDialog(
+    builder: (_) => ConflictResolutionDialog(
       conflicts: conflicts,
       onResolved: () async {
-        final strategy = ref.read(conflictResolutionStrategyProvider);
-        await service.saveWithConflictResolution(
-          collection: collection,
-          documentId: documentId,
-          changes: changes,
-          lastSyncTimestamp: lastSyncTimestamp,
-          strategy: strategy,
-        );
-        Navigator.of(context).pop(true);
+        try {
+          final strategy = ref.read(conflictResolutionStrategyProvider);
+          await service.saveWithConflictResolution(
+            collection: collection,
+            documentId: documentId,
+            changes: changes,
+            lastSyncTimestamp: lastSyncTimestamp,
+            strategy: strategy,
+          );
+          if (context.mounted) {
+            Navigator.of(context).pop(true);
+          }
+          completer.complete(true);
+        } catch (e) {
+          completer.complete(false);
+        }
       },
-      onCancelled: () => Navigator.of(context).pop(false),
+      onCancelled: () {
+        if (context.mounted) {
+          Navigator.of(context).pop(false);
+        }
+        completer.complete(false);
+      },
     ),
   );
 
-  return resolved ?? false;
+  return completer.future;
 }

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../../lib/models/family.dart';
-import '../../lib/models/family_member.dart';
+import 'package:pensieve/models/family.dart';
+import 'package:pensieve/models/family_member.dart';
 
 void main() {
   group('Family Model Validation Tests', () {

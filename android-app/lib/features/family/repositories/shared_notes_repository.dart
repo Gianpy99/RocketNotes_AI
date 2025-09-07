@@ -1,12 +1,3 @@
-/// Shared Notes Repository
-///
-/// Data access layer for shared notes operations.
-/// Handles all database interactions for shared notes, permissions, and collaboration.
-/// Uses Firebase Firestore as the primary data store.
-///
-/// This repository follows the repository pattern to abstract data access
-/// and provide a clean interface for the service layer.
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../models/shared_note.dart';
 import '../../../models/shared_note_comment.dart';

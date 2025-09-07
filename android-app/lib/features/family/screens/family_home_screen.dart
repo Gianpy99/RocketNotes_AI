@@ -122,7 +122,7 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
           Icon(
             Icons.family_restroom,
             size: 80,
-            color: AppColors.primary.withOpacity(0.5),
+            color: AppColors.primary.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 24),
           Text(
@@ -424,17 +424,18 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
           ),
           TextButton(
             onPressed: () async {
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
               Navigator.of(context).pop();
               try {
                 final currentFamilyId = await ref.read(currentUserFamilyIdProvider.future);
                 if (currentFamilyId != null) {
                   await ref.read(familyServiceProvider).removeMember(currentFamilyId, member.userId);
                 }
-                ScaffoldMessenger.of(context).showSnackBar(
+                scaffoldMessenger.showSnackBar(
                   SnackBar(content: Text('${member.userId} removed from family')),
                 );
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
+                scaffoldMessenger.showSnackBar(
                   SnackBar(content: Text('Error removing member: $e')),
                 );
               }

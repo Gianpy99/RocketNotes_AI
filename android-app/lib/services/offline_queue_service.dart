@@ -94,7 +94,8 @@ class OfflineQueueService {
   /// Initialize connectivity listener
   void _initializeConnectivityListener() {
     _connectivity.onConnectivityChanged.listen((result) {
-      final isOnline = result != ConnectivityResult.none;
+      final connectivityResult = result as ConnectivityResult;
+      final isOnline = connectivityResult != ConnectivityResult.none;
       _isOnlineController.add(isOnline);
 
       if (isOnline) {

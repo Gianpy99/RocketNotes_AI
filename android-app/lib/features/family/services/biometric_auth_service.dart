@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
@@ -265,17 +266,24 @@ Future<bool> requireBiometricAuth({
     return true; // Skip biometric if not enabled
   }
 
-  final authenticated = await showDialog<bool>(
+  // Use a completer to avoid BuildContext across async gaps
+  final completer = Completer<bool>();
+
+  if (!context.mounted) {
+    return false;
+  }
+
+  showDialog<bool>(
     context: context,
     barrierDismissible: false,
-    builder: (context) => BiometricAuthDialog(
+    builder: (_) => BiometricAuthDialog(
       title: title,
       subtitle: subtitle,
       reason: reason,
-      onAuthenticated: () {},
-      onCancelled: () {},
+      onAuthenticated: () => completer.complete(true),
+      onCancelled: () => completer.complete(false),
     ),
   );
 
-  return authenticated ?? false;
+  return completer.future;
 }

@@ -1,11 +1,3 @@
-/// Family Service
-///
-/// Core business logic for family management operations.
-/// Handles family creation, member management, invitations, and family settings.
-///
-/// This service acts as the main entry point for all family-related operations,
-/// coordinating between repositories, Firebase services, and business logic.
-
 import '../../../models/family.dart';
 import '../../../models/family_member.dart';
 import '../../../models/family_invitation.dart';

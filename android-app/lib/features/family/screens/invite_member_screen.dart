@@ -102,7 +102,7 @@ class _InviteMemberScreenState extends ConsumerState<InviteMemberScreen> {
                   const SizedBox(height: 8),
 
                   DropdownButtonFormField<FamilyRole>(
-                    value: _selectedRole,
+                    initialValue: _selectedRole,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.admin_panel_settings),

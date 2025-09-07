@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:crypto/crypto.dart';
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -70,7 +70,7 @@ class PrivacyEncryptionService {
   /// Hash sensitive data for storage (one-way)
   String hashData(String data) {
     final bytes = utf8.encode(data);
-    final hash = sha256.convert(bytes);
+    final hash = crypto.sha256.convert(bytes);
     return hash.toString();
   }
 

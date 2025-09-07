@@ -76,6 +76,7 @@ dependencies:
   
   # Encryption
   encrypt: ^5.0.3
+  crypto: ^3.0.3
   
   # App Rating
   in_app_review: ^2.0.9

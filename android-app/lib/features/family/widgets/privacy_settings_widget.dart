@@ -252,7 +252,7 @@ class _PrivacySettingsWidgetState extends ConsumerState<PrivacySettingsWidget> {
                   onSelected: (selected) {
                     if (selected) onChanged(level);
                   },
-                  selectedColor: AppColors.primary.withOpacity(0.2),
+                  selectedColor: AppColors.primary.withValues(alpha: 0.2),
                   checkmarkColor: AppColors.primary,
                 );
               }).toList(),
@@ -300,7 +300,7 @@ class _PrivacySettingsWidgetState extends ConsumerState<PrivacySettingsWidget> {
             Switch(
               value: value,
               onChanged: onChanged,
-              activeColor: AppColors.primary,
+              activeThumbColor: AppColors.primary,
             ),
           ],
         ),
@@ -333,7 +333,7 @@ class _PrivacySettingsWidgetState extends ConsumerState<PrivacySettingsWidget> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<int>(
-              value: _settings.dataRetentionDays,
+              initialValue: _settings.dataRetentionDays,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),

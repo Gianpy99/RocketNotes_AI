@@ -4,9 +4,11 @@ import 'dart:convert';
 /// Contract Test for POST /api/families
 /// Tests the API contract specification for family creation
 /// This test validates the request/response structure without external dependencies
+
+const String endpoint = 'POST /api/families';
+
 void main() {
-  group('POST /api/families - Create Family Contract Test', () {
-    const String endpoint = 'POST /api/families';
+  group('$endpoint - Create Family Contract Test', () {
 
     // Test data from contract specification
     final validRequestBody = {

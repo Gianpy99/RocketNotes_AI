@@ -1,14 +1,3 @@
-/// Hive Adapters for Family Data Models
-///
-/// This file contains Hive type adapters for all family-related models:
-/// - Family adapter for storing family information locally
-/// - FamilyMember adapter for storing member data locally
-/// - FamilySettings adapter for storing family preferences
-/// - MemberPermissions adapter for storing permission flags
-/// - FamilyRole adapter for storing role enums
-///
-/// These adapters enable offline storage and caching of family data.
-
 import 'package:hive/hive.dart';
 import '../../../models/family.dart';
 import '../../../models/family_member.dart';

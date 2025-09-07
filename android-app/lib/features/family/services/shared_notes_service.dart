@@ -1,12 +1,3 @@
-/// Shared Notes Service
-///
-/// Core business logic for shared notes management within families.
-/// Handles note sharing, permission management, collaboration, and real-time updates.
-/// Integrates with Firebase Firestore for data persistence and real-time synchronization.
-///
-/// This service acts as the main entry point for all shared note operations,
-/// coordinating between repositories, Firebase services, and business logic.
-
 import '../../../models/shared_note.dart';
 import '../../../models/shared_note_comment.dart';
 import '../../../models/note_permission.dart';

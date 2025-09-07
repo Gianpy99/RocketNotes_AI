@@ -1,12 +1,3 @@
-/// Family Repository
-///
-/// Data access layer for family-related operations.
-/// Handles all database interactions for families, members, and invitations.
-/// Uses Firebase Firestore as the primary data store.
-///
-/// This repository follows the repository pattern to abstract data access
-/// and provide a clean interface for the service layer.
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../models/family.dart';
 import '../../../models/family_member.dart';
