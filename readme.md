@@ -1,6 +1,40 @@
 # RocketNotes AI 🚀📝
 
-> Transform your Rocketbook into a smart, NFC-enabled digital notebook with AI-powered insights.
+> Transform your Rocketbook into a smart, NFC-enabled ├── backup_unused_files/         # Archived unused files (to be cleaned)
+└── ARCHIVE/                     # Historical project documentation (to be cleaned)
+```
+
+## 📚 Documentation
+
+The project now features a comprehensive, organized documentation structure:
+
+### 📖 User Guides
+- **[Complete User Guide](docs/user-guides/complete-user-guide.md)** - Full user manual with workflows and best practices
+- **[Android App Guide](docs/user-guides/android-app-README.md)** - Android-specific setup and features
+- **[Setup Guides](docs/user-guides/)** - Installation and configuration guides
+
+### 🛠️ Implementation
+- **[Implementation Guide](docs/implementation/complete-implementation-guide.md)** - Technical architecture and current features
+- **[Future Features Roadmap](docs/implementation/future-features-roadmap.md)** - Planned enhancements based on TODO analysis
+- **[API Reference](docs/api-references/complete-api-reference.md)** - Complete API documentation for all services
+
+### 📋 Key Features Implemented
+- ✅ **NFC Integration** - NTAG213 tag recognition for context switching
+- ✅ **Camera & OCR** - Document scanning with Google ML Kit
+- ✅ **Offline-First** - Local storage with Hive, cloud sync with Firebase
+- ✅ **Rich Text Editor** - Flutter Quill integration
+- ✅ **Firebase Backend** - Auth, Firestore, and Storage integration
+- ✅ **Material Design 3** - Modern UI with dark mode support
+
+### 🔮 Future Features (Based on Code TODOs)
+- 👨‍👩‍👧‍👦 **Family Management** - Multi-user family accounts and sharing
+- 🛒 **Advanced Shopping** - Smart shopping lists with voice input
+- 🎤 **Voice Commands** - Speech-to-text and voice-controlled features
+- 💾 **Backup System** - Automated cloud backups and version history
+- 🔐 **Enhanced Security** - Biometric authentication and encryption
+- 📋 **Clipboard Integration** - Smart copy/paste with formatting
+
+## 🧹 Recent Cleanup (September 2025)al notebook with AI-powered insights.
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-blue.svg)](https://flutter.dev)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-green.svg)](https://flutter.dev)
@@ -19,8 +53,12 @@ RocketNotes AI bridges the gap between physical note-taking and digital organiza
 - **💾 Offline-First:** Works without internet connection
 - **🤖 AI Ready:** Prepared for smart suggestions and insights (Phase 2)
 - **🎨 Clean UI:** Material Design with dark mode support
+- **🔐 Security:** End-to-end encryption and biometric authentication
+- **📷 Camera Integration:** Document scanning with OCR
+- **🔊 Voice Features:** Voice-to-text and voice commands (coming soon)
+- **👨‍👩‍👧‍👦 Family Sharing:** Share notes with family members (coming soon)
 
-## � Project Structure
+## 🏗️ Project Structure
 
 ```
 RocketNotes_AI/
@@ -38,16 +76,43 @@ RocketNotes_AI/
 │   ├── src/                     # API source code
 │   └── package.json             # Server dependencies
 ├── docs/                        # Comprehensive documentation
-│   ├── api/                     # API documentation
+│   ├── user-guides/             # User documentation
+│   │   ├── complete-user-guide.md
+│   │   ├── android-app-README.md
+│   │   ├── backend-api-README.md
+│   │   ├── web-app-README.md
+│   │   └── [other guides]
+│   ├── implementation/          # Technical implementation docs
+│   │   ├── complete-implementation-guide.md
+│   │   ├── future-features-roadmap.md
+│   │   ├── AI_OCR_IMPLEMENTATION_SUMMARY.md
+│   │   ├── CAMERA_FEATURES.md
+│   │   ├── ROCKETBOOK_INTEGRATION_COMPLETE.md
+│   │   └── SECURITY_IMPLEMENTATION.md
+│   ├── api-references/          # API documentation
+│   │   ├── complete-api-reference.md
+│   │   ├── OPENAI_SETUP.md
+│   │   ├── OPENAI_SETUP_UPDATED.md
+│   │   ├── SUPABASE_INTEGRATION_README.md
+│   │   └── API_SETUP.md
+│   ├── development-notes/       # Development and project docs
+│   │   ├── DEVELOPMENT_STATUS_ANALYSIS.md
+│   │   ├── FINAL_FIXES_COMPLETE.md
+│   │   ├── FIXES_IMPLEMENTED.md
+│   │   └── PROJECT_DELIVERY_SUMMARY.md
+│   ├── historical/              # Historical and archived docs
+│   │   ├── [archived files from ARCHIVE/]
+│   │   └── [files from backup_unused_files/]
+│   ├── requirements/            # Product requirements
 │   ├── architecture/            # System architecture docs
 │   ├── changelogs/              # Development history
-│   └── user_guides/             # User documentation
+│   └── README.md                # Documentation index
 ├── shared/                      # Shared utilities and types
 ├── scripts/                     # Build and deployment scripts
 ├── ci_cd/                       # CI/CD configurations
 ├── docker/                      # Docker configurations
-├── backup_unused_files/         # Archived unused files
-└── ARCHIVE/                     # Historical project documentation
+├── backup_unused_files/         # Archived unused files (to be cleaned)
+└── ARCHIVE/                     # Historical project documentation (to be cleaned)
 ```
 
 ### 🧹 Recent Cleanup (September 2025)
