@@ -7,29 +7,41 @@ import '../../data/models/user_profile.dart';
 import '../../data/models/family_member_model.dart';
 
 class FirebaseService {
-  final FirebaseAuth _auth = FirebaseConfig.auth;
-  final FirebaseFirestore _firestore = FirebaseConfig.firestore;
+  FirebaseAuth? _auth;
+  FirebaseFirestore? _firestore;
+
+  FirebaseAuth get _authInstance {
+    _auth ??= FirebaseConfig.isConfigured ? FirebaseConfig.auth : null;
+    if (_auth == null) throw Exception('Firebase not configured');
+    return _auth!;
+  }
+
+  FirebaseFirestore get _firestoreInstance {
+    _firestore ??= FirebaseConfig.isConfigured ? FirebaseConfig.firestore : null;
+    if (_firestore == null) throw Exception('Firebase not configured');
+    return _firestore!;
+  }
 
   // Auth methods
   Future<UserCredential> signUp(String email, String password) async {
-    return await _auth.createUserWithEmailAndPassword(
+    return await _authInstance.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
   }
 
   Future<UserCredential> signIn(String email, String password) async {
-    return await _auth.signInWithEmailAndPassword(
+    return await _authInstance.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
   }
 
   Future<void> signOut() async {
-    await _auth.signOut();
+    await _authInstance.signOut();
   }
 
-  User? get currentUser => _auth.currentUser;
+  User? get currentUser => _authInstance.currentUser;
 
   // Notes CRUD operations
   Future<List<NoteModel>> getNotes({String? userId}) async {
@@ -37,8 +49,8 @@ class FirebaseService {
     if (userIdToUse == null) {
       throw Exception('User not authenticated');
     }
-
-    final querySnapshot = await _firestore
+    
+    final querySnapshot = await _firestoreInstance
         .collection('notes')
         .where('user_id', isEqualTo: userIdToUse)
         .orderBy('updated_at', descending: true)
@@ -70,7 +82,7 @@ class FirebaseService {
       'is_favorite': note.isFavorite,
     };
 
-    await _firestore.collection('notes').doc(note.id).set(noteData);
+    await _firestoreInstance.collection('notes').doc(note.id).set(noteData);
     return note;
   }
 
@@ -87,22 +99,20 @@ class FirebaseService {
       'is_favorite': note.isFavorite,
     };
 
-    await _firestore.collection('notes').doc(note.id).update(noteData);
+    await _firestoreInstance.collection('notes').doc(note.id).update(noteData);
     return note;
   }
 
   Future<void> deleteNote(String noteId) async {
-    await _firestore.collection('notes').doc(noteId).delete();
-  }
-
-  // Family members CRUD operations
+    await _firestoreInstance.collection('notes').doc(noteId).delete();
+  }  // Family members CRUD operations
   Future<List<FamilyMember>> getFamilyMembers() async {
     final userId = currentUser?.uid;
     if (userId == null) {
       throw Exception('User not authenticated');
     }
 
-    final querySnapshot = await _firestore
+    final querySnapshot = await _firestoreInstance
         .collection('family_members')
         .where('user_id', isEqualTo: userId)
         .orderBy('created_at', descending: true)
@@ -133,7 +143,7 @@ class FirebaseService {
       'updated_at': member.updatedAt.toIso8601String(),
     };
 
-    await _firestore.collection('family_members').doc(member.id).set(memberData);
+    await _firestoreInstance.collection('family_members').doc(member.id).set(memberData);
     return member;
   }
 
@@ -149,12 +159,12 @@ class FirebaseService {
       'updated_at': member.updatedAt.toIso8601String(),
     };
 
-    await _firestore.collection('family_members').doc(member.id).update(memberData);
+    await _firestoreInstance.collection('family_members').doc(member.id).update(memberData);
     return member;
   }
 
   Future<void> deleteFamilyMember(String memberId) async {
-    await _firestore.collection('family_members').doc(memberId).delete();
+    await _firestoreInstance.collection('family_members').doc(memberId).delete();
   }
 
   // User profile operations
@@ -164,7 +174,7 @@ class FirebaseService {
       throw Exception('User not authenticated');
     }
 
-    final docSnapshot = await _firestore.collection('user_profiles').doc(userId).get();
+    final docSnapshot = await _firestoreInstance.collection('user_profiles').doc(userId).get();
 
     if (!docSnapshot.exists) {
       throw Exception('User profile not found');
@@ -190,7 +200,7 @@ class FirebaseService {
       'cloud_provider': profile.cloudProvider ?? 'firebase',
     };
 
-    await _firestore.collection('user_profiles').doc(userId).set(profileData);
+    await _firestoreInstance.collection('user_profiles').doc(userId).set(profileData);
     return profile;
   }
 
@@ -207,7 +217,7 @@ class FirebaseService {
       'cloud_provider': profile.cloudProvider,
     };
 
-    await _firestore.collection('user_profiles').doc(profile.userId).update(profileData);
+    await _firestoreInstance.collection('user_profiles').doc(profile.userId).update(profileData);
     return profile;
   }
 
@@ -218,7 +228,7 @@ class FirebaseService {
       throw Exception('User not authenticated');
     }
 
-    return _firestore
+    return _firestoreInstance
         .collection('notes')
         .where('user_id', isEqualTo: userId)
         .orderBy('updated_at', descending: true)
@@ -232,7 +242,7 @@ class FirebaseService {
       throw Exception('User not authenticated');
     }
 
-    return _firestore
+    return _firestoreInstance
         .collection('family_members')
         .where('user_id', isEqualTo: userId)
         .orderBy('created_at', descending: true)
