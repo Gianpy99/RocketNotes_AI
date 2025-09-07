@@ -8,6 +8,7 @@
 /// coordinating between repositories, Firebase services, and business logic.
 
 import '../../../models/shared_note.dart';
+import '../../../models/shared_note_comment.dart';
 import '../../../models/note_permission.dart';
 import '../../../models/family_member.dart';
 import '../repositories/shared_notes_repository.dart';
@@ -408,5 +409,137 @@ class SharedNotesService {
 
     final permission = await _sharedNotesRepository.getPermissionForUser(sharedNote.id, userId);
     return permission?.canEdit ?? false;
+  }
+
+  /// Gets all comments for a shared note
+  Future<List<SharedNoteComment>> getComments(String sharedNoteId) async {
+    _authGuard.requireAuthentication();
+
+    // Verify user has access to the shared note
+    final sharedNote = await getSharedNote(sharedNoteId);
+    if (sharedNote == null) {
+      throw Exception('Shared note not found');
+    }
+
+    if (!await _canAccessSharedNote(sharedNote, _authGuard.user!.uid)) {
+      throw Exception('User does not have permission to view comments');
+    }
+
+    return await _sharedNotesRepository.getComments(sharedNoteId);
+  }
+
+  /// Adds a comment to a shared note
+  Future<SharedNoteComment> addComment({
+    required String sharedNoteId,
+    required String content,
+    String? parentCommentId,
+  }) async {
+    _authGuard.requireAuthentication();
+    final currentUser = _authGuard.user!;
+
+    // Verify user has access to the shared note
+    final sharedNote = await getSharedNote(sharedNoteId);
+    if (sharedNote == null) {
+      throw Exception('Shared note not found');
+    }
+
+    if (!await _canAccessSharedNote(sharedNote, currentUser.uid)) {
+      throw Exception('User does not have permission to comment');
+    }
+
+    // Get user display name from Firebase Auth
+    final displayName = currentUser.displayName ?? 'Unknown User';
+
+    return await _sharedNotesRepository.addComment(
+      sharedNoteId: sharedNoteId,
+      userId: currentUser.uid,
+      userDisplayName: displayName,
+      content: content,
+      parentCommentId: parentCommentId,
+    );
+  }
+
+  /// Updates a comment
+  Future<void> updateComment({
+    required String sharedNoteId,
+    required String commentId,
+    required String content,
+  }) async {
+    _authGuard.requireAuthentication();
+    final currentUser = _authGuard.user!;
+
+    // Verify user has access to the shared note
+    final sharedNote = await getSharedNote(sharedNoteId);
+    if (sharedNote == null) {
+      throw Exception('Shared note not found');
+    }
+
+    if (!await _canAccessSharedNote(sharedNote, currentUser.uid)) {
+      throw Exception('User does not have permission to edit comments');
+    }
+
+    // Verify user owns the comment
+    final comment = await _sharedNotesRepository.getComment(commentId);
+    if (comment == null) {
+      throw Exception('Comment not found');
+    }
+
+    if (comment.userId != currentUser.uid) {
+      throw Exception('User can only edit their own comments');
+    }
+
+    await _sharedNotesRepository.updateComment(commentId, content);
+  }
+
+  /// Deletes a comment
+  Future<void> deleteComment({
+    required String sharedNoteId,
+    required String commentId,
+  }) async {
+    _authGuard.requireAuthentication();
+    final currentUser = _authGuard.user!;
+
+    // Verify user has access to the shared note
+    final sharedNote = await getSharedNote(sharedNoteId);
+    if (sharedNote == null) {
+      throw Exception('Shared note not found');
+    }
+
+    if (!await _canAccessSharedNote(sharedNote, currentUser.uid)) {
+      throw Exception('User does not have permission to delete comments');
+    }
+
+    // Verify user owns the comment
+    final comment = await _sharedNotesRepository.getComment(commentId);
+    if (comment == null) {
+      throw Exception('Comment not found');
+    }
+
+    if (comment.userId != currentUser.uid) {
+      throw Exception('User can only delete their own comments');
+    }
+
+    await _sharedNotesRepository.deleteComment(commentId);
+  }
+
+  /// Toggles like on a comment
+  Future<void> toggleCommentLike({
+    required String sharedNoteId,
+    required String commentId,
+  }) async {
+    _authGuard.requireAuthentication();
+    final currentUser = _authGuard.user!;
+
+    // Verify user has access to the shared note
+    final sharedNote = await getSharedNote(sharedNoteId);
+    if (sharedNote == null) {
+      throw Exception('Shared note not found');
+    }
+
+    if (!await _canAccessSharedNote(sharedNote, currentUser.uid)) {
+      throw Exception('User does not have permission to like comments');
+    }
+
+    await _sharedNotesRepository.toggleCommentLike(commentId, currentUser.uid);
   }
 }

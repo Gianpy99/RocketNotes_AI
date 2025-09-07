@@ -9,6 +9,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../models/shared_note.dart';
+import '../../../models/shared_note_comment.dart';
 import '../../../models/note_permission.dart';
 
 class SharedNotesRepository {
@@ -18,6 +19,7 @@ class SharedNotesRepository {
   static const String sharedNotesCollection = 'shared_notes';
   static const String permissionsCollection = 'note_permissions';
   static const String collaborationSessionsCollection = 'collaboration_sessions';
+  static const String commentsCollection = 'shared_note_comments';
 
   SharedNotesRepository(this._firestore);
 
@@ -347,5 +349,96 @@ class SharedNotesRepository {
       await updateSharedNoteStatus(note.id, SharingStatus.expired);
       await removeAllPermissionsForSharedNote(note.id);
     }
+  }
+
+  // Comment Operations
+
+  /// Gets all comments for a shared note
+  Future<List<SharedNoteComment>> getComments(String sharedNoteId) async {
+    final querySnapshot = await _firestore
+        .collection(commentsCollection)
+        .where('sharedNoteId', isEqualTo: sharedNoteId)
+        .orderBy('createdAt', descending: true)
+        .get();
+
+    return querySnapshot.docs
+        .map((doc) => SharedNoteComment.fromJson(doc.data()))
+        .toList();
+  }
+
+  /// Gets a single comment by ID
+  Future<SharedNoteComment?> getComment(String commentId) async {
+    final docSnapshot = await _firestore
+        .collection(commentsCollection)
+        .doc(commentId)
+        .get();
+
+    if (!docSnapshot.exists) return null;
+
+    return SharedNoteComment.fromJson(docSnapshot.data()!);
+  }
+
+  /// Adds a new comment
+  Future<SharedNoteComment> addComment({
+    required String sharedNoteId,
+    required String userId,
+    required String userDisplayName,
+    required String content,
+    String? parentCommentId,
+  }) async {
+    final commentId = _firestore.collection(commentsCollection).doc().id;
+
+    final comment = SharedNoteComment(
+      id: commentId,
+      sharedNoteId: sharedNoteId,
+      userId: userId,
+      userDisplayName: userDisplayName,
+      content: content,
+      createdAt: DateTime.now(),
+      parentCommentId: parentCommentId,
+      likedBy: const [],
+    );
+
+    await _firestore
+        .collection(commentsCollection)
+        .doc(commentId)
+        .set(comment.toJson());
+
+    return comment;
+  }
+
+  /// Updates a comment's content
+  Future<void> updateComment(String commentId, String content) async {
+    await _firestore.collection(commentsCollection).doc(commentId).update({
+      'content': content,
+      'updatedAt': DateTime.now().toIso8601String(),
+      'isEdited': true,
+    });
+  }
+
+  /// Deletes a comment
+  Future<void> deleteComment(String commentId) async {
+    await _firestore.collection(commentsCollection).doc(commentId).delete();
+  }
+
+  /// Toggles like on a comment
+  Future<void> toggleCommentLike(String commentId, String userId) async {
+    final commentRef = _firestore.collection(commentsCollection).doc(commentId);
+
+    return _firestore.runTransaction((transaction) async {
+      final commentDoc = await transaction.get(commentRef);
+      if (!commentDoc.exists) return;
+
+      final comment = SharedNoteComment.fromJson(commentDoc.data()!);
+      final likedBy = List<String>.from(comment.likedBy);
+
+      if (likedBy.contains(userId)) {
+        likedBy.remove(userId);
+      } else {
+        likedBy.add(userId);
+      }
+
+      transaction.update(commentRef, {'likedBy': likedBy});
+    });
   }
 }

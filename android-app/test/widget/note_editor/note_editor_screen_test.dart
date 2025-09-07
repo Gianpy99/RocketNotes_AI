@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// Import relativi al progetto attuale - uso path package corretto
-import 'package:rocket_notes_ai/data/models/note_model.dart';
-import 'package:rocket_notes_ai/screens/note_editor_screen.dart';
+// Import using correct package name
+import 'package:pensieve/data/models/note_model.dart';
+import 'package:pensieve/screens/note_editor_screen.dart';
 
 void main() {
   group('NoteEditorScreen Widget Tests', () {

@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:1083624670135:android:c89c273359de8bd34ade32",
         "android_client_info": {
-          "package_name": "com.example.pensieve"
+          "package_name": "com.example.rocketnotes_clean"
         }
       },
       "oauth_client": [],
@@ -26,3 +26,4 @@
     }
   ],
   "configuration_version": "1"
+}

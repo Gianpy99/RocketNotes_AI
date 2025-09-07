@@ -9,12 +9,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:rocket_notes_ai/app/app_simple.dart';
+import 'package:pensieve/app/app_simple.dart';
 
 void main() {
   testWidgets('RocketNotes app smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const ProviderScope(
+    await tester.pumpWidget(ProviderScope(
       child: RocketNotesApp(),
     ));
 

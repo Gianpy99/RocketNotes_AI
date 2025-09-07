@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/shared_note.dart';
+import '../../../models/note_permission.dart';
 
 class SharedNoteCard extends StatelessWidget {
   final SharedNote note;

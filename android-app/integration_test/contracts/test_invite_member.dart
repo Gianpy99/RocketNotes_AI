@@ -8,6 +8,11 @@ void main() {
   group('POST /api/families/{familyId}/invitations - Invite Member Contract Test', () {
     const String endpoint = 'POST /api/families/{familyId}/invitations';
 
+    test('✅ Endpoint documentation', () {
+      // Document the endpoint being tested for clarity
+      expect(endpoint, equals('POST /api/families/{familyId}/invitations'));
+    });
+
     // Test data from contract specification
     final validRequestBody = {
       "email": "john.smith@example.com",
