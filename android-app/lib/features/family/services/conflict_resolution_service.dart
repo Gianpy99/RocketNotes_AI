@@ -99,7 +99,7 @@ class ConflictResolutionService {
         }
       }
     } catch (e) {
-      print('Error detecting conflicts: $e');
+      debugPrint('Error detecting conflicts: $e');
     }
 
     return conflicts;

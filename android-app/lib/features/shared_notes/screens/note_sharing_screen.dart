@@ -25,7 +25,6 @@ class _NoteSharingScreenState extends ConsumerState<NoteSharingScreen> {
   bool _requiresApproval = false;
   bool _allowCollaboration = false;
   DateTime? _expirationDate;
-  bool _isLoading = false;
 
   NotePermission? _selectedPermission;
 
@@ -74,7 +73,9 @@ class _NoteSharingScreenState extends ConsumerState<NoteSharingScreen> {
 
   Future<void> _loadExistingNoteData() async {
     // TODO: Load existing shared note data if editing
-    // For now, this is a placeholder
+    // Implementation: Check if widget.noteId is provided and load existing shared note data
+    // Query shared notes repository to get current sharing settings, permissions, and expiration
+    // Populate form fields with existing data for editing mode
   }
 
   @override
@@ -193,17 +194,28 @@ class _NoteSharingScreenState extends ConsumerState<NoteSharingScreen> {
                       const SizedBox(height: 16),
 
                       ..._permissionOptions.map((permission) {
-                        return RadioListTile<NotePermission>(
-                          title: Text(
-                            permission.permissionLevel,
-                            style: const TextStyle(fontWeight: FontWeight.w500),
-                          ),
-                          subtitle: Text(_getPermissionDescription(permission)),
+                        return RadioMenuButton<NotePermission>(
                           value: permission,
                           groupValue: _selectedPermission,
                           onChanged: (value) {
                             setState(() => _selectedPermission = value);
                           },
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                permission.permissionLevel,
+                                style: const TextStyle(fontWeight: FontWeight.w500),
+                              ),
+                              Text(
+                                _getPermissionDescription(permission),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
                         );
                       }),
 
@@ -376,7 +388,7 @@ class _NoteSharingScreenState extends ConsumerState<NoteSharingScreen> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: AppColors.primary.withOpacity(0.1),
+                                    color: AppColors.primary.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
@@ -486,10 +498,12 @@ class _NoteSharingScreenState extends ConsumerState<NoteSharingScreen> {
       return;
     }
 
-    setState(() => _isLoading = true);
-
     try {
       // TODO: Implement actual note sharing
+      // Implementation: Create shared note record in Firestore with selected permissions
+      // Generate unique share ID and store in shared_notes collection
+      // Send notifications to selected family members via Firebase Cloud Messaging
+      // Update note's sharing status and permissions in the main notes collection
       await Future.delayed(const Duration(seconds: 2)); // Simulate API call
 
       if (mounted) {

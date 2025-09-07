@@ -11,6 +11,7 @@ import '../../../models/family_member.dart';
 import '../../../models/family_invitation.dart';
 import '../repositories/family_repository.dart';
 import '../providers/auth_providers.dart';
+import 'package:flutter/foundation.dart';
 
 class FamilyService {
   final FamilyRepository _familyRepository;
@@ -345,6 +346,6 @@ class FamilyService {
   Future<void> _sendInvitationNotification(FamilyInvitation invitation) async {
     // TODO: Integrate with notification service
     // This would send email and/or push notifications
-    print('Sending invitation notification to ${invitation.email}');
+    debugPrint('Sending invitation notification to ${invitation.email}');
   }
 }

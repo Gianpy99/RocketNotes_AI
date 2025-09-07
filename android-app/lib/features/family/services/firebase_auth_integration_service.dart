@@ -8,6 +8,7 @@
 /// ensuring secure and consistent user authentication and authorization.
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import '../../../models/family_member.dart';
 import '../repositories/family_repository.dart';
 
@@ -81,7 +82,7 @@ class FirebaseAuthIntegrationService {
 
     } catch (e) {
       // Log error but don't fail the operation
-      print('Failed to update user family membership claims: $e');
+      debugPrint('Failed to update user family membership claims: $e');
     }
   }
 
@@ -107,7 +108,7 @@ class FirebaseAuthIntegrationService {
       return await _getUserProfileClaims(userId);
 
     } catch (e) {
-      print('Failed to get user family membership: $e');
+      debugPrint('Failed to get user family membership: $e');
       return null;
     }
   }
@@ -121,7 +122,7 @@ class FirebaseAuthIntegrationService {
       return membership['familyId'] == familyId && membership['isFamilyMember'] == true;
 
     } catch (e) {
-      print('Failed to validate user family membership: $e');
+      debugPrint('Failed to validate user family membership: $e');
       return false;
     }
   }
@@ -237,14 +238,14 @@ class FirebaseAuthIntegrationService {
   Future<void> _updateUserProfileClaims(String userId, Map<String, dynamic> claims) async {
     // In a real implementation, you might store this in a users collection
     // For now, we'll just simulate the operation
-    print('Updating user profile claims for $userId: $claims');
+    debugPrint('Updating user profile claims for $userId: $claims');
   }
 
   /// Gets user profile claims from Firestore
   Future<Map<String, dynamic>?> _getUserProfileClaims(String userId) async {
     // In a real implementation, you would fetch from users collection
     // For now, return null to indicate no profile claims
-    print('Getting user profile claims for $userId');
+    debugPrint('Getting user profile claims for $userId');
     return null;
   }
 
@@ -263,7 +264,7 @@ class FirebaseAuthIntegrationService {
       }
 
     } catch (e) {
-      print('Failed to sync family membership with Auth: $e');
+      debugPrint('Failed to sync family membership with Auth: $e');
     }
   }
 
@@ -289,7 +290,7 @@ class FirebaseAuthIntegrationService {
       return true;
 
     } catch (e) {
-      print('Failed to validate and refresh token: $e');
+      debugPrint('Failed to validate and refresh token: $e');
       return false;
     }
   }

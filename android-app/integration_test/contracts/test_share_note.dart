@@ -138,6 +138,27 @@ void main() {
       expect(family['sharedNotesCount'], isA<int>());
     });
 
+    test('✅ Endpoint format validation should match API specification', () {
+      // Test that the endpoint follows proper REST API conventions
+
+      // Verify endpoint is a valid HTTP method + path combination
+      expect(endpoint, startsWith('PUT'));
+      expect(endpoint, contains('/api/'));
+      expect(endpoint, contains('/notes/'));
+      expect(endpoint, contains('{noteId}'));
+      expect(endpoint, contains('/share'));
+
+      // Verify the path structure follows REST conventions
+      final pathParts = endpoint.split(' ');
+      expect(pathParts.length, equals(2));
+      expect(pathParts[0], equals('PUT')); // HTTP method
+      expect(pathParts[1], startsWith('/api/')); // API path
+
+      // Verify parameter placeholder format
+      expect(pathParts[1], contains('{noteId}'));
+      expect(pathParts[1], endsWith('/share'));
+    });
+
     test('❌ Invalid permission combinations should fail validation', () {
       // Test invalid permission combinations according to contract
 
@@ -336,8 +357,8 @@ void main() {
         expect(allowedMemberIds.length, lessThanOrEqualTo(50));
 
         for (final memberId in allowedMemberIds) {
-          expect((memberId as String).startsWith('user_'), isTrue);
-          expect((memberId as String).length, equals(8)); // user_ + 3 chars
+          expect(memberId.startsWith('user_'), isTrue);
+          expect(memberId.length, equals(8)); // user_ + 3 chars
         }
       }
 
