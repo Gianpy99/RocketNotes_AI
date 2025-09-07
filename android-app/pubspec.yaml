@@ -1,5 +1,5 @@
 # pubspec.yaml
-name: rocket_notes_ai
+name: pensieve
 description: AI-powered note-taking app with NFC support
 
 publish_to: 'none'

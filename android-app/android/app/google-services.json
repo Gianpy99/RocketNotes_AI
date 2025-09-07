@@ -1,0 +1,28 @@
+{
+  "project_info": {
+    "project_number": "1083624670135",
+    "project_id": "rockectnotes-ai",
+    "storage_bucket": "rockectnotes-ai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1083624670135:android:c89c273359de8bd34ade32",
+        "android_client_info": {
+          "package_name": "com.example.pensieve"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4CTIhlRkvHzy7xtO3Hj1Gmm6sBjMU2fg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
