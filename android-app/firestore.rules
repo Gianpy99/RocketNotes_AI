@@ -1,0 +1,222 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isFamilyMember(familyId) {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid));
+    }
+
+    function isFamilyAdmin(familyId) {
+      return isFamilyMember(familyId) &&
+             get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.role in ['owner', 'admin'];
+    }
+
+    function isFamilyOwner(familyId) {
+      return isFamilyMember(familyId) &&
+             get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.role == 'owner';
+    }
+
+    function canInviteMembers(familyId) {
+      return isFamilyMember(familyId) &&
+             get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.permissions.canInviteMembers == true;
+    }
+
+    function canManageMembers(familyId) {
+      return isFamilyMember(familyId) &&
+             get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.permissions.canRemoveMembers == true;
+    }
+
+    function canShareNotes(familyId) {
+      return isFamilyMember(familyId) &&
+             get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.permissions.canShareNotes == true;
+    }
+
+    function canManagePermissions(familyId) {
+      return isFamilyMember(familyId) &&
+             get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.permissions.canManagePermissions == true;
+    }
+
+    // Families collection
+    match /families/{familyId} {
+      // Allow read for family members
+      allow read: if isFamilyMember(familyId);
+
+      // Allow create for authenticated users (creating new family)
+      allow create: if isAuthenticated() &&
+                       request.auth.uid == resource.data.adminUserId;
+
+      // Allow update for family admins
+      allow update: if isFamilyAdmin(familyId);
+
+      // Allow delete for family owner only
+      allow delete: if isFamilyOwner(familyId);
+
+      // Family members subcollection
+      match /members/{memberId} {
+        // Allow read for family members
+        allow read: if isFamilyMember(familyId);
+
+        // Allow create for family admins or when user is joining their own membership
+        allow create: if (isFamilyAdmin(familyId) ||
+                         (isAuthenticated() && request.auth.uid == memberId)) &&
+                       request.auth.uid == resource.data.userId;
+
+        // Allow update for family admins or member updating themselves
+        allow update: if isFamilyAdmin(familyId) ||
+                      (isAuthenticated() && request.auth.uid == memberId);
+
+        // Allow delete for family admins (removing members)
+        allow delete: if isFamilyAdmin(familyId) &&
+                      request.auth.uid != memberId; // Can't delete yourself
+      }
+    }
+
+    // Invitations collection
+    match /invitations/{invitationId} {
+      // Allow read for invitation creator or family admins
+      allow read: if isAuthenticated() &&
+                  (request.auth.uid == resource.data.invitedBy ||
+                   isFamilyAdmin(resource.data.familyId));
+
+      // Allow read for invited user (to check if invitation exists for them)
+      allow read: if isAuthenticated() &&
+                  request.auth.email == resource.data.email;
+
+      // Allow create for users who can invite members
+      allow create: if isAuthenticated() &&
+                    canInviteMembers(resource.data.familyId) &&
+                    request.auth.uid == resource.data.invitedBy;
+
+      // Allow update for invitation creator, family admins, or invited user (status updates)
+      allow update: if isAuthenticated() &&
+                    (request.auth.uid == resource.data.invitedBy ||
+                     isFamilyAdmin(resource.data.familyId) ||
+                     request.auth.email == resource.data.email);
+
+      // Allow delete for invitation creator or family admins
+      allow delete: if isAuthenticated() &&
+                    (request.auth.uid == resource.data.invitedBy ||
+                     isFamilyAdmin(resource.data.familyId));
+    }
+
+    // Shared Notes collection
+    match /shared_notes/{sharedNoteId} {
+      // Allow read for family members
+      allow read: if isFamilyMember(resource.data.familyId);
+
+      // Allow create for users who can share notes
+      allow create: if isAuthenticated() &&
+                    canShareNotes(resource.data.familyId) &&
+                    request.auth.uid == resource.data.sharedBy;
+
+      // Allow update for note sharer or family admins
+      allow update: if isAuthenticated() &&
+                    (request.auth.uid == resource.data.sharedBy ||
+                     isFamilyAdmin(resource.data.familyId));
+
+      // Allow delete for note sharer or family admins
+      allow delete: if isAuthenticated() &&
+                    (request.auth.uid == resource.data.sharedBy ||
+                     isFamilyAdmin(resource.data.familyId));
+    }
+
+    // Note Permissions collection
+    match /note_permissions/{permissionId} {
+      // Allow read for family members
+      allow read: if isFamilyMember(resource.data.familyId);
+
+      // Allow create for users who can manage permissions or note sharer
+      allow create: if isAuthenticated() &&
+                    (canManagePermissions(resource.data.familyId) ||
+                     request.auth.uid == resource.data.grantedBy);
+
+      // Allow update for users who can manage permissions
+      allow update: if isAuthenticated() &&
+                    canManagePermissions(resource.data.familyId);
+
+      // Allow delete for users who can manage permissions
+      allow delete: if isAuthenticated() &&
+                    canManagePermissions(resource.data.familyId);
+    }
+
+    // Collaboration Sessions collection
+    match /collaboration_sessions/{sessionId} {
+      // Allow read for family members of the associated shared note
+      allow read: if isFamilyMember(resource.data.familyId);
+
+      // Allow create for users who can collaborate on the shared note
+      allow create: if isAuthenticated() &&
+                    isFamilyMember(resource.data.familyId) &&
+                    exists(/databases/$(database)/documents/shared_notes/$(resource.data.sharedNoteId)) &&
+                    get(/databases/$(database)/documents/shared_notes/$(resource.data.sharedNoteId)).data.allowCollaboration == true;
+
+      // Allow update for active collaborators
+      allow update: if isAuthenticated() &&
+                    isFamilyMember(resource.data.familyId) &&
+                    request.auth.uid in resource.data.activeUsers;
+
+      // Allow delete for session creator or family admins
+      allow delete: if isAuthenticated() &&
+                    (request.auth.uid == resource.data.createdBy ||
+                     isFamilyAdmin(resource.data.familyId));
+    }
+
+    // User Profiles collection (if implemented)
+    match /users/{userId} {
+      // Allow read for the user themselves
+      allow read: if isOwner(userId);
+
+      // Allow create for the user themselves
+      allow create: if isOwner(userId);
+
+      // Allow update for the user themselves
+      allow update: if isOwner(userId);
+
+      // Allow delete for the user themselves (account deletion)
+      allow delete: if isOwner(userId);
+    }
+
+    // Audit Logs collection (if implemented)
+    match /audit_logs/{logId} {
+      // Allow read for family admins
+      allow read: if isFamilyAdmin(resource.data.familyId);
+
+      // Allow create for system operations (server-side only)
+      allow create: if false; // Only server-side functions can create audit logs
+
+      // No updates or deletes allowed
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // Family Settings collection (if implemented)
+    match /family_settings/{familyId} {
+      // Allow read for family members
+      allow read: if isFamilyMember(familyId);
+
+      // Allow update for family admins
+      allow update: if isFamilyAdmin(familyId);
+
+      // Allow create for family owner
+      allow create: if isFamilyOwner(familyId);
+
+      // No deletes allowed (settings should be preserved)
+      allow delete: if false;
+    }
+
+    // Default deny for any other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

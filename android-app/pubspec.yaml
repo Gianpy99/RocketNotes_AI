@@ -91,6 +91,13 @@ dependencies:
   cloud_firestore: ^5.4.4
   firebase_storage: ^12.3.4
 
+  # Additional Firebase services for family features
+  firebase_messaging: ^15.1.3
+  cloud_functions: ^5.1.4
+
+  # Reactive programming for real-time data
+  rxdart: ^0.28.0
+
   # URL Launcher
   url_launcher: ^6.2.1
 
@@ -107,6 +114,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  integration_test:
+    sdk: flutter
+  test: ^1.24.0
   build_runner: ^2.4.7
   hive_generator: ^2.0.1
   json_serializable: ^6.7.1

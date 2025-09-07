@@ -15,6 +15,10 @@ import '../presentation/screens/tag_management_screen.dart';
 import '../presentation/screens/statistics_screen.dart';
 import '../presentation/screens/backup_screen.dart';
 import '../presentation/screens/nfc_screen.dart';
+import '../features/family/screens/family_home_screen.dart';
+import '../features/family/screens/create_family_screen.dart';
+import '../features/family/screens/invite_member_screen.dart';
+import '../features/family/screens/family_settings_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -121,7 +125,49 @@ class AppRouter {
           return NfcScreen(initialAction: action);
         },
       ),
-      
+
+      // Family Screens
+      GoRoute(
+        path: '/family',
+        name: 'family-home',
+        builder: (context, state) => const FamilyHomeScreen(),
+      ),
+
+      GoRoute(
+        path: '/family/create',
+        name: 'family-create',
+        builder: (context, state) => const CreateFamilyScreen(),
+      ),
+
+      GoRoute(
+        path: '/family/invite',
+        name: 'family-invite',
+        builder: (context, state) => const InviteMemberScreen(),
+      ),
+
+      GoRoute(
+        path: '/family/manage-permissions',
+        name: 'family-manage-permissions',
+        builder: (context, state) {
+          final memberJson = state.uri.queryParameters['member'];
+          if (memberJson == null) {
+            return const Scaffold(
+              body: Center(child: Text('Member data required')),
+            );
+          }
+          // TODO: Parse member from JSON when implementing
+          return const Scaffold(
+            body: Center(child: Text('Manage Permissions - Coming Soon')),
+          );
+        },
+      ),
+
+      GoRoute(
+        path: '/family/settings',
+        name: 'family-settings',
+        builder: (context, state) => const FamilySettingsScreen(),
+      ),
+
       // Deep link handlers for NFC modes
       GoRoute(
         path: '/work',
@@ -235,5 +281,27 @@ class AppRouter {
     
     final uri = Uri(path: '/nfc', queryParameters: params.isEmpty ? null : params);
     router.go(uri.toString());
+  }
+
+  static void goToFamilyHome() {
+    router.go('/family');
+  }
+
+  static void goToCreateFamily() {
+    router.go('/family/create');
+  }
+
+  static void goToInviteMember() {
+    router.go('/family/invite');
+  }
+
+  static void goToManagePermissions({required String memberJson}) {
+    final params = <String, String>{'member': memberJson};
+    final uri = Uri(path: '/family/manage-permissions', queryParameters: params);
+    router.go(uri.toString());
+  }
+
+  static void goToFamilySettings() {
+    router.go('/family/settings');
   }
 }
