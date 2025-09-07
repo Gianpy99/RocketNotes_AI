@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:ui';
 import 'package:dio/dio.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import '../../../core/debug/debug_logger.dart';
@@ -40,6 +41,10 @@ class OCRService {
         return await _extractWithGoogleMLKit(imageBytes);
       case 'tesseract':
         return await _extractWithTesseract(imageBytes);
+      case 'trocr-handwritten':
+        return await _extractWithTrOCR(imageBytes, 'microsoft/trocr-base-handwritten');
+      case 'trocr-printed':
+        return await _extractWithTrOCR(imageBytes, 'microsoft/trocr-base-printed');
       default:
         return _mockOCR(imageBytes);
     }

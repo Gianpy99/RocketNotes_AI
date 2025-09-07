@@ -19,6 +19,7 @@ class AppConstants {
   // Storage Keys
   static const String notesBox = 'notes';
   static const String settingsBox = 'settings';
+  static const String familyMembersBox = 'family_members';
   static const String currentModeKey = 'current_mode';
   static const String themeModeKey = 'theme_mode';
   static const String lastBackupKey = 'last_backup';

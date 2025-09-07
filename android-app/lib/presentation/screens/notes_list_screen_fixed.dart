@@ -182,7 +182,7 @@ class _NotesListScreenState extends ConsumerState<NotesListScreen>
             Text(
               mode == null 
                 ? 'No notes found' 
-                : 'No ${mode} notes found',
+                : 'No $mode notes found',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 color: Colors.grey[600],
               ),

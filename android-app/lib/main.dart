@@ -8,6 +8,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 // App imports
 import 'app/app_simple.dart';
 import 'core/constants/app_constants.dart';
+import 'core/config/firebase_config.dart';
 import 'data/models/note_model.dart';
 import 'data/models/app_settings_model.dart';
 import 'data/models/family_member_model.dart';
@@ -32,6 +33,12 @@ import 'core/services/family_service.dart';
 Future<void> main() async {
   // Ensure Flutter bindings are initialized before async work
   WidgetsFlutterBinding.ensureInitialized();
+
+  // ----------------------------------
+  // Initialize Firebase
+  // ----------------------------------
+  await FirebaseConfig.initialize();
+  debugPrint('✅ Firebase initialized successfully');
 
   try {
     // ----------------------------------

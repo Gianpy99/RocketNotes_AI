@@ -97,6 +97,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
   bool _isLoading = true;
   bool _hasUnsavedChanges = false;
   String? _voiceNotePath;
+  String _selectedMode = 'personal'; // Default to personal mode
 
   @override
   void initState() {
@@ -133,6 +134,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
           _titleController.text = note.title;
           _contentController.text = note.content;
           _tags = List.from(note.tags);
+          _selectedMode = note.mode; // Set the mode from the existing note
           _isLoading = false;
         });
         return;
@@ -159,18 +161,16 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
       return;
     }
 
-    final currentMode = ref.read(appModeProvider);
     final now = DateTime.now();
     
-    debugPrint('[SAVE NOTE] 🔍 Current app mode from provider: $currentMode');
-    debugPrint('[SAVE NOTE] 📝 Creating/updating note with mode: $currentMode');
+    debugPrint('[SAVE NOTE]  Creating/updating note with selected mode: $_selectedMode');
 
     final note = _currentNote?.copyWith(
       title: _titleController.text.trim().isEmpty 
           ? 'Untitled Note' 
           : _titleController.text.trim(),
       content: _contentController.text,
-      mode: currentMode,
+      mode: _selectedMode, // Use the selected mode instead of global app mode
       updatedAt: now,
       tags: _tags,
     ) ?? NoteModel(
@@ -179,7 +179,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
           ? 'Untitled Note' 
           : _titleController.text.trim(),
       content: _contentController.text,
-      mode: currentMode,
+      mode: _selectedMode, // Use the selected mode instead of global app mode
       createdAt: now,
       updatedAt: now,
       tags: _tags,
@@ -347,29 +347,120 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
         ),
         body: Column(
           children: [
-            // Mode Indicator
+            // Mode Selector
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
               child: Row(
                 children: [
-                  Icon(
-                    ref.watch(appModeProvider) == 'work' ? Icons.work : Icons.home,
-                    size: 16,
-                    color: ref.watch(appModeProvider) == 'work'
-                        ? AppColors.workBlue
-                        : AppColors.personalGreen,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${ref.watch(appModeProvider).toUpperCase()} MODE',
+                  const Text(
+                    'Note Mode:',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: ref.watch(appModeProvider) == 'work'
-                          ? AppColors.workBlue
-                          : AppColors.personalGreen,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Personal Mode Button
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedMode = 'personal';
+                          _hasUnsavedChanges = true;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: _selectedMode == 'personal' 
+                              ? AppColors.personalGreen.withValues(alpha: 0.2)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: _selectedMode == 'personal' 
+                                ? AppColors.personalGreen
+                                : Colors.grey.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.person,
+                              size: 14,
+                              color: _selectedMode == 'personal' 
+                                  ? AppColors.personalGreen
+                                  : Colors.grey,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Personal',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: _selectedMode == 'personal' 
+                                    ? FontWeight.bold 
+                                    : FontWeight.normal,
+                                color: _selectedMode == 'personal' 
+                                    ? AppColors.personalGreen
+                                    : Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Work Mode Button
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedMode = 'work';
+                          _hasUnsavedChanges = true;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: _selectedMode == 'work' 
+                              ? AppColors.workBlue.withValues(alpha: 0.2)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: _selectedMode == 'work' 
+                                ? AppColors.workBlue
+                                : Colors.grey.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.work,
+                              size: 14,
+                              color: _selectedMode == 'work' 
+                                  ? AppColors.workBlue
+                                  : Colors.grey,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Work',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: _selectedMode == 'work' 
+                                    ? FontWeight.bold 
+                                    : FontWeight.normal,
+                                color: _selectedMode == 'work' 
+                                    ? AppColors.workBlue
+                                    : Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                   const Spacer(),

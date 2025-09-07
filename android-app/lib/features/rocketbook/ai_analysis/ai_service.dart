@@ -532,14 +532,14 @@ class AIService {
         throw Exception('Gemini API returned null response');
       }
       
-      DebugLogger().log('🔍 Response data keys: ${responseData is Map ? (responseData as Map).keys.toList() : 'Not a Map'}');
+      DebugLogger().log('🔍 Response data keys: ${responseData is Map ? (responseData).keys.toList() : 'Not a Map'}');
       
       if (responseData is! Map<String, dynamic>) {
         DebugLogger().log('❌ Response data is not a Map: ${responseData.runtimeType}');
         throw Exception('Invalid response format from Gemini API');
       }
       
-      final responseMap = responseData as Map<String, dynamic>;
+      final responseMap = responseData;
       
       if (!responseMap.containsKey('candidates') || responseMap['candidates'] == null) {
         DebugLogger().log('❌ No candidates key or null candidates: ${responseMap.keys.toList()}');
@@ -554,17 +554,17 @@ class AIService {
         throw Exception('Invalid candidates in Gemini response');
       }
       
-      final candidatesList = candidates as List;
+      final candidatesList = candidates;
       final candidate = candidatesList[0];
       DebugLogger().log('🔍 First candidate type: ${candidate.runtimeType}');
-      DebugLogger().log('🔍 First candidate keys: ${candidate is Map ? (candidate as Map).keys.toList() : 'Not a Map'}');
+      DebugLogger().log('🔍 First candidate keys: ${candidate is Map ? (candidate).keys.toList() : 'Not a Map'}');
       
       if (candidate is! Map<String, dynamic>) {
         DebugLogger().log('❌ Candidate is not a Map: ${candidate.runtimeType}');
         throw Exception('Invalid candidate structure from Gemini API');
       }
       
-      final candidateMap = candidate as Map<String, dynamic>;
+      final candidateMap = candidate;
       
       if (!candidateMap.containsKey('content') || candidateMap['content'] == null) {
         DebugLogger().log('❌ No content in candidate: ${candidateMap.keys.toList()}');
@@ -573,14 +573,14 @@ class AIService {
       
       final content = candidateMap['content'];
       DebugLogger().log('🔍 Content type: ${content.runtimeType}');
-      DebugLogger().log('🔍 Content keys: ${content is Map ? (content as Map).keys.toList() : 'Not a Map'}');
+      DebugLogger().log('🔍 Content keys: ${content is Map ? (content).keys.toList() : 'Not a Map'}');
       
       if (content is! Map<String, dynamic>) {
         DebugLogger().log('❌ Content is not a Map: ${content.runtimeType}');
         throw Exception('Invalid content structure from Gemini API');
       }
       
-      final contentMap = content as Map<String, dynamic>;
+      final contentMap = content;
       
       if (!contentMap.containsKey('parts') || contentMap['parts'] == null) {
         DebugLogger().log('❌ No parts in content: ${contentMap.keys.toList()}');
@@ -595,17 +595,17 @@ class AIService {
         throw Exception('Invalid parts in Gemini content');
       }
       
-      final partsList = parts as List;
+      final partsList = parts;
       final firstPart = partsList[0];
       DebugLogger().log('🔍 First part type: ${firstPart.runtimeType}');
-      DebugLogger().log('🔍 First part keys: ${firstPart is Map ? (firstPart as Map).keys.toList() : 'Not a Map'}');
+      DebugLogger().log('🔍 First part keys: ${firstPart is Map ? (firstPart).keys.toList() : 'Not a Map'}');
       
       if (firstPart is! Map<String, dynamic>) {
         DebugLogger().log('❌ First part is not a Map: ${firstPart.runtimeType}');
         throw Exception('Invalid part structure from Gemini API');
       }
       
-      final partMap = firstPart as Map<String, dynamic>;
+      final partMap = firstPart;
       
       if (!partMap.containsKey('text') || partMap['text'] == null) {
         DebugLogger().log('❌ No text in part: ${partMap.keys.toList()}');
