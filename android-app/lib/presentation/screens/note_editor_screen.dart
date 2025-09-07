@@ -355,13 +355,13 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
               child: Row(
                 children: [
                   const Text(
-                    'Note Mode:',
+                    'Mode:',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   // Personal Mode Button
                   Expanded(
                     child: GestureDetector(
@@ -412,7 +412,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   // Work Mode Button
                   Expanded(
                     child: GestureDetector(
@@ -463,8 +463,8 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                       ),
                     ),
                   ),
-                  const Spacer(),
-                  if (_hasUnsavedChanges)
+                  if (_hasUnsavedChanges) ...[
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
@@ -480,6 +480,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                         ),
                       ),
                     ),
+                  ],
                 ],
               ),
             ),
