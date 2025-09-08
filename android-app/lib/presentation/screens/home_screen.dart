@@ -10,6 +10,8 @@ import '../../features/rocketbook/camera/camera_screen.dart';
 import '../providers/app_providers_simple.dart';
 import '../widgets/mode_card.dart';
 import '../widgets/quick_action_button.dart';
+import '../../ui/widgets/common/family_member_selector.dart';
+import '../../ui/widgets/home/shared_notebooks_section.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   final String? initialMode;
@@ -126,6 +128,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
             actions: [
+              const FamilyMemberSelector(),
               IconButton(
                 icon: const Icon(Icons.settings),
                 onPressed: () => context.push('/settings'),
@@ -267,6 +270,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                   const SizedBox(height: 24),
 
+                  // Family Shared Notebooks
+                  const SharedNotebooksSection(),
+
+                  const SizedBox(height: 24),
+
                   // Quick Actions
                   Text(
                     'Quick Actions',
@@ -292,6 +300,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           label: 'All Notes',
                           color: AppColors.accentOrange,
                           onTap: () => context.push('/notes'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: QuickActionButton(
+                          icon: Icons.family_restroom,
+                          label: 'Family',
+                          color: AppColors.personalGreen,
+                          onTap: () => context.push('/family'),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: QuickActionButton(
+                          icon: Icons.search,
+                          label: 'Search',
+                          color: AppColors.workBlue,
+                          onTap: () => context.push('/search'),
                         ),
                       ),
                     ],

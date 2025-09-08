@@ -12,6 +12,10 @@ import '../presentation/screens/tag_management_screen.dart';
 import '../presentation/screens/statistics_screen.dart';
 import '../presentation/screens/backup_screen.dart';
 import '../presentation/screens/nfc_screen.dart';
+import '../../features/family/screens/family_home_screen.dart';
+import '../screens/shared_notes/shared_notes_list_screen.dart';
+import '../screens/shared_notes/note_sharing_screen.dart';
+import '../screens/shared_notes/shared_note_viewer.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -72,6 +76,25 @@ class AppRouter {
         builder: (context, state) {
           final action = state.uri.queryParameters['action'];
           return NfcScreen(initialAction: action);
+        },
+      ),
+      GoRoute(
+        path: '/family',
+        builder: (context, state) => const FamilyHomeScreen(),
+      ),
+      GoRoute(
+        path: '/shared-notes',
+        builder: (context, state) => const SharedNotesListScreen(),
+      ),
+      GoRoute(
+        path: '/share-note',
+        builder: (context, state) => const NoteSharingScreen(),
+      ),
+      GoRoute(
+        path: '/shared-note/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id'];
+          return SharedNoteViewer(sharedNoteId: id!);
         },
       ),
     ],
