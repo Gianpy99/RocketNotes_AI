@@ -2,14 +2,20 @@
 
 **Test File**: `test_share_note.dart`
 **API Endpoint**: `POST /api/shared-notes`
-**Purpose**: Verify note sharing contract
+**Purpose**: Verify note sharing contract with member selection UI
 
 ## Test Scenarios
 
-### Scenario 1: Successful Note Sharing
-**Given** user has a note and selects family members
-**When** POST request is made to `/api/shared-notes`
+### Scenario 1: Successful Note Sharing with Member Selection
+**Given** user has a note and selects family members via UI
+**When** POST request is made to `/api/shared-notes` with selected members
 **Then** note should be shared with specified permissions
+
+#### UI Features Implemented (T007-T010)
+- [x] **T007**: Member selection UI with checkboxes ✅ COMPLETED
+- [x] **T008**: Display actual member names instead of user IDs ✅ COMPLETED
+- [x] **T009**: Member search/filter functionality ✅ COMPLETED
+- [x] **T010**: Handle empty family state gracefully ✅ COMPLETED
 
 #### Request
 ```http
@@ -24,10 +30,12 @@ Content-Type: application/json
   "permissions": [
     {
       "userId": "user_456",
+      "userDisplayName": "John Doe",
       "level": "write"
     },
     {
       "userId": "user_789",
+      "userDisplayName": "Jane Smith",
       "level": "read"
     }
   ]
@@ -46,6 +54,7 @@ Content-Type: application/json
       {
         "id": "perm_456",
         "userId": "user_456",
+        "userDisplayName": "John Doe",
         "level": "write",
         "grantedAt": "2025-09-08T10:00:00Z"
       }

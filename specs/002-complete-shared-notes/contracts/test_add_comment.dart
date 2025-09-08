@@ -31,6 +31,7 @@ Content-Type: application/json
     "id": "comment_456",
     "noteId": "note_123",
     "userId": "user_789",
+    "userDisplayName": "John Doe",
     "familyMemberId": "member_101",
     "content": "This is a great recipe! Thanks for sharing.",
     "parentCommentId": null,

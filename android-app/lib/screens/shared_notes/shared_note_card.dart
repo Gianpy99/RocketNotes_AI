@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/shared_note.dart';
 import '../../models/note_permission.dart';
+import '../../core/services/firebase_service.dart';
 
-class SharedNoteCard extends StatelessWidget {
+class SharedNoteCard extends StatefulWidget {
   final SharedNote sharedNote;
   final VoidCallback? onTap;
 
@@ -13,6 +14,40 @@ class SharedNoteCard extends StatelessWidget {
   });
 
   @override
+  State<SharedNoteCard> createState() => _SharedNoteCardState();
+}
+
+class _SharedNoteCardState extends State<SharedNoteCard> {
+  final FirebaseService _firebaseService = FirebaseService();
+  String? _sharedByName;
+  bool _isLoadingName = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchSharedByName();
+  }
+
+  Future<void> _fetchSharedByName() async {
+    try {
+      final userProfile = await _firebaseService.getUserProfileById(widget.sharedNote.sharedBy);
+      if (mounted) {
+        setState(() {
+          _sharedByName = userProfile?.displayName ?? 'Unknown User';
+          _isLoadingName = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _sharedByName = 'Unknown User';
+          _isLoadingName = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 2,
@@ -21,7 +56,7 @@ class SharedNoteCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: InkWell(
-        onTap: onTap,
+        onTap: widget.onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -33,7 +68,7 @@ class SharedNoteCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      sharedNote.title,
+                      widget.sharedNote.title,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -43,14 +78,14 @@ class SharedNoteCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  _buildPermissionBadge(sharedNote.permission),
+                  _buildPermissionBadge(widget.sharedNote.permission),
                 ],
               ),
 
-              if (sharedNote.description != null && sharedNote.description!.isNotEmpty) ...[
+              if (widget.sharedNote.description != null && widget.sharedNote.description!.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(
-                  sharedNote.description!,
+                  widget.sharedNote.description!,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey[600],
@@ -72,7 +107,7 @@ class SharedNoteCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'Shared by ${sharedNote.sharedBy}', // TODO: Get actual name
+                    _isLoadingName ? 'Loading...' : 'Shared by $_sharedByName',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[600],
@@ -86,7 +121,7 @@ class SharedNoteCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    _formatDate(sharedNote.sharedAt),
+                    _formatDate(widget.sharedNote.sharedAt),
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[600],
@@ -96,27 +131,27 @@ class SharedNoteCard extends StatelessWidget {
               ),
 
               // Status indicator
-              if (sharedNote.status != SharingStatus.approved) ...[
+              if (widget.sharedNote.status != SharingStatus.approved) ...[
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Icon(
-                      sharedNote.status == SharingStatus.pending
+                      widget.sharedNote.status == SharingStatus.pending
                           ? Icons.hourglass_empty
                           : Icons.cancel,
                       size: 16,
-                      color: sharedNote.status == SharingStatus.pending
+                      color: widget.sharedNote.status == SharingStatus.pending
                           ? Colors.orange
                           : Colors.red,
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      sharedNote.status == SharingStatus.pending
+                      widget.sharedNote.status == SharingStatus.pending
                           ? 'Pending approval'
                           : 'Rejected',
                       style: TextStyle(
                         fontSize: 12,
-                        color: sharedNote.status == SharingStatus.pending
+                        color: widget.sharedNote.status == SharingStatus.pending
                             ? Colors.orange
                             : Colors.red,
                         fontWeight: FontWeight.w500,

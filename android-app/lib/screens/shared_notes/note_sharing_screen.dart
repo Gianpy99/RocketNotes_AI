@@ -4,7 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../data/models/note_model.dart';
 import '../../models/family_member.dart';
-import '../../core/services/family_service.dart';
+import '../../core/services/user_name_cache_service.dart';
+import '../../features/family/providers/auth_providers.dart';
 
 class NoteSharingScreen extends ConsumerStatefulWidget {
   final String? noteId;
@@ -18,11 +19,15 @@ class NoteSharingScreen extends ConsumerStatefulWidget {
 class _NoteSharingScreenState extends ConsumerState<NoteSharingScreen> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _searchController = TextEditingController();
   bool _isLoading = false;
   bool _requiresApproval = false;
   NoteModel? _selectedNote;
   List<FamilyMember> _familyMembers = [];
+  List<FamilyMember> _filteredMembers = [];
   final Set<String> _selectedMembers = {};
+  final UserNameCacheService _userNameCache = UserNameCacheService();
+  final Map<String, String> _userNames = {}; // Cache for user names
 
   // Permission settings
   bool _canView = true;
@@ -42,23 +47,26 @@ class _NoteSharingScreenState extends ConsumerState<NoteSharingScreen> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
-      // Load family members
-      final familyService = FamilyService.instance;
-      final currentUser = await familyService.getCurrentUser();
+      // Get current user and family information
+      final authState = ref.read(currentFamilyAuthProvider);
+      final currentUserId = authState.user?.uid;
 
-      if (currentUser != null) {
-        // TODO: Load family members
+      if (authState.hasFamily && currentUserId != null) {
+        final familyId = authState.familyId!;
+
+        // Load family members - TODO: Replace with actual service call
         // For now, create mock data
         _familyMembers = [
           FamilyMember(
             userId: 'user1',
-            familyId: 'family1',
+            familyId: familyId,
             role: FamilyRole.admin,
             permissions: MemberPermissions(
               canInviteMembers: true,
@@ -73,7 +81,7 @@ class _NoteSharingScreenState extends ConsumerState<NoteSharingScreen> {
           ),
           FamilyMember(
             userId: 'user2',
-            familyId: 'family1',
+            familyId: familyId,
             role: FamilyRole.viewer,
             permissions: MemberPermissions(
               canInviteMembers: false,
@@ -87,6 +95,17 @@ class _NoteSharingScreenState extends ConsumerState<NoteSharingScreen> {
             isActive: true,
           ),
         ];
+
+        // Filter out current user from the list
+        _familyMembers = _familyMembers.where((member) => member.userId != currentUserId).toList();
+        _filteredMembers = List.from(_familyMembers);
+
+        // Fetch user names for all family members
+        await _fetchUserNames();
+      } else {
+        // User is not part of a family
+        _familyMembers = [];
+        _filteredMembers = [];
       }
 
       // Load selected note if provided
@@ -110,6 +129,28 @@ class _NoteSharingScreenState extends ConsumerState<NoteSharingScreen> {
       debugPrint('Error loading data: $e');
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _fetchUserNames() async {
+    final userIds = _familyMembers.map((member) => member.userId).toList();
+    final userNames = await _userNameCache.getUserNames(userIds);
+
+    setState(() {
+      _userNames.addAll(userNames);
+    });
+  }
+
+  void _filterMembers(String query) {
+    if (query.isEmpty) {
+      _filteredMembers = List.from(_familyMembers);
+    } else {
+      _filteredMembers = _familyMembers.where((member) {
+        final displayName = _userNames[member.userId] ?? 'Unknown User';
+        return displayName.toLowerCase().contains(query.toLowerCase()) ||
+               member.role.name.toLowerCase().contains(query.toLowerCase());
+      }).toList();
+    }
+    setState(() {});
   }
 
   Future<void> _shareNote() async {
@@ -303,6 +344,10 @@ class _NoteSharingScreenState extends ConsumerState<NoteSharingScreen> {
   }
 
   Widget _buildFamilyMembersSelection() {
+    if (_familyMembers.isEmpty) {
+      return _buildEmptyFamilyState();
+    }
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -316,8 +361,23 @@ class _NoteSharingScreenState extends ConsumerState<NoteSharingScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            ..._familyMembers.map((member) => CheckboxListTile(
-              title: Text('User ${member.userId}'), // TODO: Get actual display name
+
+            // Search bar
+            TextField(
+              controller: _searchController,
+              decoration: const InputDecoration(
+                labelText: 'Search members',
+                hintText: 'Type name or role...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: _filterMembers,
+            ),
+            const SizedBox(height: 16),
+
+            // Members list
+            ..._filteredMembers.map((member) => CheckboxListTile(
+              title: Text(_userNames[member.userId] ?? 'Loading...'),
               subtitle: Text('Role: ${member.role.name}'),
               value: _selectedMembers.contains(member.userId),
               onChanged: (selected) {
@@ -330,6 +390,19 @@ class _NoteSharingScreenState extends ConsumerState<NoteSharingScreen> {
                 });
               },
             )),
+
+            if (_filteredMembers.isEmpty && _searchController.text.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Center(
+                child: Text(
+                  'No members found matching "${_searchController.text}"',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -411,6 +484,50 @@ class _NoteSharingScreenState extends ConsumerState<NoteSharingScreen> {
               subtitle: const Text('Get notified about changes and comments'),
               value: _receiveNotifications,
               onChanged: (value) => setState(() => _receiveNotifications = value),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyFamilyState() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.family_restroom,
+              size: 48,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No Family Members',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'You need to be part of a family to share notes. Create or join a family first.',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () => context.go('/family'),
+              icon: const Icon(Icons.group_add),
+              label: const Text('Manage Family'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryBlue,
+                foregroundColor: Colors.white,
+              ),
             ),
           ],
         ),

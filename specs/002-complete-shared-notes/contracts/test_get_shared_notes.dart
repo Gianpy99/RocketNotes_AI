@@ -28,6 +28,7 @@ Content-Type: application/json
       "title": "Family Recipe",
       "content": "Secret family pasta recipe...",
       "createdBy": "user_456",
+      "createdByDisplayName": "John Doe",
       "createdAt": "2025-09-08T10:00:00Z",
       "updatedAt": "2025-09-08T10:00:00Z",
       "familyId": "family_789",
@@ -35,6 +36,7 @@ Content-Type: application/json
       "permissions": [
         {
           "userId": "user_456",
+          "userDisplayName": "John Doe",
           "level": "write",
           "grantedAt": "2025-09-08T10:00:00Z"
         }
@@ -124,14 +126,14 @@ Authorization: Bearer {user_token}
 - [ ] Success responses include `success: true`
 - [ ] Error responses include `success: false` and error details
 - [ ] Data array contains properly formatted note objects
-- [ ] Pagination object includes all required fields
+- [ ] Pagination object includes all fields
 - [ ] Timestamps in ISO 8601 format
 - [ ] User IDs resolve to actual user objects
 
 ### Data Structure Validation
 - [ ] Note objects match SharedNote schema
 - [ ] Permission objects match NotePermission schema
-- [ ] Metadata includes required fields
+- [ ] Metadata includes fields
 - [ ] Tags array contains valid strings
 - [ ] Boolean fields have correct types
 

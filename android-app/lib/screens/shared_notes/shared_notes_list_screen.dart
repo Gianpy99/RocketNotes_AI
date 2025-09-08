@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../models/shared_note.dart';
+import '../../core/services/firebase_service.dart';
 import './shared_note_card.dart';
 
 class SharedNotesListScreen extends ConsumerStatefulWidget {
@@ -17,6 +18,7 @@ class _SharedNotesListScreenState extends ConsumerState<SharedNotesListScreen>
   late TabController _tabController;
   bool _isLoading = false;
   List<SharedNote> _sharedNotes = [];
+  final FirebaseService _firebaseService = FirebaseService();
 
   @override
   void initState() {
@@ -45,6 +47,10 @@ class _SharedNotesListScreenState extends ConsumerState<SharedNotesListScreen>
       debugPrint('Error loading shared notes: $e');
       setState(() => _isLoading = false);
     }
+  }
+
+  String? _getCurrentUserId() {
+    return _firebaseService.currentUser?.uid;
   }
 
   @override
@@ -84,7 +90,7 @@ class _SharedNotesListScreenState extends ConsumerState<SharedNotesListScreen>
               controller: _tabController,
               children: [
                 _buildNotesList(_sharedNotes),
-                _buildNotesList(_sharedNotes.where((note) => note.sharedBy == 'currentUserId').toList()),
+                _buildNotesList(_sharedNotes.where((note) => note.sharedBy == _getCurrentUserId()).toList()),
                 _buildNotesList(_sharedNotes.where((note) => note.sharedBy != 'currentUserId').toList()),
               ],
             ),

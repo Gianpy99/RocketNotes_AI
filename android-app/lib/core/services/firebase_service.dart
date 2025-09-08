@@ -221,6 +221,22 @@ class FirebaseService {
     return profile;
   }
 
+  /// Gets a user profile by user ID
+  Future<UserProfile?> getUserProfileById(String userId) async {
+    try {
+      final docSnapshot = await _firestoreInstance.collection('user_profiles').doc(userId).get();
+
+      if (!docSnapshot.exists) {
+        return null;
+      }
+
+      return UserProfile.fromJson(docSnapshot.data()!);
+    } catch (e) {
+      // Return null if there's an error (user not found, network issues, etc.)
+      return null;
+    }
+  }
+
   // Real-time subscriptions
   Stream<List<Map<String, dynamic>>> subscribeToNotes() {
     final userId = currentUser?.uid;

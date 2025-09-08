@@ -5,6 +5,7 @@ import '../../core/constants/app_colors.dart';
 import '../../models/shared_note.dart';
 import '../../models/shared_note_comment.dart';
 import '../../models/note_permission.dart';
+import '../../core/services/user_name_cache_service.dart';
 import 'comment_widget.dart';
 
 class SharedNoteViewer extends ConsumerStatefulWidget {
@@ -24,6 +25,8 @@ class _SharedNoteViewerState extends ConsumerState<SharedNoteViewer> {
   bool _canComment = false;
   String? _currentUserId;
   String? _currentUserDisplayName;
+  String? _sharedByName;
+  final UserNameCacheService _userNameCache = UserNameCacheService();
   final TextEditingController _commentController = TextEditingController();
 
   @override
@@ -85,6 +88,9 @@ class _SharedNoteViewerState extends ConsumerState<SharedNoteViewer> {
       _canEdit = _sharedNote!.permission.canEdit;
       _canComment = _sharedNote!.permission.canComment;
 
+      // Fetch the name of the user who shared the note
+      await _fetchSharedByName();
+
       // TODO: Load comments
       _comments = [
         SharedNoteComment(
@@ -115,6 +121,17 @@ class _SharedNoteViewerState extends ConsumerState<SharedNoteViewer> {
     } catch (e) {
       debugPrint('Error loading shared note: $e');
       setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _fetchSharedByName() async {
+    if (_sharedNote == null) return;
+
+    final name = await _userNameCache.getUserName(_sharedNote!.sharedBy);
+    if (mounted) {
+      setState(() {
+        _sharedByName = name ?? 'Unknown User';
+      });
     }
   }
 
@@ -288,7 +305,7 @@ class _SharedNoteViewerState extends ConsumerState<SharedNoteViewer> {
                 const Icon(Icons.person, size: 16, color: Colors.grey),
                 const SizedBox(width: 4),
                 Text(
-                  'Shared by ${_sharedNote!.sharedBy}', // TODO: Get actual name
+                  _sharedByName != null ? 'Shared by $_sharedByName' : 'Shared by ${_sharedNote!.sharedBy}',
                   style: const TextStyle(
                     fontSize: 12,
                     color: Colors.grey,
