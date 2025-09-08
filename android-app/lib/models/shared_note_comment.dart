@@ -29,6 +29,13 @@ class SharedNoteComment extends Equatable {
   @JsonKey(fromJson: _nullableDateTimeFromJson, toJson: _nullableDateTimeToJson)
   final DateTime? updatedAt;
 
+  /// Whether this comment has been soft deleted
+  final bool isDeleted;
+
+  /// When the comment was soft deleted (for recovery)
+  @JsonKey(fromJson: _nullableDateTimeFromJson, toJson: _nullableDateTimeToJson)
+  final DateTime? deletedAt;
+
   /// Whether this comment has been edited
   final bool isEdited;
 
@@ -56,6 +63,8 @@ class SharedNoteComment extends Equatable {
     this.parentCommentId,
     this.likedBy = const [],
     this.replies = const [],
+    this.isDeleted = false,
+    this.deletedAt,
   });
 
   /// Creates a SharedNoteComment instance from JSON
@@ -78,6 +87,8 @@ class SharedNoteComment extends Equatable {
     String? parentCommentId,
     List<String>? likedBy,
     List<SharedNoteComment>? replies,
+    bool? isDeleted,
+    DateTime? deletedAt,
   }) {
     return SharedNoteComment(
       id: id ?? this.id,
@@ -91,6 +102,8 @@ class SharedNoteComment extends Equatable {
       parentCommentId: parentCommentId ?? this.parentCommentId,
       likedBy: likedBy ?? this.likedBy,
       replies: replies ?? this.replies,
+      isDeleted: isDeleted ?? this.isDeleted,
+      deletedAt: deletedAt ?? this.deletedAt,
     );
   }
 
@@ -107,6 +120,8 @@ class SharedNoteComment extends Equatable {
         parentCommentId,
         likedBy,
         replies,
+        isDeleted,
+        deletedAt,
       ];
 
   @override

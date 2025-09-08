@@ -192,9 +192,10 @@ class _CommentSystemWidgetState extends ConsumerState<CommentSystemWidget> {
           comment: comment,
           onLike: () => _toggleCommentLike(comment.id),
           onReply: () => _showReplyDialog(comment),
-          onEdit: () => _showEditCommentDialog(comment),
-          onDelete: () => _showDeleteCommentDialog(comment),
+          onEdit: (commentId, newContent) => _editComment(commentId, newContent), // T061: Updated callback
+          onDelete: (commentId) => _deleteComment(commentId), // T062: Updated callback
           currentUserId: 'current_user', // TODO: Get from auth provider
+          sharedNoteId: widget.sharedNoteId,
         );
       },
     );
@@ -242,22 +243,25 @@ class _CommentSystemWidgetState extends ConsumerState<CommentSystemWidget> {
 
   Future<void> _toggleCommentLike(String commentId) async {
     try {
-      // TODO: Implement like functionality through provider
-      // await ref.read(toggleCommentLikeProvider.notifier).toggleLike(
-      //   sharedNoteId: widget.sharedNoteId,
-      //   commentId: commentId,
-      // );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Comment liked!')),
+      await ref.read(toggleCommentLikeProvider.notifier).toggleLike(
+        sharedNoteId: widget.sharedNoteId,
+        commentId: commentId,
       );
 
-      // Refresh comments
+      // Refresh comments to show updated like count
       ref.invalidate(sharedNoteCommentsProvider(widget.sharedNoteId));
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Like updated successfully')),
+        );
+      }
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to like comment: $error')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update like: $error')),
+        );
+      }
     }
   }
 
@@ -350,113 +354,48 @@ class _CommentSystemWidgetState extends ConsumerState<CommentSystemWidget> {
     );
   }
 
-  void _showEditCommentDialog(SharedNoteComment comment) {
-    final editController = TextEditingController(text: comment.content);
+  // T061: Edit comment implementation
+  Future<void> _editComment(String commentId, String newContent) async {
+    try {
+      await ref.read(updateCommentProvider.notifier).updateComment(
+        sharedNoteId: widget.sharedNoteId,
+        commentId: commentId,
+        content: newContent,
+      );
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Comment'),
-        content: TextField(
-          controller: editController,
-          maxLines: 3,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final newContent = editController.text.trim();
-              if (newContent.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please enter comment content')),
-                );
-                return;
-              }
-
-              if (newContent == comment.content) {
-                Navigator.of(context).pop();
-                return;
-              }
-
-              Navigator.of(context).pop();
-
-              try {
-                // TODO: Implement comment editing through provider
-                // await ref.read(updateCommentProvider.notifier).updateComment(
-                //   sharedNoteId: widget.sharedNoteId,
-                //   commentId: comment.id,
-                //   content: newContent,
-                // );
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Comment updated successfully!')),
-                );
-
-                // Refresh comments
-                ref.invalidate(sharedNoteCommentsProvider(widget.sharedNoteId));
-              } catch (error) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to update comment: $error')),
-                );
-              }
-            },
-            child: const Text('Update'),
-          ),
-        ],
-      ),
-    );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Comment updated successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update comment: $e')),
+        );
+      }
+    }
   }
 
-  void _showDeleteCommentDialog(SharedNoteComment comment) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Comment'),
-        content: const Text(
-          'Are you sure you want to delete this comment? This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
+  // T062: Delete comment implementation
+  Future<void> _deleteComment(String commentId) async {
+    try {
+      await ref.read(deleteCommentProvider.notifier).deleteComment(
+        sharedNoteId: widget.sharedNoteId,
+        commentId: commentId,
+      );
 
-              try {
-                // TODO: Implement comment deletion through provider
-                // await ref.read(deleteCommentProvider.notifier).deleteComment(
-                //   sharedNoteId: widget.sharedNoteId,
-                //   commentId: comment.id,
-                // );
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Comment deleted successfully!')),
-                );
-
-                // Refresh comments
-                ref.invalidate(sharedNoteCommentsProvider(widget.sharedNoteId));
-              } catch (error) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to delete comment: $error')),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Comment deleted successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete comment: $e')),
+        );
+      }
+    }
   }
 }

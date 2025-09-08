@@ -11,11 +11,16 @@
 **When** POST request is made to `/api/shared-notes` with selected members
 **Then** note should be shared with specified permissions
 
-#### UI Features Implemented (T007-T010)
+#### UI Features Implemented (T007-T010, T011-T015)
 - [x] **T007**: Member selection UI with checkboxes ✅ COMPLETED
 - [x] **T008**: Display actual member names instead of user IDs ✅ COMPLETED
 - [x] **T009**: Member search/filter functionality ✅ COMPLETED
 - [x] **T010**: Handle empty family state gracefully ✅ COMPLETED
+- [x] **T011**: Current user ID retrieval in note_sharing_screen ✅ COMPLETED
+- [x] **T012**: Current user ID retrieval in shared_note_viewer ✅ COMPLETED
+- [x] **T013**: Member ID resolution for permission creation ✅ COMPLETED
+- [x] **T014**: User authentication state validation ✅ COMPLETED
+- [x] **T015**: Handle user session expiration gracefully ✅ COMPLETED
 
 #### Request
 ```http

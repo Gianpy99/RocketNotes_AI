@@ -1,21 +1,28 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../models/shared_note_comment.dart';
+import 'replies_screen.dart';
 
 class CommentWidget extends StatelessWidget {
   final SharedNoteComment comment;
   final Function(String)? onReply;
   final Function(String)? onLike;
+  final Function(String, String)? onEdit; // T061: Added edit callback
+  final Function(String)? onDelete; // T062: Added delete callback
   final bool showReplies;
   final String? currentUserId;
+  final String? sharedNoteId; // T056: Added for navigation to replies screen
 
   const CommentWidget({
     super.key,
     required this.comment,
     this.onReply,
     this.onLike,
+    this.onEdit, // T061: Added edit callback
+    this.onDelete, // T062: Added delete callback
     this.showReplies = true,
     this.currentUserId,
+    this.sharedNoteId, // T056: Optional for backward compatibility
   });
 
   @override
@@ -88,6 +95,19 @@ class CommentWidget extends StatelessWidget {
                 height: 1.4,
               ),
             ),
+
+            // T064: Edit indicator for edit history tracking
+            if (comment.isEdited && comment.updatedAt != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Edited ${_formatEditTime(comment.updatedAt!)}',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.grey[500],
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
 
             const SizedBox(height: 8),
 
@@ -196,7 +216,8 @@ class CommentWidget extends StatelessWidget {
             // Replies
             if (showReplies && comment.replies.isNotEmpty) ...[
               const SizedBox(height: 8),
-              ...comment.replies.map((reply) => Padding(
+              // T056: Show limited replies with "View all" option
+              ...comment.replies.take(2).map((reply) => Padding(
                 padding: const EdgeInsets.only(left: 32, top: 8),
                 child: CommentWidget(
                   comment: reply,
@@ -204,8 +225,27 @@ class CommentWidget extends StatelessWidget {
                   onLike: onLike,
                   showReplies: false, // Prevent infinite nesting
                   currentUserId: currentUserId,
+                  sharedNoteId: sharedNoteId,
                 ),
               )),
+              // T056: Show "View all replies" button if more than 2 replies
+              if (comment.replies.length > 2) ...[
+                Padding(
+                  padding: const EdgeInsets.only(left: 32, top: 8),
+                  child: TextButton(
+                    onPressed: () => _navigateToRepliesScreen(context),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(0, 0),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      'View all ${comment.replies.length} replies',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ],
         ),
@@ -216,16 +256,14 @@ class CommentWidget extends StatelessWidget {
   void _handleAction(BuildContext context, String action) {
     switch (action) {
       case 'edit':
-        // TODO: Implement edit comment
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Edit comment functionality coming soon!')),
-        );
+        if (onEdit != null) {
+          _showEditDialog(context); // T061: Show edit dialog
+        }
         break;
       case 'delete':
-        // TODO: Implement delete comment
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Delete comment functionality coming soon!')),
-        );
+        if (onDelete != null) {
+          _showDeleteDialog(context); // T062: Show delete confirmation dialog
+        }
         break;
       case 'report':
         // TODO: Implement report comment
@@ -251,5 +289,144 @@ class CommentWidget extends StatelessWidget {
     } else {
       return '${date.month}/${date.day}/${date.year}';
     }
+  }
+
+  // T064: Format edit time for edit history tracking
+  String _formatEditTime(DateTime editTime) {
+    final now = DateTime.now();
+    final difference = now.difference(editTime);
+
+    if (difference.inDays == 0) {
+      return '${editTime.hour.toString().padLeft(2, '0')}:${editTime.minute.toString().padLeft(2, '0')}';
+    } else if (difference.inDays == 1) {
+      return 'yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} days ago';
+    } else {
+      return '${editTime.day}/${editTime.month}/${editTime.year}';
+    }
+  }
+
+  // T056 & T058: Navigate to full replies screen
+  void _navigateToRepliesScreen(BuildContext context) {
+    if (sharedNoteId == null) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RepliesScreen(
+          rootComment: comment,
+          sharedNoteId: sharedNoteId!,
+          currentUserId: currentUserId ?? '',
+        ),
+      ),
+    );
+  }
+
+  // T061: Show edit dialog
+  void _showEditDialog(BuildContext context) {
+    final TextEditingController controller = TextEditingController(text: comment.content);
+    bool isLoading = false;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Edit Comment'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: controller,
+                maxLines: 5,
+                maxLength: 1000,
+                decoration: const InputDecoration(
+                  hintText: 'Edit your comment...',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (isLoading)
+                const CircularProgressIndicator()
+              else
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Cancel'),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: controller.text.trim().isEmpty || controller.text == comment.content
+                          ? null
+                          : () async {
+                              setState(() => isLoading = true);
+                              try {
+                                onEdit!(comment.id, controller.text.trim());
+                                if (context.mounted) {
+                                  Navigator.of(context).pop();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Comment updated successfully')),
+                                  );
+                                }
+                              } catch (e) {
+                                setState(() => isLoading = false);
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Failed to update comment: $e')),
+                                  );
+                                }
+                              }
+                            },
+                      child: const Text('Update'),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // T062: Show delete confirmation dialog
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Comment'),
+        content: const Text(
+          'Are you sure you want to delete this comment? This action can be undone within 30 days.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              try {
+                onDelete!(comment.id);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Comment deleted successfully')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete comment: $e')),
+                  );
+                }
+              }
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
   }
 }

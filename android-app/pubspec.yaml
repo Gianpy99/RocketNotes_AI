@@ -44,7 +44,7 @@ dependencies:
   package_info_plus: ^8.3.1
 
   # JSON Serialization
-  json_annotation: ^4.8.1
+  json_annotation: ^4.9.0
 
   # File Operations
   path_provider: ^2.1.1
@@ -114,6 +114,13 @@ dependencies:
   # Date Formatting
   intl: ^0.20.2
   record: ^6.1.1
+
+  # Export and PDF generation
+  pdf: ^3.10.4
+  printing: ^5.11.0
+  
+  # Dynamic link generation
+  firebase_dynamic_links: ^6.0.8
 
 dev_dependencies:
   flutter_test:

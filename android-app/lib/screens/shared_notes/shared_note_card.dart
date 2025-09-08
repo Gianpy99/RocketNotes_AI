@@ -97,7 +97,7 @@ class _SharedNoteCardState extends State<SharedNoteCard> {
 
               const SizedBox(height: 12),
 
-              // Metadata row
+              // Enhanced metadata row with more information
               Row(
                 children: [
                   Icon(
@@ -106,14 +106,25 @@ class _SharedNoteCardState extends State<SharedNoteCard> {
                     color: Colors.grey[500],
                   ),
                   const SizedBox(width: 4),
-                  Text(
-                    _isLoadingName ? 'Loading...' : 'Shared by $_sharedByName',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
+                  Expanded(
+                    child: Text(
+                      _isLoadingName ? 'Loading...' : 'Shared by $_sharedByName',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                ],
+              ),
+
+              const SizedBox(height: 4),
+
+              // Second metadata row with additional info
+              Row(
+                children: [
                   Icon(
                     Icons.access_time,
                     size: 16,
@@ -127,8 +138,82 @@ class _SharedNoteCardState extends State<SharedNoteCard> {
                       color: Colors.grey[600],
                     ),
                   ),
+                  if (widget.sharedNote.allowCollaboration) ...[
+                    const SizedBox(width: 12),
+                    Icon(
+                      Icons.people,
+                      size: 16,
+                      color: Colors.blue[500],
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Collaborative',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                  if (widget.sharedNote.expiresAt != null) ...[
+                    const SizedBox(width: 12),
+                    Icon(
+                      Icons.timer,
+                      size: 16,
+                      color: Colors.orange[500],
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Expires ${_formatDate(widget.sharedNote.expiresAt!)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.orange[600],
+                      ),
+                    ),
+                  ],
                 ],
               ),
+
+              // Activity indicators row
+              if (widget.sharedNote.activeViewers.isNotEmpty || widget.sharedNote.collaborationSessionId != null) ...[
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    if (widget.sharedNote.activeViewers.isNotEmpty) ...[
+                      Icon(
+                        Icons.visibility,
+                        size: 16,
+                        color: Colors.green[500],
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${widget.sharedNote.activeViewers.length} viewing',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.green[600],
+                        ),
+                      ),
+                    ],
+                    if (widget.sharedNote.collaborationSessionId != null) ...[
+                      if (widget.sharedNote.activeViewers.isNotEmpty) const SizedBox(width: 12),
+                      Icon(
+                        Icons.edit,
+                        size: 16,
+                        color: Colors.purple[500],
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Live session',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.purple[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
 
               // Status indicator
               if (widget.sharedNote.status != SharingStatus.approved) ...[

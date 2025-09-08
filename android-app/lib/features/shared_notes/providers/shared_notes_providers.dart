@@ -3,11 +3,17 @@ import '../../../models/shared_note.dart';
 import '../../../models/shared_note_comment.dart';
 import '../../../models/note_permission.dart';
 import '../../family/services/shared_notes_service.dart';
+import '../services/shared_note_export_service.dart';
 
 // Provider for shared notes service
 final sharedNotesServiceProvider = Provider<SharedNotesService>((ref) {
   // TODO: Get these from their respective providers
   throw UnimplementedError('SharedNotesService needs proper dependency injection');
+});
+
+// Provider for export service
+final sharedNoteExportServiceProvider = Provider<SharedNoteExportService>((ref) {
+  return SharedNoteExportService();
 });
 
 // Provider for all shared notes
