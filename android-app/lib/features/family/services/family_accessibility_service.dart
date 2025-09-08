@@ -124,7 +124,7 @@ class FamilyAccessibilityService {
           title: title,
           content: content,
           actions: actions,
-          semanticLabel: title is Text ? (title as Text).data ?? 'Dialog' : 'Dialog',
+          semanticLabel: _getTextFromWidget(title) ?? 'Dialog',
         ),
       ),
     );
@@ -162,7 +162,7 @@ class FamilyAccessibilityService {
       child: Switch(
         value: value,
         onChanged: onChanged,
-        activeColor: AppColors.primaryBlue,
+        activeThumbColor: AppColors.primaryBlue,
       ),
     );
   }
@@ -200,8 +200,8 @@ class FamilyAccessibilityService {
       checked: value == groupValue,
       child: Radio<T>(
         value: value,
-        groupValue: groupValue,
-        onChanged: onChanged,
+        groupValue: groupValue, // ignore: deprecated_member_use
+        onChanged: onChanged, // ignore: deprecated_member_use
         activeColor: AppColors.primaryBlue,
       ),
     );
@@ -279,7 +279,7 @@ class FamilyAccessibilityService {
       label: label,
       hint: hint,
       child: DropdownButtonFormField<T>(
-        value: value,
+        initialValue: value,
         items: items,
         onChanged: onChanged,
         decoration: InputDecoration(
@@ -390,12 +390,20 @@ class FamilyAccessibilityService {
       label: title,
       child: ExpansionTile(
         title: Text(title),
-        children: children,
         initiallyExpanded: initiallyExpanded,
         collapsedBackgroundColor: Colors.transparent,
         backgroundColor: Colors.grey[50],
+        children: children,
       ),
     );
+  }
+
+  /// Helper method to safely extract text from a widget
+  static String? _getTextFromWidget(Widget? widget) {
+    if (widget is Text) {
+      return widget.data;
+    }
+    return null;
   }
 }
 
