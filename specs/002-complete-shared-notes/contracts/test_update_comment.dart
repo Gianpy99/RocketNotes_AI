@@ -1,4 +1,4 @@
-# Contract Test: Update Comment
+// Spostato in test_update_comment.md
 
 **Test File**: `test_update_comment.dart`
 **API Endpoint**: `PUT /api/comments/{commentId}`

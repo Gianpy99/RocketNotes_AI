@@ -454,14 +454,14 @@ class _NotificationGroupsScreenState extends ConsumerState<NotificationGroupsScr
     }
 
     return CircleAvatar(
-      backgroundColor: iconColor.withOpacity(0.1),
+      backgroundColor: iconColor.withValues(alpha: 0.1),
       child: Icon(iconData, color: iconColor, size: 20),
     );
   }
 
   Widget _buildNotificationItem(NotificationHistory notification) {
     return Container(
-      color: notification.isRead ? null : Colors.blue.withOpacity(0.05),
+      color: notification.isRead ? null : Colors.blue.withValues(alpha: 0.05),
       child: ListTile(
         dense: true,
         leading: Icon(

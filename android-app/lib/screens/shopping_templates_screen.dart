@@ -105,7 +105,7 @@ class _ShoppingTemplatesScreenState extends ConsumerState<ShoppingTemplatesScree
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: _getCategoryColor(template.category).withOpacity(0.1),
+                color: _getCategoryColor(template.category).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(color: _getCategoryColor(template.category)),
               ),

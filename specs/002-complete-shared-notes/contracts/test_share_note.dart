@@ -1,4 +1,4 @@
-# Contract Test: Share Note
+// Spostato in test_share_note.md
 
 **Test File**: `test_share_note.dart`
 **API Endpoint**: `POST /api/shared-notes`

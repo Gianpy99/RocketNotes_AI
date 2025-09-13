@@ -1,4 +1,4 @@
-# Contract Test: Add Comment
+// Spostato in test_add_comment.md
 
 **Test File**: `test_add_comment.dart`
 **API Endpoint**: `POST /api/shared-notes/{noteId}/comments`

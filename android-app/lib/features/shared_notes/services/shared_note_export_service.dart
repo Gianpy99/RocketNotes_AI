@@ -1,11 +1,9 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import '../../../models/shared_note.dart';
 import '../../../models/shared_note_comment.dart';
 import 'package:intl/intl.dart';
@@ -83,16 +81,14 @@ class SharedNoteExportService {
 
       if (options.format == ExportFormat.pdf) {
         // Share PDF file
-        await Share.shareXFiles(
+        await SharePlus.instance.shareXFiles(
           [XFile(content)],
-          subject: subject ?? 'Shared Note: ${note.title}',
         );
       } else {
         // Share text content
-        await Share.share(
-          content,
-          subject: subject ?? 'Shared Note: ${note.title}',
-        );
+        await SharePlus.instance.share(ShareParams(
+          text: content,
+        ));
       }
     } catch (e) {
       throw Exception('Failed to share note: $e');
@@ -106,10 +102,9 @@ class SharedNoteExportService {
     String? baseUrl,
   }) async {
     final link = generateShareLink(noteId: noteId, baseUrl: baseUrl);
-    await Share.share(
-      link,
-      subject: subject ?? 'Check out this shared note',
-    );
+    await SharePlus.instance.share(ShareParams(
+      text: link,
+    ));
   }
 
   /// Export as plain text

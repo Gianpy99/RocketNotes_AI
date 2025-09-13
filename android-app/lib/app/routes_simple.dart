@@ -17,7 +17,6 @@ import '../screens/shared_notes/shared_notes_list_screen.dart';
 import '../screens/shared_notes/note_sharing_screen.dart';
 import '../screens/shared_notes/shared_note_viewer.dart';
 import '../screens/shopping_list_screen.dart';
-import '../screens/family_sharing_screen.dart';
 import '../screens/shopping_templates_screen.dart';
 import '../screens/shopping_categories_screen.dart';
 

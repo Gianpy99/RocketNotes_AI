@@ -1,4 +1,4 @@
-/// Data models for shopping list functionality (T091-T095)
+// Data models for shopping list functionality (T091-T095)
 
 enum ShoppingItemStatus {
   pending,

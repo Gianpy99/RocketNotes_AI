@@ -340,7 +340,7 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
     }
 
     return CircleAvatar(
-      backgroundColor: iconColor.withOpacity(0.1),
+      backgroundColor: iconColor.withValues(alpha: 0.1),
       child: Icon(iconData, color: iconColor),
     );
   }

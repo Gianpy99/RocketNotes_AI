@@ -239,7 +239,7 @@ class _ShoppingCategoriesScreenState extends ConsumerState<ShoppingCategoriesScr
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: _getCategoryColor(category).withOpacity(0.1),
+                      color: _getCategoryColor(category).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -467,7 +467,7 @@ class _ShoppingCategoriesScreenState extends ConsumerState<ShoppingCategoriesScr
               return ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: CircleAvatar(
-                  backgroundColor: _getCategoryColor(entry.key).withOpacity(0.1),
+                  backgroundColor: _getCategoryColor(entry.key).withValues(alpha: 0.1),
                   child: Text(
                     '${index + 1}',
                     style: TextStyle(
