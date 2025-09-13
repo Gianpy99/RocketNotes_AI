@@ -115,6 +115,16 @@ dependencies:
   intl: ^0.20.2
   record: ^6.1.1
 
+  # Speech to Text and Voice Processing
+  speech_to_text: ^7.0.0
+  flutter_tts: ^4.1.0
+
+  # AI and OpenAI Integration
+  openai_dart: ^0.3.0
+  
+  # WebSocket for real-time collaboration
+  web_socket_channel: 3.0.3
+
   # Export and PDF generation
   pdf: ^3.10.4
   printing: ^5.11.0

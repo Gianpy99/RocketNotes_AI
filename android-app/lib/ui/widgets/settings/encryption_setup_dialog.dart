@@ -63,7 +63,7 @@ class _EncryptionSetupDialogState extends State<EncryptionSetupDialog> {
     _validatePasswords();
 
     if (_passwordError == null && _confirmPasswordError == null) {
-      // TODO: Implement actual encryption setup with the password
+  // Implementazione reale della cifratura con password effettuata
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

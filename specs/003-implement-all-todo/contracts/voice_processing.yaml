@@ -1,0 +1,534 @@
+openapi: 3.0.3
+info:
+  title: Voice Processing API
+  description: Speech-to-text, voice commands, and AI suggestions for RocketNotes AI
+  version: 1.0.0
+  contact:
+    name: RocketNotes AI Team
+
+servers:
+  - url: https://api.rocketnotes.ai/v1
+    description: Production server
+  - url: https://staging.rocketnotes.ai/v1
+    description: Staging server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /voice/sessions:
+    post:
+      summary: Start voice processing session
+      description: Initialize a new voice processing session for speech-to-text or voice commands
+      tags:
+        - Voice Processing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionType
+                - language
+              properties:
+                sessionType:
+                  type: string
+                  enum: [speech_to_text, voice_commands, dictation]
+                  description: Type of voice processing session
+                language:
+                  type: string
+                  example: "en-US"
+                  description: Language code for speech recognition
+                contextId:
+                  type: string
+                  description: ID of note or context for session
+                expectedDuration:
+                  type: integer
+                  description: Expected session duration in seconds
+                  minimum: 1
+                  maximum: 300
+            examples:
+              speechToText:
+                value:
+                  sessionType: "speech_to_text"
+                  language: "en-US"
+                  contextId: "note_123"
+                  expectedDuration: 60
+      responses:
+        '201':
+          description: Voice session created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId:
+                    type: string
+                    description: Unique session identifier
+                  status:
+                    type: string
+                    enum: [active, ready, processing]
+                  expiresAt:
+                    type: string
+                    format: date-time
+                  websocketUrl:
+                    type: string
+                    description: WebSocket URL for real-time audio streaming
+                  uploadUrl:
+                    type: string
+                    description: URL for audio file upload
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /voice/sessions/{sessionId}/upload:
+    post:
+      summary: Upload audio for processing
+      description: Upload audio file or stream for speech-to-text processing
+      tags:
+        - Voice Processing
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+          description: Voice session ID
+      requestBody:
+        required: true
+        content:
+          audio/wav:
+            schema:
+              type: string
+              format: binary
+          audio/mp3:
+            schema:
+              type: string
+              format: binary
+          audio/webm:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: Audio uploaded and processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transcription:
+                    type: string
+                    description: Transcribed text from audio
+                  confidence:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                    description: Confidence score of transcription
+                  processedAt:
+                    type: string
+                    format: date-time
+                  detectedCommands:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VoiceCommand'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /voice/sessions/{sessionId}/stream:
+    get:
+      summary: WebSocket endpoint for real-time audio streaming
+      description: WebSocket connection for real-time speech-to-text processing
+      tags:
+        - Voice Processing
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+      responses:
+        '101':
+          description: WebSocket connection established
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /voice/commands:
+    get:
+      summary: Get available voice commands
+      description: Retrieve list of supported voice commands and their syntax
+      tags:
+        - Voice Commands
+      parameters:
+        - in: query
+          name: language
+          schema:
+            type: string
+            default: "en-US"
+          description: Language code for commands
+        - in: query
+          name: category
+          schema:
+            type: string
+            enum: [navigation, note_editing, family_management, sharing]
+          description: Filter commands by category
+      responses:
+        '200':
+          description: Available voice commands
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  commands:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VoiceCommandDefinition'
+                  language:
+                    type: string
+                  totalCount:
+                    type: integer
+
+  /voice/commands/execute:
+    post:
+      summary: Execute voice command
+      description: Process and execute a detected voice command
+      tags:
+        - Voice Commands
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - command
+                - context
+              properties:
+                command:
+                  type: string
+                  description: Detected voice command text
+                context:
+                  type: object
+                  description: Current application context
+                  properties:
+                    currentNoteId:
+                      type: string
+                    familyId:
+                      type: string
+                    currentScreen:
+                      type: string
+                confidence:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                sessionId:
+                  type: string
+            examples:
+              createReminder:
+                value:
+                  command: "create reminder for tomorrow"
+                  context:
+                    currentNoteId: "note_123"
+                    familyId: "family_456"
+                  confidence: 0.95
+      responses:
+        '200':
+          description: Command executed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  executed:
+                    type: boolean
+                  action:
+                    type: string
+                    description: Action that was performed
+                  result:
+                    type: object
+                    description: Result of the command execution
+                  message:
+                    type: string
+                    description: Human-readable confirmation
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          description: Command not recognized or cannot be executed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  suggestions:
+                    type: array
+                    items:
+                      type: string
+
+  /ai/suggestions:
+    post:
+      summary: Get AI content suggestions
+      description: Generate AI-powered content suggestions based on context
+      tags:
+        - AI Suggestions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+                - suggestionType
+              properties:
+                content:
+                  type: string
+                  description: Current note content or partial text
+                suggestionType:
+                  type: string
+                  enum: [completion, enhancement, formatting, translation]
+                  description: Type of suggestion to generate
+                context:
+                  type: object
+                  properties:
+                    noteType:
+                      type: string
+                    familyId:
+                      type: string
+                    tags:
+                      type: array
+                      items:
+                        type: string
+                maxSuggestions:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+                  default: 3
+            examples:
+              textCompletion:
+                value:
+                  content: "Today I need to remember to"
+                  suggestionType: "completion"
+                  context:
+                    noteType: "personal"
+                  maxSuggestions: 3
+      responses:
+        '200':
+          description: AI suggestions generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  suggestions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AISuggestion'
+                  requestId:
+                    type: string
+                  processedAt:
+                    type: string
+                    format: date-time
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  retryAfter:
+                    type: integer
+                    description: Seconds to wait before retry
+
+  /ai/feedback:
+    post:
+      summary: Provide feedback on AI suggestions
+      description: Submit feedback to improve AI suggestion quality
+      tags:
+        - AI Suggestions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - requestId
+                - feedback
+              properties:
+                requestId:
+                  type: string
+                  description: ID from original suggestion request
+                feedback:
+                  type: string
+                  enum: [helpful, not_helpful, inappropriate, inaccurate]
+                selectedSuggestion:
+                  type: integer
+                  description: Index of suggestion that was used (0-based)
+                comments:
+                  type: string
+                  description: Optional feedback comments
+      responses:
+        '200':
+          description: Feedback recorded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [recorded]
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    VoiceCommand:
+      type: object
+      properties:
+        command:
+          type: string
+          description: Detected command text
+        type:
+          type: string
+          enum: [navigation, action, content]
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        parameters:
+          type: object
+          description: Extracted command parameters
+        timestamp:
+          type: string
+          format: date-time
+
+    VoiceCommandDefinition:
+      type: object
+      properties:
+        id:
+          type: string
+        command:
+          type: string
+          description: Command pattern or phrase
+        description:
+          type: string
+        category:
+          type: string
+        examples:
+          type: array
+          items:
+            type: string
+        parameters:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              type:
+                type: string
+              required:
+                type: boolean
+              description:
+                type: string
+
+    AISuggestion:
+      type: object
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+          description: Suggested content
+        type:
+          type: string
+          enum: [completion, enhancement, formatting, translation]
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        rationale:
+          type: string
+          description: Explanation of why this suggestion was made
+        metadata:
+          type: object
+          properties:
+            wordCount:
+              type: integer
+            language:
+              type: string
+            readingLevel:
+              type: string
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    field:
+                      type: string
+                    issue:
+                      type: string
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Authentication required"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+
+tags:
+  - name: Voice Processing
+    description: Speech-to-text and audio processing operations
+  - name: Voice Commands  
+    description: Voice command recognition and execution
+  - name: AI Suggestions
+    description: AI-powered content suggestions and enhancements

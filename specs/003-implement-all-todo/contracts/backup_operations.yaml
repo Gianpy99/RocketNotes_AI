@@ -1,0 +1,702 @@
+openapi: 3.0.3
+info:
+  title: Backup Operations API  
+  description: Data backup, encryption, and security management for RocketNotes AI
+  version: 1.0.0
+  contact:
+    name: RocketNotes AI Team
+
+servers:
+  - url: https://api.rocketnotes.ai/v1
+    description: Production server
+  - url: https://staging.rocketnotes.ai/v1
+    description: Staging server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /security/encryption/setup:
+    post:
+      summary: Setup encryption for user data
+      description: Initialize encryption settings and generate encryption keys
+      tags:
+        - Security
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+                - encryptionLevel
+              properties:
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  description: Master password for encryption
+                encryptionLevel:
+                  type: string
+                  enum: [standard, high, maximum]
+                  description: Level of encryption to apply
+                biometricEnabled:
+                  type: boolean
+                  description: Enable biometric unlock
+                keyDerivationRounds:
+                  type: integer
+                  minimum: 10000
+                  maximum: 100000
+                  default: 50000
+            examples:
+              standard:
+                value:
+                  password: "SecurePassword123!"
+                  encryptionLevel: "standard"
+                  biometricEnabled: true
+      responses:
+        '200':
+          description: Encryption setup completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  encryptionId:
+                    type: string
+                    description: Unique encryption configuration ID
+                  status:
+                    type: string
+                    enum: [active, pending]
+                  keyFingerprint:
+                    type: string
+                    description: Fingerprint of encryption key for verification
+                  biometricConfigured:
+                    type: boolean
+                  backupRequired:
+                    type: boolean
+                    description: Whether backup keys need to be saved
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Encryption already configured
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  existingEncryptionId:
+                    type: string
+
+  /security/encryption/verify:
+    post:
+      summary: Verify encryption password
+      description: Verify user's encryption password for data access
+      tags:
+        - Security
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                password:
+                  type: string
+                  format: password
+                biometricToken:
+                  type: string
+                  description: Biometric authentication token
+      responses:
+        '200':
+          description: Password verified successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verified:
+                    type: boolean
+                  accessToken:
+                    type: string
+                    description: Temporary access token for encrypted operations
+                  expiresIn:
+                    type: integer
+                    description: Token expiration time in seconds
+        '401':
+          description: Invalid password or biometric
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  attemptsRemaining:
+                    type: integer
+
+  /backup/create:
+    post:
+      summary: Create encrypted backup
+      description: Create a comprehensive encrypted backup of user data
+      tags:
+        - Backup Operations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - backupType
+              properties:
+                backupType:
+                  type: string
+                  enum: [full, incremental, family_only, notes_only]
+                  description: Type of backup to create
+                includeFamilyData:
+                  type: boolean
+                  default: true
+                  description: Include family shared data
+                includeMedia:
+                  type: boolean
+                  default: true
+                  description: Include attached media files
+                cloudDestination:
+                  type: string
+                  enum: [google_drive, icloud, onedrive, dropbox]
+                  description: Cloud storage destination
+                localPath:
+                  type: string
+                  description: Local storage path for backup
+                compressionLevel:
+                  type: integer
+                  minimum: 0
+                  maximum: 9
+                  default: 6
+            examples:
+              fullBackup:
+                value:
+                  backupType: "full"
+                  includeFamilyData: true
+                  includeMedia: true
+                  cloudDestination: "google_drive"
+                  compressionLevel: 6
+      responses:
+        '202':
+          description: Backup creation started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  backupId:
+                    type: string
+                    description: Unique backup operation ID
+                  status:
+                    type: string
+                    enum: [queued, processing, uploading]
+                  estimatedSizeBytes:
+                    type: integer
+                  estimatedDurationSeconds:
+                    type: integer
+                  progressUrl:
+                    type: string
+                    description: URL to check backup progress
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          description: Storage quota exceeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  currentUsage:
+                    type: integer
+                  quotaLimit:
+                    type: integer
+                  upgradeRequired:
+                    type: boolean
+
+  /backup/{backupId}/status:
+    get:
+      summary: Get backup operation status
+      description: Check the progress and status of a backup operation
+      tags:
+        - Backup Operations
+      parameters:
+        - in: path
+          name: backupId
+          required: true
+          schema:
+            type: string
+          description: Backup operation ID
+      responses:
+        '200':
+          description: Backup status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  backupId:
+                    type: string
+                  status:
+                    type: string
+                    enum: [queued, processing, uploading, completed, failed, cancelled]
+                  progress:
+                    type: object
+                    properties:
+                      percentage:
+                        type: integer
+                        minimum: 0
+                        maximum: 100
+                      currentPhase:
+                        type: string
+                        enum: [collecting, encrypting, compressing, uploading]
+                      processedItems:
+                        type: integer
+                      totalItems:
+                        type: integer
+                      bytesProcessed:
+                        type: integer
+                      totalBytes:
+                        type: integer
+                  createdAt:
+                    type: string
+                    format: date-time
+                  completedAt:
+                    type: string
+                    format: date-time
+                  downloadUrl:
+                    type: string
+                    description: URL to download completed backup
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    description: When backup download expires
+                  error:
+                    type: string
+                    description: Error message if backup failed
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /backup/list:
+    get:
+      summary: List user backups
+      description: Retrieve list of user's backup files and their metadata
+      tags:
+        - Backup Operations
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [completed, failed, expired]
+          description: Filter by backup status
+        - in: query
+          name: backupType
+          schema:
+            type: string
+            enum: [full, incremental, family_only, notes_only]
+      responses:
+        '200':
+          description: Backup list retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  backups:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BackupMetadata'
+                  totalCount:
+                    type: integer
+                  hasMore:
+                    type: boolean
+
+  /backup/{backupId}/download:
+    get:
+      summary: Download backup file
+      description: Generate secure download link for backup file
+      tags:
+        - Backup Operations
+      parameters:
+        - in: path
+          name: backupId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: encryptionKey
+          required: true
+          schema:
+            type: string
+          description: Encryption key for backup decryption
+      responses:
+        '200':
+          description: Backup download initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  downloadUrl:
+                    type: string
+                    description: Secure download URL
+                  expiresIn:
+                    type: integer
+                    description: URL expiration time in seconds
+                  fileSize:
+                    type: integer
+                  fileName:
+                    type: string
+                  checksumSHA256:
+                    type: string
+                    description: File integrity checksum
+        '403':
+          description: Access denied or invalid encryption key
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          description: Backup file expired or deleted
+
+  /backup/restore:
+    post:
+      summary: Restore from backup
+      description: Restore user data from an encrypted backup file
+      tags:
+        - Backup Operations
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - backupFile
+                - encryptionKey
+              properties:
+                backupFile:
+                  type: string
+                  format: binary
+                  description: Encrypted backup file
+                encryptionKey:
+                  type: string
+                  description: Decryption key for backup
+                restoreType:
+                  type: string
+                  enum: [full, selective]
+                  default: full
+                selectedData:
+                  type: array
+                  items:
+                    type: string
+                    enum: [notes, families, settings, media]
+                  description: Data types to restore (for selective restore)
+                mergeStrategy:
+                  type: string
+                  enum: [replace, merge, skip_existing]
+                  default: merge
+                  description: How to handle existing data conflicts
+      responses:
+        '202':
+          description: Restore operation started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  restoreId:
+                    type: string
+                  status:
+                    type: string
+                    enum: [processing, validating, restoring]
+                  progressUrl:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          description: Invalid backup file or incompatible version
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  backupVersion:
+                    type: string
+                  appVersion:
+                    type: string
+                  compatibility:
+                    type: string
+                    enum: [compatible, upgrade_required, unsupported]
+
+  /backup/restore/{restoreId}/status:
+    get:
+      summary: Get restore operation status
+      description: Check the progress of a data restore operation
+      tags:
+        - Backup Operations
+      parameters:
+        - in: path
+          name: restoreId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Restore status retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  restoreId:
+                    type: string
+                  status:
+                    type: string
+                    enum: [processing, validating, restoring, completed, failed]
+                  progress:
+                    type: object
+                    properties:
+                      percentage:
+                        type: integer
+                      currentPhase:
+                        type: string
+                      restoredItems:
+                        type: integer
+                      totalItems:
+                        type: integer
+                      conflicts:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            itemType:
+                              type: string
+                            itemId:
+                              type: string
+                            conflict:
+                              type: string
+                            resolution:
+                              type: string
+                  completedAt:
+                    type: string
+                    format: date-time
+                  summary:
+                    type: object
+                    properties:
+                      notesRestored:
+                        type: integer
+                      familiesRestored:
+                        type: integer
+                      mediaFilesRestored:
+                        type: integer
+                      conflictsResolved:
+                        type: integer
+
+  /security/audit:
+    get:
+      summary: Get security audit log
+      description: Retrieve security events and audit trail for user account
+      tags:
+        - Security
+      parameters:
+        - in: query
+          name: fromDate
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: toDate
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: eventType
+          schema:
+            type: string
+            enum: [login, backup, restore, encryption_change, data_access]
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Audit log retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SecurityEvent'
+                  totalCount:
+                    type: integer
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    BackupMetadata:
+      type: object
+      properties:
+        backupId:
+          type: string
+        backupType:
+          type: string
+          enum: [full, incremental, family_only, notes_only]
+        status:
+          type: string
+          enum: [completed, failed, expired]
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        fileSizeBytes:
+          type: integer
+        itemCount:
+          type: integer
+        encryptionLevel:
+          type: string
+        cloudDestination:
+          type: string
+        checksumSHA256:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        downloadCount:
+          type: integer
+        lastDownloaded:
+          type: string
+          format: date-time
+
+    SecurityEvent:
+      type: object
+      properties:
+        eventId:
+          type: string
+        eventType:
+          type: string
+          enum: [login, logout, backup_created, backup_downloaded, restore_initiated, encryption_enabled, encryption_changed, data_accessed, suspicious_activity]
+        timestamp:
+          type: string
+          format: date-time
+        ipAddress:
+          type: string
+        userAgent:
+          type: string
+        deviceInfo:
+          type: object
+          properties:
+            platform:
+              type: string
+            version:
+              type: string
+            deviceId:
+              type: string
+        details:
+          type: object
+          description: Event-specific additional information
+        riskLevel:
+          type: string
+          enum: [low, medium, high, critical]
+        location:
+          type: object
+          properties:
+            country:
+              type: string
+            city:
+              type: string
+            coordinates:
+              type: object
+              properties:
+                latitude:
+                  type: number
+                longitude:
+                  type: number
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    field:
+                      type: string
+                    issue:
+                      type: string
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Authentication required"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+
+tags:
+  - name: Security
+    description: Data encryption and security management
+  - name: Backup Operations
+    description: Data backup, restore, and archival operations

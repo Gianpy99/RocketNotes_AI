@@ -142,7 +142,7 @@ class _NotificationGroupsScreenState extends ConsumerState<NotificationGroupsScr
 
       switch (_groupingMode) {
         case 'type':
-          groupKey = notification.type;
+          groupKey = notification.type.name;
           break;
         case 'date':
           final date = DateTime(
@@ -153,7 +153,7 @@ class _NotificationGroupsScreenState extends ConsumerState<NotificationGroupsScr
           groupKey = date.toIso8601String().split('T')[0];
           break;
         case 'priority':
-          groupKey = notification.priority;
+          groupKey = notification.priority.name;
           break;
         default:
           groupKey = 'all';
@@ -172,7 +172,7 @@ class _NotificationGroupsScreenState extends ConsumerState<NotificationGroupsScr
 
       return NotificationGroup(
         id: entry.key,
-        type: _groupingMode,
+        type: _groupingMode == 'type' ? NotificationType.values.byName(entry.key) : NotificationType.system,
         title: _getGroupTitle(entry.key),
         notifications: notifications,
         lastUpdated: notifications.isNotEmpty ? notifications.first.timestamp : DateTime.now(),

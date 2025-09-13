@@ -4,15 +4,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/constants/app_colors.dart';
-import '../data/models/family_member_model.dart';
-import '../core/services/family_service.dart';
 
-// TODO: FAMILY_FEATURES - Complete family members management
-// - Add member avatar upload
-// - Add emergency contact management
-// - Add member permissions editing
-// - Add member relationship types
-// - Add member activity history
+import '../models/family_member.dart';
+import '../services/family_service.dart';
+
+// T027: Real-time family member activity tracking implementation
+// - Real-time activity indicators
+// - Online/offline status tracking  
+// - Last seen timestamps
+// - Member presence tracking
+// - Activity history
 
 class FamilyMembersScreen extends ConsumerStatefulWidget {
   const FamilyMembersScreen({super.key});
@@ -22,6 +23,26 @@ class FamilyMembersScreen extends ConsumerStatefulWidget {
 }
 
 class _FamilyMembersScreenState extends ConsumerState<FamilyMembersScreen> {
+  final FamilyService _familyService = FamilyService();
+  String? _currentFamilyId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentFamily();
+  }
+
+  Future<void> _loadCurrentFamily() async {
+    final result = await _familyService.getUserFamilies();
+    if (result.isSuccess && result.data != null && result.data!.isNotEmpty && mounted) {
+      setState(() {
+        _currentFamilyId = result.data!.first.id;
+      });
+      // Update user's activity when entering the screen
+      _familyService.updateMemberActivity(familyId: _currentFamilyId!);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,40 +58,39 @@ class _FamilyMembersScreenState extends ConsumerState<FamilyMembersScreen> {
           ),
         ],
       ),
-      body: FutureBuilder<List<FamilyMember>>(
-        future: FamilyService.instance.getAllFamilyMembers(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text('Error loading family members: ${snapshot.error}'),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => setState(() {}),
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          final members = snapshot.data ?? [];
-
-          if (members.isEmpty) {
-            return _buildEmptyState();
-          }
-
-          return _buildMembersList(members);
-        },
-      ),
+    body: _currentFamilyId == null
+      ? const Center(child: CircularProgressIndicator())
+      : FutureBuilder<ServiceResult<List<FamilyMember>>>(
+        future: _familyService.getFamilyMembers(_currentFamilyId!),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                        const SizedBox(height: 16),
+                        Text('Error loading family members: {snapshot.error}'),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () => setState(() {}),
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                final result = snapshot.data;
+                final members = result?.data ?? [];
+                if (members.isEmpty) {
+                  return _buildEmptyState();
+                }
+                return _buildMembersList(members);
+              },
+            ),
     );
   }
 
@@ -153,7 +173,7 @@ class _FamilyMembersScreenState extends ConsumerState<FamilyMembersScreen> {
               : _buildAvatarText(member),
         ),
         title: Text(
-          member.name,
+          member.name ?? '',
           style: const TextStyle(
             fontWeight: FontWeight.w500,
             fontSize: 16,
@@ -162,7 +182,7 @@ class _FamilyMembersScreenState extends ConsumerState<FamilyMembersScreen> {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(member.relationship),
+            Text(member.relationship ?? ''),
             if (member.phoneNumber != null)
               Text(
                 member.phoneNumber!,
@@ -235,7 +255,7 @@ class _FamilyMembersScreenState extends ConsumerState<FamilyMembersScreen> {
   Widget _buildAvatarText(FamilyMember member) {
     return Center(
       child: Text(
-        member.name.isNotEmpty ? member.name[0].toUpperCase() : '?',
+  (member.name != null && member.name!.isNotEmpty) ? member.name![0].toUpperCase() : '?',
         style: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.bold,

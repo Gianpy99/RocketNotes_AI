@@ -1,0 +1,803 @@
+openapi: 3.0.3
+info:
+  title: Shared Notes API
+  description: API contracts for shared note creation, collaboration, and management
+  version: 1.0.0
+
+paths:
+  /notes/{noteId}/share:
+    post:
+      summary: Share a note with family members
+      description: Share an existing note with specified family members and permissions
+      tags:
+        - Shared Notes
+      parameters:
+        - name: noteId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - familyId
+                - permissions
+              properties:
+                familyId:
+                  type: string
+                  description: Family to share the note with
+                allowedMemberIds:
+                  type: array
+                  items:
+                    type: string
+                  maxItems: 50
+                  description: Specific family members to share with (empty for all)
+                permissions:
+                  $ref: '#/components/schemas/NotePermissions'
+                message:
+                  type: string
+                  maxLength: 200
+                  description: Optional message to include with the share
+                expiresAt:
+                  type: string
+                  format: date-time
+                  description: Optional expiration date for the share
+                requiresApproval:
+                  type: boolean
+                  default: false
+                  description: Whether sharing requires family admin approval
+                allowCollaboration:
+                  type: boolean
+                  default: true
+                  description: Allow real-time collaborative editing
+      responses:
+        '201':
+          description: Note shared successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedNote'
+        '400':
+          description: Invalid input or note already shared
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Note not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /shared-notes:
+    get:
+      summary: Get shared notes
+      description: Retrieve shared notes accessible to the user
+      tags:
+        - Shared Notes
+      parameters:
+        - name: familyId
+          in: query
+          schema:
+            type: string
+          description: Filter by family
+        - name: permission
+          in: query
+          schema:
+            type: string
+            enum: [view, edit, comment, admin]
+          description: Filter by minimum permission level
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [sharedAt, lastModified, title]
+            default: lastModified
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: Shared notes retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SharedNote'
+                  total:
+                    type: integer
+                  hasMore:
+                    type: boolean
+
+  /shared-notes/{sharedNoteId}:
+    get:
+      summary: Get shared note details
+      description: Retrieve detailed information about a shared note
+      tags:
+        - Shared Notes
+      parameters:
+        - name: sharedNoteId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Shared note retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedNoteDetail'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Shared note not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Update shared note content
+      description: Update the content of a shared note (collaborative editing)
+      tags:
+        - Shared Notes
+      parameters:
+        - name: sharedNoteId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+                - version
+              properties:
+                content:
+                  type: string
+                  maxLength: 1048576
+                  description: Updated note content (max 1MB)
+                title:
+                  type: string
+                  maxLength: 200
+                  description: Updated note title
+                version:
+                  type: integer
+                  description: Current version number for conflict detection
+                changes:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ContentChange'
+                  description: Detailed change operations for collaborative editing
+                cursorPosition:
+                  type: integer
+                  description: User's current cursor position
+      responses:
+        '200':
+          description: Note updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: integer
+                    description: New version number
+                  conflicts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ConflictInfo'
+                    description: Any conflicts that were detected and resolved
+                  lastModified:
+                    type: string
+                    format: date-time
+        '400':
+          description: Invalid content or version conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient edit permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Version conflict - note was modified by another user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  currentVersion:
+                    type: integer
+                  conflicts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ConflictInfo'
+
+    delete:
+      summary: Unshare note
+      description: Remove sharing for a note (admin only)
+      tags:
+        - Shared Notes
+      parameters:
+        - name: sharedNoteId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  maxLength: 200
+                  description: Reason for unsharing
+                notifyMembers:
+                  type: boolean
+                  default: true
+                  description: Whether to notify affected family members
+      responses:
+        '204':
+          description: Note unshared successfully
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Shared note not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /shared-notes/{sharedNoteId}/permissions:
+    put:
+      summary: Update note sharing permissions
+      description: Update permissions for a shared note
+      tags:
+        - Shared Notes
+      parameters:
+        - name: sharedNoteId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - memberPermissions
+              properties:
+                memberPermissions:
+                  type: object
+                  additionalProperties:
+                    $ref: '#/components/schemas/NotePermissions'
+                  description: Map of member ID to permissions
+                defaultPermissions:
+                  $ref: '#/components/schemas/NotePermissions'
+                  description: Default permissions for new family members
+      responses:
+        '200':
+          description: Permissions updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedNote'
+        '400':
+          description: Invalid permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /shared-notes/{sharedNoteId}/comments:
+    get:
+      summary: Get note comments
+      description: Retrieve comments for a shared note
+      tags:
+        - Shared Notes
+      parameters:
+        - name: sharedNoteId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+      responses:
+        '200':
+          description: Comments retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  comments:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NoteComment'
+                  total:
+                    type: integer
+
+    post:
+      summary: Add note comment
+      description: Add a comment to a shared note
+      tags:
+        - Shared Notes
+      parameters:
+        - name: sharedNoteId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                  description: Comment content
+                parentCommentId:
+                  type: string
+                  description: ID of parent comment for replies
+                mentions:
+                  type: array
+                  items:
+                    type: string
+                  description: User IDs mentioned in the comment
+                attachments:
+                  type: array
+                  items:
+                    type: string
+                  description: File attachment IDs
+      responses:
+        '201':
+          description: Comment added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoteComment'
+        '400':
+          description: Invalid comment content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient comment permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /shared-notes/{sharedNoteId}/activity:
+    get:
+      summary: Get note activity log
+      description: Retrieve activity history for a shared note
+      tags:
+        - Shared Notes
+      parameters:
+        - name: sharedNoteId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: activityType
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [shared, viewed, edited, commented, permission_changed, member_added, member_removed]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Only return activities after this timestamp
+      responses:
+        '200':
+          description: Activity log retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activities:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NoteActivity'
+                  hasMore:
+                    type: boolean
+
+  /shared-notes/{sharedNoteId}/collaboration:
+    get:
+      summary: Get collaboration status
+      description: Get real-time collaboration information
+      tags:
+        - Shared Notes
+      parameters:
+        - name: sharedNoteId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Collaboration status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollaborationStatus'
+
+    post:
+      summary: Join collaboration session
+      description: Join a real-time editing session
+      tags:
+        - Shared Notes
+      parameters:
+        - name: sharedNoteId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionId:
+                  type: string
+                  description: Existing session ID to join
+                cursorPosition:
+                  type: integer
+                  description: Initial cursor position
+      responses:
+        '200':
+          description: Joined collaboration session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId:
+                    type: string
+                  currentUsers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CollaboratingUser'
+                  version:
+                    type: integer
+
+components:
+  schemas:
+    SharedNote:
+      type: object
+      properties:
+        id:
+          type: string
+        noteId:
+          type: string
+        familyId:
+          type: string
+        sharedBy:
+          type: string
+        title:
+          type: string
+        sharedAt:
+          type: string
+          format: date-time
+        lastModified:
+          type: string
+          format: date-time
+        memberPermissions:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/NotePermissions'
+        expiresAt:
+          type: string
+          format: date-time
+        allowCollaboration:
+          type: boolean
+        currentVersion:
+          type: integer
+
+    SharedNoteDetail:
+      allOf:
+        - $ref: '#/components/schemas/SharedNote'
+        - type: object
+          properties:
+            content:
+              type: string
+              description: Current note content
+            versions:
+              type: array
+              items:
+                $ref: '#/components/schemas/NoteVersion'
+              description: Recent version history
+            collaboration:
+              $ref: '#/components/schemas/CollaborationStatus'
+            comments:
+              type: array
+              items:
+                $ref: '#/components/schemas/NoteComment'
+              description: Recent comments
+
+    NotePermissions:
+      type: object
+      properties:
+        canView:
+          type: boolean
+          default: true
+        canEdit:
+          type: boolean
+          default: false
+        canComment:
+          type: boolean
+          default: true
+        canShare:
+          type: boolean
+          default: false
+        canDelete:
+          type: boolean
+          default: false
+        canManagePermissions:
+          type: boolean
+          default: false
+
+    NoteVersion:
+      type: object
+      properties:
+        id:
+          type: string
+        version:
+          type: integer
+        content:
+          type: string
+        modifiedBy:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        changeDescription:
+          type: string
+        contentLength:
+          type: integer
+
+    ContentChange:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [insert, delete, retain]
+        position:
+          type: integer
+        length:
+          type: integer
+        content:
+          type: string
+        attributes:
+          type: object
+
+    ConflictInfo:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [content, permission, concurrent_edit]
+        position:
+          type: integer
+        conflictingUserId:
+          type: string
+        resolution:
+          type: string
+          enum: [auto_merged, manual_required, last_write_wins]
+        message:
+          type: string
+
+    NoteComment:
+      type: object
+      properties:
+        id:
+          type: string
+        sharedNoteId:
+          type: string
+        authorId:
+          type: string
+        authorName:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        parentCommentId:
+          type: string
+        mentions:
+          type: array
+          items:
+            type: string
+        attachments:
+          type: array
+          items:
+            type: string
+        isEdited:
+          type: boolean
+        isDeleted:
+          type: boolean
+
+    NoteActivity:
+      type: object
+      properties:
+        id:
+          type: string
+        sharedNoteId:
+          type: string
+        userId:
+          type: string
+        userName:
+          type: string
+        activityType:
+          type: string
+          enum: [shared, viewed, edited, commented, permission_changed, member_added, member_removed]
+        timestamp:
+          type: string
+          format: date-time
+        description:
+          type: string
+        metadata:
+          type: object
+
+    CollaborationStatus:
+      type: object
+      properties:
+        activeUsers:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollaboratingUser'
+        currentVersion:
+          type: integer
+        lastSyncAt:
+          type: string
+          format: date-time
+        isRealTimeEnabled:
+          type: boolean
+        maxConcurrentUsers:
+          type: integer
+
+    CollaboratingUser:
+      type: object
+      properties:
+        userId:
+          type: string
+        userName:
+          type: string
+        cursorPosition:
+          type: integer
+        lastActiveAt:
+          type: string
+          format: date-time
+        isEditing:
+          type: boolean
+        sessionId:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+        code:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+
+  securitySchemes:
+    FirebaseAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - FirebaseAuth: []

@@ -12,6 +12,7 @@ class FamilyMember extends Equatable {
   /// Reference to the family
   final String familyId;
 
+
   /// Role within the family (owner, admin, editor, viewer, limited)
   final FamilyRole role;
 
@@ -29,6 +30,22 @@ class FamilyMember extends Equatable {
   /// Whether membership is active
   final bool isActive;
 
+  /// Display name of the member
+  final String? name;
+
+  /// Path to avatar image (optional)
+  final String? avatarPath;
+
+  /// Relationship to family (e.g. 'Father', 'Mother', 'Child')
+  final String? relationship;
+
+  /// Phone number (optional)
+  final String? phoneNumber;
+
+  /// Emergency contact flag
+  final bool isEmergencyContact;
+
+
   const FamilyMember({
     required this.userId,
     required this.familyId,
@@ -37,11 +54,16 @@ class FamilyMember extends Equatable {
     required this.joinedAt,
     this.lastActiveAt,
     this.isActive = true,
+    this.name,
+    this.avatarPath,
+    this.relationship,
+    this.phoneNumber,
+    this.isEmergencyContact = false,
   });
 
+
   /// Creates a FamilyMember instance from JSON
-  factory FamilyMember.fromJson(Map<String, dynamic> json) =>
-      _$FamilyMemberFromJson(json);
+  factory FamilyMember.fromJson(Map<String, dynamic> json) => _$FamilyMemberFromJson(json);
 
   /// Converts FamilyMember instance to JSON
   Map<String, dynamic> toJson() => _$FamilyMemberToJson(this);
@@ -55,6 +77,11 @@ class FamilyMember extends Equatable {
     DateTime? joinedAt,
     DateTime? lastActiveAt,
     bool? isActive,
+    String? name,
+    String? avatarPath,
+    String? relationship,
+    String? phoneNumber,
+    bool? isEmergencyContact,
   }) {
     return FamilyMember(
       userId: userId ?? this.userId,
@@ -64,6 +91,11 @@ class FamilyMember extends Equatable {
       joinedAt: joinedAt ?? this.joinedAt,
       lastActiveAt: lastActiveAt ?? this.lastActiveAt,
       isActive: isActive ?? this.isActive,
+      name: name ?? this.name,
+      avatarPath: avatarPath ?? this.avatarPath,
+      relationship: relationship ?? this.relationship,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      isEmergencyContact: isEmergencyContact ?? this.isEmergencyContact,
     );
   }
 
@@ -76,6 +108,11 @@ class FamilyMember extends Equatable {
         joinedAt,
         lastActiveAt,
         isActive,
+        name,
+        avatarPath,
+        relationship,
+        phoneNumber,
+        isEmergencyContact,
       ];
 
   @override

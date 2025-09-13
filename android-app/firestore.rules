@@ -13,100 +13,157 @@ service cloud.firestore {
 
     function isFamilyMember(familyId) {
       return isAuthenticated() &&
-             exists(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid));
+             request.auth.uid in get(/databases/$(database)/documents/families/$(familyId)).data.memberIds;
     }
 
     function isFamilyAdmin(familyId) {
-      return isFamilyMember(familyId) &&
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)) &&
              get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.role in ['owner', 'admin'];
     }
 
     function isFamilyOwner(familyId) {
-      return isFamilyMember(familyId) &&
-             get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.role == 'owner';
+      return isAuthenticated() &&
+             get(/databases/$(database)/documents/families/$(familyId)).data.ownerId == request.auth.uid;
     }
 
     function canInviteMembers(familyId) {
       return isFamilyMember(familyId) &&
+             exists(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)) &&
              get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.permissions.canInviteMembers == true;
     }
 
     function canManageMembers(familyId) {
-      return isFamilyMember(familyId) &&
-             get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.permissions.canRemoveMembers == true;
+      return isFamilyAdmin(familyId) ||
+             (isFamilyMember(familyId) &&
+              exists(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)) &&
+              get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.permissions.canRemoveMembers == true);
     }
 
     function canShareNotes(familyId) {
       return isFamilyMember(familyId) &&
+             exists(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)) &&
              get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.permissions.canShareNotes == true;
     }
 
     function canManagePermissions(familyId) {
+      return isFamilyAdmin(familyId) ||
+             (isFamilyMember(familyId) &&
+              exists(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)) &&
+              get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.permissions.canManagePermissions == true);
+    }
+
+    function hasNoteAccess(noteId, familyId, permission) {
       return isFamilyMember(familyId) &&
-             get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.permissions.canManagePermissions == true;
+             (permission in ['view', 'comment'] ||
+              (permission == 'edit' && 
+               exists(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)) &&
+               get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.permissions.canShareNotes == true));
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+      allow read: if isAuthenticated();
     }
 
     // Families collection
     match /families/{familyId} {
-      // Allow read for family members
       allow read: if isFamilyMember(familyId);
-
-      // Allow create for authenticated users (creating new family)
-      allow create: if isAuthenticated() &&
-                       request.auth.uid == resource.data.adminUserId;
-
-      // Allow update for family admins
+      allow create: if isAuthenticated() && 
+                       request.auth.uid == resource.data.ownerId;
       allow update: if isFamilyAdmin(familyId);
-
-      // Allow delete for family owner only
       allow delete: if isFamilyOwner(familyId);
 
       // Family members subcollection
       match /members/{memberId} {
-        // Allow read for family members
         allow read: if isFamilyMember(familyId);
+        allow create: if canInviteMembers(familyId) ||
+                         (request.auth.uid == memberId && 
+                          exists(/databases/$(database)/documents/families/$(familyId)/invitations/$(request.auth.uid)));
+        allow update: if canManagePermissions(familyId) || 
+                         (isOwner(memberId) && 
+                          !('role' in request.resource.data.diff(resource.data).affectedKeys()));
+        allow delete: if canManageMembers(familyId) || isOwner(memberId);
+      }
 
-        // Allow create for family admins or when user is joining their own membership
-        allow create: if (isFamilyAdmin(familyId) ||
-                         (isAuthenticated() && request.auth.uid == memberId)) &&
-                       request.auth.uid == resource.data.userId;
+      // Family invitations subcollection
+      match /invitations/{invitationId} {
+        allow read: if isFamilyMember(familyId) || 
+                       request.auth.token.email == resource.data.inviteeEmail;
+        allow create: if canInviteMembers(familyId);
+        allow update: if request.auth.token.email == resource.data.inviteeEmail ||
+                         canManageMembers(familyId);
+        allow delete: if canManageMembers(familyId) ||
+                         request.auth.token.email == resource.data.inviteeEmail;
+      }
 
-        // Allow update for family admins or member updating themselves
-        allow update: if isFamilyAdmin(familyId) ||
-                      (isAuthenticated() && request.auth.uid == memberId);
-
-        // Allow delete for family admins (removing members)
-        allow delete: if isFamilyAdmin(familyId) &&
-                      request.auth.uid != memberId; // Can't delete yourself
+      // Family activity subcollection
+      match /activity/{activityId} {
+        allow read: if isFamilyMember(familyId);
+        allow create: if isFamilyMember(familyId);
+        allow update, delete: if false; // Activity logs are immutable
       }
     }
 
-    // Invitations collection
-    match /invitations/{invitationId} {
-      // Allow read for invitation creator or family admins
-      allow read: if isAuthenticated() &&
-                  (request.auth.uid == resource.data.invitedBy ||
-                   isFamilyAdmin(resource.data.familyId));
+    // Shared notes collection
+    match /shared_notes/{noteId} {
+      allow read: if resource.data.familyId != null && 
+                     hasNoteAccess(noteId, resource.data.familyId, 'view');
+      allow create: if request.auth.uid == request.resource.data.sharedBy &&
+                       canShareNotes(request.resource.data.familyId);
+      allow update: if resource.data.familyId != null && 
+                       hasNoteAccess(noteId, resource.data.familyId, 'edit');
+      allow delete: if resource.data.sharedBy == request.auth.uid ||
+                       isFamilyAdmin(resource.data.familyId);
 
-      // Allow read for invited user (to check if invitation exists for them)
-      allow read: if isAuthenticated() &&
-                  request.auth.email == resource.data.email;
+      // Comments subcollection
+      match /comments/{commentId} {
+        allow read: if hasNoteAccess(noteId, get(/databases/$(database)/documents/shared_notes/$(noteId)).data.familyId, 'view');
+        allow create: if hasNoteAccess(noteId, get(/databases/$(database)/documents/shared_notes/$(noteId)).data.familyId, 'comment') &&
+                         request.auth.uid == request.resource.data.authorId;
+        allow update: if request.auth.uid == resource.data.authorId;
+        allow delete: if request.auth.uid == resource.data.authorId ||
+                         isFamilyAdmin(get(/databases/$(database)/documents/shared_notes/$(noteId)).data.familyId);
+      }
 
-      // Allow create for users who can invite members
-      allow create: if isAuthenticated() &&
-                    canInviteMembers(resource.data.familyId) &&
-                    request.auth.uid == resource.data.invitedBy;
+      // Collaboration metadata subcollection
+      match /collaboration/{sessionId} {
+        allow read, write: if hasNoteAccess(noteId, get(/databases/$(database)/documents/shared_notes/$(noteId)).data.familyId, 'view');
+      }
+    }
 
-      // Allow update for invitation creator, family admins, or invited user (status updates)
-      allow update: if isAuthenticated() &&
-                    (request.auth.uid == resource.data.invitedBy ||
-                     isFamilyAdmin(resource.data.familyId) ||
-                     request.auth.email == resource.data.email);
+    // Voice sessions collection
+    match /voice_sessions/{sessionId} {
+      allow read, write: if isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && 
+                       request.auth.uid == request.resource.data.userId;
+    }
 
-      // Allow delete for invitation creator or family admins
-      allow delete: if isAuthenticated() &&
-                    (request.auth.uid == resource.data.invitedBy ||
-                     isFamilyAdmin(resource.data.familyId));
+    // Backup archives collection  
+    match /backup_archives/{archiveId} {
+      allow read, write: if isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && 
+                       request.auth.uid == request.resource.data.userId;
+    }
+
+    // Notifications collection
+    match /notifications/{notificationId} {
+      allow read: if isOwner(resource.data.userId);
+      allow create: if isAuthenticated();
+      allow update: if isOwner(resource.data.userId);
+      allow delete: if isOwner(resource.data.userId);
+    }
+
+    // Security events collection (audit log)
+    match /security_events/{eventId} {
+      allow read: if isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && 
+                       request.auth.uid == request.resource.data.userId;
+      allow update, delete: if false; // Security events are immutable
+    }
+  }
+}
     }
 
     // Shared Notes collection

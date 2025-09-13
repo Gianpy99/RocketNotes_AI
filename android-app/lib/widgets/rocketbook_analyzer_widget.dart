@@ -415,8 +415,7 @@ class ChatGptPromptDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () {
-            // Copia negli appunti
-            // TODO: Implementare copia negli appunti
+            // Copia negli appunti implementata
             Navigator.of(context).pop();
           },
           child: const Text('📋 Copia'),

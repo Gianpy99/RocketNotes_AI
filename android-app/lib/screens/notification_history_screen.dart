@@ -146,7 +146,7 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
     }
 
     // Sort by timestamp (newest first)
-    filtered.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+  filtered.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
     return filtered;
   }
@@ -214,11 +214,11 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: _getPriorityColor(notification.priority),
+                    color: _getPriorityColor(notification.priority.name),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    _getPriorityLabel(notification.priority),
+                    _getPriorityLabel(notification.priority.name),
                     style: const TextStyle(
                       fontSize: 10,
                       color: Colors.white,
@@ -310,29 +310,25 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
     Color iconColor;
 
     switch (notification.type) {
-      case 'family_invitation':
+      case NotificationType.familyInvitation:
         iconData = Icons.family_restroom;
         iconColor = Colors.blue;
         break;
-      case 'note_shared':
+      case NotificationType.sharedNote:
         iconData = Icons.share;
         iconColor = Colors.green;
         break;
-      case 'note_comment':
+      case NotificationType.comment:
         iconData = Icons.comment;
         iconColor = Colors.orange;
         break;
-      case 'note_updated':
+      case NotificationType.familyActivity:
         iconData = Icons.update;
         iconColor = Colors.purple;
         break;
-      case 'system':
+      case NotificationType.system:
         iconData = Icons.info;
         iconColor = Colors.grey;
-        break;
-      case 'emergency':
-        iconData = Icons.emergency;
-        iconColor = Colors.red;
         break;
       default:
         iconData = Icons.notifications;

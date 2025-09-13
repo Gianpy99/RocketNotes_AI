@@ -1,0 +1,612 @@
+openapi: 3.0.3
+info:
+  title: Notifications API
+  description: API contracts for push notifications and notification management
+  version: 1.0.0
+
+paths:
+  /notifications:
+    get:
+      summary: Get user notifications
+      description: Retrieve notifications for the authenticated user
+      tags:
+        - Notifications
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: type
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [familyInvitation, invitationAccepted, noteShared, noteCommented, noteUpdated, memberJoined, memberLeft, permissionChanged, systemAlert, backupCompleted]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [unread, read, all]
+            default: all
+      responses:
+        '200':
+          description: Notifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notifications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+                  total:
+                    type: integer
+                  unreadCount:
+                    type: integer
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Send notification
+      description: Send a notification to family members
+      tags:
+        - Notifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - title
+                - body
+                - recipientIds
+              properties:
+                type:
+                  type: string
+                  enum: [familyInvitation, invitationAccepted, noteShared, noteCommented, noteUpdated, memberJoined, memberLeft, permissionChanged, systemAlert, backupCompleted]
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                body:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                recipientIds:
+                  type: array
+                  items:
+                    type: string
+                  maxItems: 50
+                  description: List of user IDs to send notification to
+                payload:
+                  type: object
+                  description: Additional data for notification
+                priority:
+                  type: string
+                  enum: [emergency, high, normal, low]
+                  default: normal
+                channels:
+                  type: array
+                  items:
+                    type: string
+                    enum: [push, email, in-app]
+                  default: [push, in-app]
+                scheduledFor:
+                  type: string
+                  format: date-time
+                  description: Schedule notification for future delivery
+                batchId:
+                  type: string
+                  description: Group notifications together
+      responses:
+        '201':
+          description: Notification sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notificationId:
+                    type: string
+                  batchId:
+                    type: string
+                  deliveryStatus:
+                    type: object
+                    properties:
+                      sent:
+                        type: integer
+                      failed:
+                        type: integer
+                      scheduled:
+                        type: integer
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /notifications/{notificationId}/read:
+    post:
+      summary: Mark notification as read
+      description: Mark a specific notification as read
+      tags:
+        - Notifications
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Notification marked as read
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /notifications/read-all:
+    post:
+      summary: Mark all notifications as read
+      description: Mark all notifications for the user as read
+      tags:
+        - Notifications
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum: [familyInvitation, invitationAccepted, noteShared, noteCommented, noteUpdated, memberJoined, memberLeft, permissionChanged, systemAlert, backupCompleted]
+                  description: Only mark notifications of this type as read
+                olderThan:
+                  type: string
+                  format: date-time
+                  description: Only mark notifications older than this date as read
+      responses:
+        '200':
+          description: Notifications marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  markedCount:
+                    type: integer
+
+  /notifications/preferences:
+    get:
+      summary: Get notification preferences
+      description: Get user's notification preferences
+      tags:
+        - Notifications
+      responses:
+        '200':
+          description: Preferences retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferences'
+
+    put:
+      summary: Update notification preferences
+      description: Update user's notification preferences
+      tags:
+        - Notifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferences'
+      responses:
+        '200':
+          description: Preferences updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferences'
+        '400':
+          description: Invalid preferences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /notifications/device-token:
+    post:
+      summary: Register device token
+      description: Register or update FCM device token for push notifications
+      tags:
+        - Notifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - platform
+              properties:
+                token:
+                  type: string
+                  description: FCM device token
+                platform:
+                  type: string
+                  enum: [android, ios, web]
+                deviceInfo:
+                  type: object
+                  properties:
+                    model:
+                      type: string
+                    osVersion:
+                      type: string
+                    appVersion:
+                      type: string
+      responses:
+        '200':
+          description: Device token registered successfully
+        '400':
+          description: Invalid token or platform
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Unregister device token
+      description: Remove device token to stop push notifications
+      tags:
+        - Notifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  description: FCM device token to remove
+      responses:
+        '200':
+          description: Device token unregistered successfully
+        '400':
+          description: Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /notifications/batch:
+    post:
+      summary: Send batch notifications
+      description: Send multiple notifications efficiently
+      tags:
+        - Notifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - notifications
+              properties:
+                notifications:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/BatchNotification'
+                  maxItems: 100
+                priority:
+                  type: string
+                  enum: [emergency, high, normal, low]
+                  default: normal
+                  description: Default priority for all notifications
+      responses:
+        '202':
+          description: Batch notifications queued for processing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  batchId:
+                    type: string
+                  queuedCount:
+                    type: integer
+                  estimatedDeliveryTime:
+                    type: string
+                    format: date-time
+        '400':
+          description: Invalid batch request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /notifications/batch/{batchId}/status:
+    get:
+      summary: Get batch notification status
+      description: Check the delivery status of a batch notification
+      tags:
+        - Notifications
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Batch status retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  batchId:
+                    type: string
+                  status:
+                    type: string
+                    enum: [queued, processing, completed, failed]
+                  totalNotifications:
+                    type: integer
+                  deliveredCount:
+                    type: integer
+                  failedCount:
+                    type: integer
+                  processingStartedAt:
+                    type: string
+                    format: date-time
+                  completedAt:
+                    type: string
+                    format: date-time
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        notificationId:
+                          type: string
+                        error:
+                          type: string
+        '404':
+          description: Batch not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+        recipientId:
+          type: string
+        familyId:
+          type: string
+        type:
+          type: string
+          enum: [familyInvitation, invitationAccepted, noteShared, noteCommented, noteUpdated, memberJoined, memberLeft, permissionChanged, systemAlert, backupCompleted]
+        title:
+          type: string
+        body:
+          type: string
+        payload:
+          type: object
+          description: Additional notification data
+        createdAt:
+          type: string
+          format: date-time
+        priority:
+          type: string
+          enum: [emergency, high, normal, low]
+        delivery:
+          $ref: '#/components/schemas/DeliveryStatus'
+        channels:
+          type: array
+          items:
+            type: string
+            enum: [push, email, in-app]
+        scheduledFor:
+          type: string
+          format: date-time
+        batchId:
+          type: string
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationAction'
+
+    DeliveryStatus:
+      type: object
+      properties:
+        sent:
+          type: boolean
+        delivered:
+          type: boolean
+        read:
+          type: boolean
+        sentAt:
+          type: string
+          format: date-time
+        deliveredAt:
+          type: string
+          format: date-time
+        readAt:
+          type: string
+          format: date-time
+        failedChannels:
+          type: array
+          items:
+            type: string
+        errorMessage:
+          type: string
+
+    NotificationAction:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        action:
+          type: string
+          enum: [accept_invitation, view_note, open_app, dismiss]
+        data:
+          type: object
+          description: Action-specific data
+
+    BatchNotification:
+      type: object
+      required:
+        - recipientId
+        - type
+        - title
+        - body
+      properties:
+        recipientId:
+          type: string
+        type:
+          type: string
+          enum: [familyInvitation, invitationAccepted, noteShared, noteCommented, noteUpdated, memberJoined, memberLeft, permissionChanged, systemAlert, backupCompleted]
+        title:
+          type: string
+          maxLength: 100
+        body:
+          type: string
+          maxLength: 500
+        payload:
+          type: object
+        channels:
+          type: array
+          items:
+            type: string
+            enum: [push, email, in-app]
+        scheduledFor:
+          type: string
+          format: date-time
+
+    NotificationPreferences:
+      type: object
+      properties:
+        enableInvitations:
+          type: boolean
+          default: true
+          description: Receive family invitation notifications
+        enableActivities:
+          type: boolean
+          default: true
+          description: Receive family activity notifications
+        enableComments:
+          type: boolean
+          default: true
+          description: Receive comment notifications
+        enableSystemAlerts:
+          type: boolean
+          default: true
+          description: Receive system alerts and updates
+        priority:
+          type: string
+          enum: [all, high, emergency]
+          default: all
+          description: Minimum priority level to receive
+        quietHours:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+              default: false
+            startTime:
+              type: string
+              pattern: '^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
+              description: Start time in HH:MM format
+            endTime:
+              type: string
+              pattern: '^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
+              description: End time in HH:MM format
+            timezone:
+              type: string
+              description: Timezone identifier (e.g., America/New_York)
+        channels:
+          type: object
+          properties:
+            push:
+              type: boolean
+              default: true
+            email:
+              type: boolean
+              default: false
+            inApp:
+              type: boolean
+              default: true
+        familySpecific:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              enabled:
+                type: boolean
+              customSettings:
+                type: object
+          description: Per-family notification preferences
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+        code:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+
+  securitySchemes:
+    FirebaseAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - FirebaseAuth: []

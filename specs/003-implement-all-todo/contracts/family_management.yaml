@@ -1,0 +1,516 @@
+openapi: 3.0.3
+info:
+  title: Family Management API
+  description: API contracts for family creation and member management
+  version: 1.0.0
+
+paths:
+  /families:
+    post:
+      summary: Create a new family
+      description: Creates a new family group with the requesting user as owner
+      tags:
+        - Family Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                  description: Family name
+                description:
+                  type: string
+                  maxLength: 200
+                  description: Optional family description
+                settings:
+                  $ref: '#/components/schemas/FamilySettings'
+      responses:
+        '201':
+          description: Family created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Family'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: User already in a family
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /families/{familyId}/members:
+    get:
+      summary: Get family members
+      description: Retrieve all members of a family
+      tags:
+        - Family Management
+      parameters:
+        - name: familyId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Family members retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FamilyMember'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Family not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Invite family member
+      description: Send invitation to join family
+      tags:
+        - Family Management
+      parameters:
+        - name: familyId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - role
+                - permissions
+              properties:
+                email:
+                  type: string
+                  format: email
+                  maxLength: 254
+                  description: Email address of the person to invite
+                role:
+                  type: string
+                  enum: [owner, admin, editor, viewer, limited]
+                  description: Role to assign to the new member
+                permissions:
+                  $ref: '#/components/schemas/FamilyPermissions'
+                customMessage:
+                  type: string
+                  maxLength: 500
+                  description: Custom invitation message
+                expiresIn:
+                  type: integer
+                  minimum: 1
+                  maximum: 30
+                  default: 7
+                  description: Days until invitation expires
+      responses:
+        '201':
+          description: Invitation sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyInvitation'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: User already invited or member
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /families/{familyId}/members/{memberId}:
+    put:
+      summary: Update member permissions
+      description: Update permissions for a family member
+      tags:
+        - Family Management
+      parameters:
+        - name: familyId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - permissions
+              properties:
+                role:
+                  type: string
+                  enum: [owner, admin, editor, viewer, limited]
+                permissions:
+                  $ref: '#/components/schemas/FamilyPermissions'
+                reason:
+                  type: string
+                  maxLength: 200
+                  description: Reason for permission change
+      responses:
+        '200':
+          description: Permissions updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyMember'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Remove family member
+      description: Remove a member from the family
+      tags:
+        - Family Management
+      parameters:
+        - name: familyId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  maxLength: 200
+                  description: Reason for removal
+                transferOwnership:
+                  type: string
+                  description: Transfer ownership to this member ID (if removing owner)
+      responses:
+        '204':
+          description: Member removed successfully
+        '400':
+          description: Invalid operation (e.g., removing last owner)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /invitations/{invitationId}/accept:
+    post:
+      summary: Accept family invitation
+      description: Accept an invitation to join a family
+      tags:
+        - Family Management
+      parameters:
+        - name: invitationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Invitation accepted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  familyId:
+                    type: string
+                  memberId:
+                    type: string
+                  message:
+                    type: string
+        '400':
+          description: Invalid invitation (expired, already accepted, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Invitation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /invitations/{invitationId}/decline:
+    post:
+      summary: Decline family invitation
+      description: Decline an invitation to join a family
+      tags:
+        - Family Management
+      parameters:
+        - name: invitationId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  maxLength: 200
+                  description: Optional reason for declining
+      responses:
+        '200':
+          description: Invitation declined successfully
+        '404':
+          description: Invitation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Family:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique family identifier
+        name:
+          type: string
+          description: Family name
+        description:
+          type: string
+          description: Family description
+        memberIds:
+          type: array
+          items:
+            type: string
+          description: List of member IDs
+        ownerId:
+          type: string
+          description: Family owner ID
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        settings:
+          $ref: '#/components/schemas/FamilySettings'
+
+    FamilyMember:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        familyId:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        relationship:
+          type: string
+        role:
+          type: string
+          enum: [owner, admin, editor, viewer, limited]
+        permissions:
+          $ref: '#/components/schemas/FamilyPermissions'
+        joinedAt:
+          type: string
+          format: date-time
+        lastActiveAt:
+          type: string
+          format: date-time
+
+    FamilyPermissions:
+      type: object
+      properties:
+        canInviteMembers:
+          type: boolean
+          default: false
+        canRemoveMembers:
+          type: boolean
+          default: false
+        canShareNotes:
+          type: boolean
+          default: true
+        canCreateNotebooks:
+          type: boolean
+          default: true
+        canManagePermissions:
+          type: boolean
+          default: false
+        canViewActivity:
+          type: boolean
+          default: true
+        canExportData:
+          type: boolean
+          default: false
+        canManageBackup:
+          type: boolean
+          default: false
+
+    FamilySettings:
+      type: object
+      properties:
+        allowMemberInvites:
+          type: boolean
+          default: true
+        requireApprovalForSharing:
+          type: boolean
+          default: false
+        notifications:
+          $ref: '#/components/schemas/NotificationPreferences'
+
+    NotificationPreferences:
+      type: object
+      properties:
+        enableInvitations:
+          type: boolean
+          default: true
+        enableActivities:
+          type: boolean
+          default: true
+        enableComments:
+          type: boolean
+          default: true
+        priority:
+          type: string
+          enum: [all, high, emergency]
+          default: all
+
+    FamilyInvitation:
+      type: object
+      properties:
+        id:
+          type: string
+        familyId:
+          type: string
+        familyName:
+          type: string
+        invitedBy:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [owner, admin, editor, viewer, limited]
+        permissions:
+          $ref: '#/components/schemas/FamilyPermissions'
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [pending, sent, delivered, viewed, accepted, declined, expired, revoked]
+        customMessage:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error type
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error details
+        code:
+          type: integer
+          description: Application-specific error code
+        timestamp:
+          type: string
+          format: date-time
+
+  securitySchemes:
+    FirebaseAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Firebase Authentication JWT token
+
+security:
+  - FirebaseAuth: []
