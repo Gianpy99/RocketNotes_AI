@@ -7,8 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'data/models/note_model.dart';
 import 'screens/note_editor_screen.dart';
 import 'screens/search_screen.dart';
@@ -21,7 +19,6 @@ import 'screens/notification_history_screen.dart';
 import 'screens/notification_groups_screen.dart';
 import 'core/utils/web_image_handler.dart';
 import 'temp_family_notification_service.dart';
-import 'providers/notification_providers.dart';
 import 'services/notification_navigation_service.dart';
 
 void main() async {

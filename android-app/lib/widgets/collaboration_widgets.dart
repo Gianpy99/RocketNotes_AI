@@ -345,7 +345,7 @@ class AnimatedUserAvatars extends ConsumerWidget {
       data: (users) {
         if (users.isEmpty) return const SizedBox.shrink();
 
-        return Container(
+        return SizedBox(
           height: 40,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,

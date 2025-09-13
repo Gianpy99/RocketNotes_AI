@@ -438,7 +438,7 @@ class _ShoppingCategoriesScreenState extends ConsumerState<ShoppingCategoriesScr
                   ],
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),
@@ -483,7 +483,7 @@ class _ShoppingCategoriesScreenState extends ConsumerState<ShoppingCategoriesScr
                   color: _getCategoryColor(entry.key),
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),

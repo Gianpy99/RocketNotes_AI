@@ -1,4 +1,5 @@
 /// Data models for notifications (T088-T090)
+library;
 
 class NotificationHistory {
   final String id;

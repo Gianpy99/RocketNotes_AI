@@ -81,14 +81,12 @@ class SharedNoteExportService {
 
       if (options.format == ExportFormat.pdf) {
         // Share PDF file
-        await SharePlus.instance.shareXFiles(
+        await Share.shareXFiles(
           [XFile(content)],
         );
       } else {
         // Share text content
-        await SharePlus.instance.share(ShareParams(
-          text: content,
-        ));
+        await Share.share(content);
       }
     } catch (e) {
       throw Exception('Failed to share note: $e');
