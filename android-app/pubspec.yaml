@@ -119,9 +119,6 @@ dependencies:
   pdf: ^3.10.4
   printing: ^5.11.0
   
-  # Dynamic link generation
-  firebase_dynamic_links: ^6.0.8
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
