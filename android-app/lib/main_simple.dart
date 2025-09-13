@@ -16,9 +16,13 @@ import 'screens/settings_screen.dart';
 import 'screens/ai_analysis_screen.dart';
 import 'screens/quick_capture_screen.dart';
 import 'screens/camera_debug_screen.dart';
+import 'screens/notification_settings_screen.dart';
+import 'screens/notification_history_screen.dart';
+import 'screens/notification_groups_screen.dart';
 import 'core/utils/web_image_handler.dart';
 import 'temp_family_notification_service.dart';
 import 'providers/notification_providers.dart';
+import 'services/notification_navigation_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -118,6 +122,7 @@ class SimpleRocketNotesApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'RocketNotes AI (Simple)',
+      navigatorKey: NotificationNavigationService.navigatorKey, // T086: Add navigator key for notification navigation
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
         useMaterial3: true,
@@ -129,6 +134,14 @@ class SimpleRocketNotesApp extends StatelessWidget {
       ),
       home: const HomeScreen(),
       debugShowCheckedModeBanner: false,
+      // T086: Add routes for notification navigation
+      routes: {
+        '/shared-notes': (context) => const HomeScreen(), // Placeholder until we have actual screens
+        '/family': (context) => const HomeScreen(),
+        '/notification-settings': (context) => const NotificationSettingsScreen(),
+        '/notification-history': (context) => const NotificationHistoryScreen(),
+        '/notification-groups': (context) => const NotificationGroupsScreen(),
+      },
     );
   }
 }
@@ -171,6 +184,63 @@ class HomeScreen extends ConsumerWidget {
                 MaterialPageRoute(builder: (context) => const SearchScreen()),
               );
             },
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.notifications),
+            onSelected: (value) {
+              switch (value) {
+                case 'settings':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const NotificationSettingsScreen()),
+                  );
+                  break;
+                case 'history':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const NotificationHistoryScreen()),
+                  );
+                  break;
+                case 'groups':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const NotificationGroupsScreen()),
+                  );
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'settings',
+                child: Row(
+                  children: [
+                    Icon(Icons.settings),
+                    SizedBox(width: 8),
+                    Text('Impostazioni Notifiche'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'history',
+                child: Row(
+                  children: [
+                    Icon(Icons.history),
+                    SizedBox(width: 8),
+                    Text('Cronologia'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'groups',
+                child: Row(
+                  children: [
+                    Icon(Icons.group_work),
+                    SizedBox(width: 8),
+                    Text('Gruppi'),
+                  ],
+                ),
+              ),
+            ],
           ),
           IconButton(
             icon: const Icon(Icons.settings),

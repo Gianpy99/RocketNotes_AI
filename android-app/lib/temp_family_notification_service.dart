@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'services/notification_navigation_service.dart';
 
 /// Service for handling family notifications including push notifications,
 /// local notifications, and server communication
@@ -14,6 +16,7 @@ class FamilyNotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
+  final NotificationNavigationService navigationService = NotificationNavigationService();
 
   bool _isInitialized = false;
 
@@ -147,17 +150,30 @@ class FamilyNotificationService {
     // Handle background message processing
   }
 
-  /// Handle foreground messages
+  /// Handle foreground messages (T086)
   void _onForegroundMessage(RemoteMessage message) {
     print('Received foreground message: ${message.notification?.title}');
 
     final notification = message.notification;
     if (notification != null) {
-      _showLocalNotification(
-        title: notification.title ?? 'Family Notification',
-        body: notification.body ?? '',
-        payload: jsonEncode(message.data),
-      );
+      // Check if we should show in-app notification or navigate immediately
+      final messageData = message.data;
+      final notificationType = messageData['type'] as String?;
+      
+      if (notificationType == 'emergency') {
+        // Emergency notifications should navigate immediately
+        _handleNotificationTap(messageData);
+      } else {
+        // For other notifications, show local notification and handle in-app
+        _showLocalNotification(
+          title: notification.title ?? 'Family Notification',
+          body: notification.body ?? '',
+          payload: jsonEncode(messageData),
+        );
+        
+        // Also show in-app banner for immediate action
+        handleNotificationInApp(messageData);
+      }
     }
   }
 
@@ -175,26 +191,62 @@ class FamilyNotificationService {
     }
   }
 
-  /// Handle notification tap based on data
+  /// Handle notification tap based on data (T086)
   void _handleNotificationTap(Map<String, dynamic> data) {
-    final type = data['type'];
-    final targetId = data['targetId'];
+    print('Handling notification tap with data: $data');
+    
+    // Validate the notification data
+    if (!NotificationNavigationService.isValidDeepLink(data)) {
+      print('Invalid notification data for navigation');
+      return;
+    }
 
-    switch (type) {
-      case 'invitation':
-        // Navigate to invitation screen
-        print('Navigate to invitation: $targetId');
-        break;
-      case 'shared_note':
-        // Navigate to shared note
-        print('Navigate to shared note: $targetId');
-        break;
-      case 'comment':
-        // Navigate to comment
-        print('Navigate to comment: $targetId');
-        break;
-      default:
-        print('Unknown notification type: $type');
+    // Log navigation for analytics
+    NotificationNavigationService.logNavigation(data['type'] ?? 'unknown', data);
+    
+    // Navigate to appropriate screen
+    NotificationNavigationService.navigateFromNotification(data);
+  }
+
+  /// Handle notification tap with enhanced error handling
+  Future<void> handleNotificationTapSafe(Map<String, dynamic> data) async {
+    try {
+      await Future.delayed(const Duration(milliseconds: 100)); // Small delay for app initialization
+      _handleNotificationTap(data);
+    } catch (e) {
+      print('Error handling notification tap: $e');
+      // Fallback to home screen
+      NotificationNavigationService.navigateFromNotification({'type': 'home'});
+    }
+  }
+
+  /// Handle notification when app is in background/foreground
+  void handleNotificationInApp(Map<String, dynamic> data) {
+    final type = data['type'] as String?;
+    
+    // Show in-app notification banner for less intrusive notifications
+    if (type == 'activity' || type == 'comment') {
+      _showInAppNotificationBanner(data);
+    } else {
+      // For important notifications (invitations, emergency), navigate immediately
+      _handleNotificationTap(data);
+    }
+  }
+
+  /// Show in-app notification banner
+  void _showInAppNotificationBanner(Map<String, dynamic> data) {
+    final context = NotificationNavigationService.context;
+    if (context != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(data['message'] ?? 'Nuova notifica'),
+          action: SnackBarAction(
+            label: 'Apri',
+            onPressed: () => _handleNotificationTap(data),
+          ),
+          duration: const Duration(seconds: 4),
+        ),
+      );
     }
   }
 

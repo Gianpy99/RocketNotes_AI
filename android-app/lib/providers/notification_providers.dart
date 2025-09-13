@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../temp_family_notification_service.dart';
+import '../models/notification_models.dart';
 
 // Notification Service Provider
 final notificationServiceProvider = Provider<FamilyNotificationService>((ref) {
@@ -40,48 +41,61 @@ class NotificationPreferencesNotifier extends StateNotifier<Map<String, dynamic>
 }
 
 // Notification History Provider
-final notificationHistoryProvider = StateNotifierProvider<NotificationHistoryNotifier, List<Map<String, dynamic>>>((ref) {
+final notificationHistoryProvider = StateNotifierProvider<NotificationHistoryNotifier, List<NotificationHistory>>((ref) {
   return NotificationHistoryNotifier();
 });
 
-class NotificationHistoryNotifier extends StateNotifier<List<Map<String, dynamic>>> {
+class NotificationHistoryNotifier extends StateNotifier<List<NotificationHistory>> {
   NotificationHistoryNotifier() : super([]);
 
-  void addNotification(Map<String, dynamic> notification) {
+  void addNotification(NotificationHistory notification) {
     state = [notification, ...state];
   }
 
   void markAsRead(String notificationId) {
     state = state.map((notification) {
-      if (notification['id'] == notificationId) {
-        return {...notification, 'isRead': true};
+      if (notification.id == notificationId) {
+        return notification.copyWith(isRead: true);
       }
       return notification;
     }).toList();
   }
 
-  void removeNotification(String notificationId) {
-    state = state.where((notification) => notification['id'] != notificationId).toList();
+  void markAsUnread(String notificationId) {
+    state = state.map((notification) {
+      if (notification.id == notificationId) {
+        return notification.copyWith(isRead: false);
+      }
+      return notification;
+    }).toList();
   }
 
-  void clearAll() {
+  void markAllAsRead() {
+    state = state.map((notification) => notification.copyWith(isRead: true)).toList();
+  }
+
+  void deleteNotification(String notificationId) {
+    state = state.where((notification) => notification.id != notificationId).toList();
+  }
+
+  void clearHistory() {
     state = [];
   }
 
   void clearRead() {
-    state = state.where((notification) => !(notification['isRead'] ?? false)).toList();
+    state = state.where((notification) => !notification.isRead).toList();
   }
 
   int get unreadCount {
-    return state.where((notification) => !(notification['isRead'] ?? false)).length;
+    return state.where((notification) => !notification.isRead).length;
   }
 
-  List<Map<String, dynamic>> getUnread() {
-    return state.where((notification) => !(notification['isRead'] ?? false)).toList();
+  List<NotificationHistory> getUnread() {
+    return state.where((notification) => !notification.isRead).toList();
   }
 
-  List<Map<String, dynamic>> getByType(String type) {
-    return state.where((notification) => notification['type'] == type).toList();
+  List<NotificationHistory> getByType(String type) {
+    return state.where((notification) => notification.type == type).toList();
   }
 }
 

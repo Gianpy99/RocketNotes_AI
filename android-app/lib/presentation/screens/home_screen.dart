@@ -326,6 +326,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: QuickActionButton(
+                          icon: Icons.shopping_cart,
+                          label: 'Shopping',
+                          color: Colors.green,
+                          onTap: () => context.push('/shopping'),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Container(), // Placeholder per simmetria
+                      ),
+                    ],
+                  ),
 
                   const SizedBox(height: 24),
 

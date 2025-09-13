@@ -16,6 +16,10 @@ import '../../features/family/screens/family_home_screen.dart';
 import '../screens/shared_notes/shared_notes_list_screen.dart';
 import '../screens/shared_notes/note_sharing_screen.dart';
 import '../screens/shared_notes/shared_note_viewer.dart';
+import '../screens/shopping_list_screen.dart';
+import '../screens/family_sharing_screen.dart';
+import '../screens/shopping_templates_screen.dart';
+import '../screens/shopping_categories_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -96,6 +100,18 @@ class AppRouter {
           final id = state.pathParameters['id'];
           return SharedNoteViewer(sharedNoteId: id!);
         },
+      ),
+      GoRoute(
+        path: '/shopping',
+        builder: (context, state) => const ShoppingListScreen(),
+      ),
+      GoRoute(
+        path: '/shopping/templates',
+        builder: (context, state) => const ShoppingTemplatesScreen(),
+      ),
+      GoRoute(
+        path: '/shopping/categories',
+        builder: (context, state) => const ShoppingCategoriesScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
