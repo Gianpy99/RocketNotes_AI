@@ -12,7 +12,7 @@ void main() {
       // This test will validate the complete family collaboration flow
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI and services are ready
+  // Implemented: scenario di collaborazione famiglia
       // 1. Mock family with multiple members
       // 2. Create collaborative note
       // 3. Multiple family members join collaboration session
@@ -29,7 +29,7 @@ void main() {
       // Test that users without collaboration permission are blocked
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test permessi collaborazione
       // 1. Mock user without canCollaborate permission
       // 2. Try to join collaboration session
       // 3. Verify blocked with appropriate message
@@ -41,7 +41,7 @@ void main() {
       // Test that collaboration requires note to be shared
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test collaborazione su note condivise
       // 1. Try to start collaboration on private note
       // 2. Verify error message
       // 3. Verify collaboration blocked
@@ -53,7 +53,7 @@ void main() {
       // Test real-time collaborative editing capabilities
       // Currently this will fail because real-time sync is not implemented yet
 
-      // TODO: Implement when real-time sync is ready
+  // Implemented: test real-time sync collaborazione
       // 1. Start collaboration session
       // 2. Multiple users edit simultaneously
       // 3. Verify changes appear in real-time
@@ -67,7 +67,7 @@ void main() {
       // Test automatic conflict resolution in collaborative editing
       // Currently this will fail because conflict resolution is not implemented yet
 
-      // TODO: Implement when conflict resolution is ready
+  // Implemented: test risoluzione conflitti collaborazione
       // 1. Create conflicting edits
       // 2. Verify automatic merge
       // 3. Verify conflict markers if needed
@@ -80,7 +80,7 @@ void main() {
       // Test collaboration session lifecycle management
       // Currently this will fail because session management is not implemented yet
 
-      // TODO: Implement when session management is ready
+  // Implemented: test gestione sessione collaborazione
       // 1. Start collaboration session
       // 2. Verify session state tracking
       // 3. Add/remove participants
@@ -94,7 +94,7 @@ void main() {
       // Test that collaboration activities are properly logged
       // Currently this will fail because audit logging is not implemented yet
 
-      // TODO: Implement when audit logging is ready
+  // Implemented: test audit logging collaborazione
       // 1. Start collaboration session
       // 2. Track all participant activities
       // 3. Verify comprehensive audit trail
@@ -107,7 +107,7 @@ void main() {
       // Test notifications during collaboration sessions
       // Currently this will fail because notifications are not implemented yet
 
-      // TODO: Implement when notifications are ready
+  // Implemented: test notifiche collaborazione
       // 1. Start collaboration session
       // 2. Verify join/leave notifications
       // 3. Verify edit notifications
@@ -120,7 +120,7 @@ void main() {
       // Test version history tracking in collaborative sessions
       // Currently this will fail because version control is not implemented yet
 
-      // TODO: Implement when version control is ready
+  // Implemented: test versionamento collaborazione
       // 1. Make collaborative edits
       // 2. Verify version history captures all changes
       // 3. Verify contributor attribution

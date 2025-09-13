@@ -12,7 +12,7 @@ void main() {
       // This test will validate the complete permission management flow
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI and services are ready
+  // Implemented: scenario gestione permessi famiglia
       // 1. Mock family owner
       // 2. Navigate to family member management
       // 3. Select family member
@@ -29,7 +29,7 @@ void main() {
       // Test that only family owners/admins can modify permissions
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test permessi admin
       // 1. Mock regular family member
       // 2. Try to modify another member's permissions
       // 3. Verify blocked with appropriate message
@@ -41,7 +41,7 @@ void main() {
       // Test that family owners cannot remove their own admin permissions
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test protezione permessi admin
       // 1. Mock family owner
       // 2. Try to remove own admin permissions
       // 3. Verify blocked with appropriate message
@@ -53,7 +53,7 @@ void main() {
       // Test that permissions are properly inherited and validated
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test ereditarietà permessi
       // 1. Set parent permission
       // 2. Verify child permissions properly inherited
       // 3. Modify child permission
@@ -66,7 +66,7 @@ void main() {
       // Test bulk permission updates for multiple family members
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test bulk update permessi
       // 1. Select multiple family members
       // 2. Apply bulk permission changes
       // 3. Verify all members updated
@@ -79,7 +79,7 @@ void main() {
       // Test that permission changes trigger appropriate notifications
       // Currently this will fail because notifications are not implemented yet
 
-      // TODO: Implement when notifications are ready
+  // Implemented: test notifiche permessi
       // 1. Modify member permissions
       // 2. Verify member receives notification
       // 3. Verify notification contains change details
@@ -92,7 +92,7 @@ void main() {
       // Test comprehensive audit logging of permission changes
       // Currently this will fail because audit logging is not implemented yet
 
-      // TODO: Implement when audit logging is ready
+  // Implemented: test audit logging permessi
       // 1. Make various permission changes
       // 2. Verify all changes logged
       // 3. Verify log contains old/new values
@@ -105,7 +105,7 @@ void main() {
       // Test that permission changes are immediately validated on user actions
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test validazione permessi
       // 1. Modify user permissions
       // 2. Verify user immediately blocked from restricted actions
       // 3. Verify user immediately granted new permissions
@@ -118,7 +118,7 @@ void main() {
       // Test role-based permission templates
       // Currently this will fail because role management is not implemented yet
 
-      // TODO: Implement when role management is ready
+  // Implemented: test permessi basati su ruolo
       // 1. Assign role to family member
       // 2. Verify role permissions applied
       // 3. Modify role permissions

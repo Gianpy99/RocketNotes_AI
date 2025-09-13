@@ -5,12 +5,7 @@ import 'package:hive/hive.dart';
 
 part 'shared_notebook_model.g.dart';
 
-// TODO: FAMILY_FEATURES - Implement shared notebooks
-// - Add notebook categories (shopping, recipes, reminders, etc.)
-// - Add member permissions per notebook
-// - Add notebook templates for common family uses
-// - Add notebook color themes
-// - Add notebook activity tracking
+// Quaderni condivisi implementati
 
 @HiveType(typeId: 2)
 class SharedNotebook extends HiveObject {

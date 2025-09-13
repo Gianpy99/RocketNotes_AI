@@ -366,41 +366,32 @@ class _EnhancedNoteEditorScreenState extends ConsumerState<EnhancedNoteEditorScr
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            RadioListTile<String>(
-              title: const Text('Personal'),
-              subtitle: const Text('Private note, visible only to you'),
-              value: 'personal',
-              groupValue: _selectedMode,
+            RadioGroup<String>(
               onChanged: (value) {
                 setState(() {
-                  _selectedMode = value!;
+                  _selectedMode = value ?? _selectedMode;
                 });
                 Navigator.of(context).pop();
               },
-            ),
-            RadioListTile<String>(
-              title: const Text('Family'),
-              subtitle: const Text('Can be shared with family members'),
-              value: 'family',
-              groupValue: _selectedMode,
-              onChanged: (value) {
-                setState(() {
-                  _selectedMode = value!;
-                });
-                Navigator.of(context).pop();
-              },
-            ),
-            RadioListTile<String>(
-              title: const Text('Work'),
-              subtitle: const Text('Professional notes and documents'),
-              value: 'work',
-              groupValue: _selectedMode,
-              onChanged: (value) {
-                setState(() {
-                  _selectedMode = value!;
-                });
-                Navigator.of(context).pop();
-              },
+              child: Column(
+                children: [
+                  RadioListTile<String>(
+                    title: const Text('Personal'),
+                    subtitle: const Text('Private note, visible only to you'),
+                    value: 'personal',
+                  ),
+                  RadioListTile<String>(
+                    title: const Text('Family'),
+                    subtitle: const Text('Can be shared with family members'),
+                    value: 'family',
+                  ),
+                  RadioListTile<String>(
+                    title: const Text('Work'),
+                    subtitle: const Text('Professional notes and documents'),
+                    value: 'work',
+                  ),
+                ],
+              ),
             ),
           ],
         ),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -95,7 +96,7 @@ class NotificationService {
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      print('Failed to store device token: $e');
+      developer.log('Failed to store device token: $e', name: 'NotificationService');
     }
   }
 
@@ -117,14 +118,14 @@ class NotificationService {
 
   /// Handle foreground messages
   void _handleForegroundMessage(RemoteMessage message) {
-    print('Received foreground message: ${message.notification?.title}');
+    developer.log('Received foreground message: ${message.notification?.title}', name: 'NotificationService');
     // Create in-app notification
     _createInAppNotification(message);
   }
 
   /// Handle background messages (when app is opened from notification)
   void _handleBackgroundMessage(RemoteMessage message) {
-    print('Opened app from notification: ${message.notification?.title}');
+    developer.log('Opened app from notification: ${message.notification?.title}', name: 'NotificationService');
     // Handle navigation or actions based on message data
     _handleNotificationAction(message);
   }
@@ -150,7 +151,7 @@ class NotificationService {
 
       await _notificationsCollection.doc(notification.id).set(notification.toJson());
     } catch (e) {
-      print('Failed to create in-app notification: $e');
+      developer.log('Failed to create in-app notification: $e', name: 'NotificationService');
     }
   }
 
@@ -159,7 +160,7 @@ class NotificationService {
     // This would typically trigger navigation or specific actions
     // based on the notification type and data
     final data = message.data;
-    print('Handling notification action for type: ${data['type']}');
+    developer.log('Handling notification action for type: ${data['type']}', name: 'NotificationService');
   }
 
   /// Sends a notification to specific users
@@ -315,7 +316,7 @@ class NotificationService {
         );
       }
     } catch (e) {
-      print('Failed to send push notification: $e');
+      developer.log('Failed to send push notification: $e', name: 'NotificationService');
     }
   }
 
@@ -330,12 +331,12 @@ class NotificationService {
     try {
       // In a real implementation, this would use Firebase Admin SDK
       // or call a Cloud Function to send the notification
-      print('Sending notification to token: $token');
-      print('Title: $title');
-      print('Body: $body');
-      print('Data: $data');
+      developer.log('Sending notification to token: $token', name: 'NotificationService');
+      developer.log('Title: $title', name: 'NotificationService');
+      developer.log('Body: $body', name: 'NotificationService');
+      developer.log('Data: $data', name: 'NotificationService');
     } catch (e) {
-      print('Failed to send to token $token: $e');
+      developer.log('Failed to send to token $token: $e', name: 'NotificationService');
     }
   }
 

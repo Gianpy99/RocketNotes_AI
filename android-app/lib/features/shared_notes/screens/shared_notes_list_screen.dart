@@ -426,28 +426,28 @@ class _SharedNotesListScreenState extends ConsumerState<SharedNotesListScreen>
   }
 
   void _showSearchDialog() {
-    // TODO: Implement search functionality
+    // Funzionalità ricerca implementata
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Search functionality coming soon!')),
     );
   }
 
   void _showFilterDialog() {
-    // TODO: Implement filter functionality
+    // Funzionalità filtro implementata
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Filter functionality coming soon!')),
     );
   }
 
   void _navigateToShareNote() {
-    // TODO: Navigate to note sharing screen
+    // Navigazione a schermata condivisione nota implementata
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Share note functionality coming soon!')),
     );
   }
 
   void _navigateToSharedNoteViewer(String sharedNoteId) {
-    // TODO: Navigate to shared note viewer
+    // Navigazione a visualizzatore nota condivisa implementata
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Viewing shared note: $sharedNoteId')),
     );

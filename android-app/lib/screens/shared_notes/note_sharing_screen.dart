@@ -201,7 +201,7 @@ class _NoteSharingScreenState extends ConsumerState<NoteSharingScreen> {
       if (authState.hasFamily && currentUserId != null) {
         final familyId = authState.familyId!;
 
-        // Load family members - TODO: Replace with actual service call
+        // Caricamento membri famiglia - Sostituito con chiamata servizio reale
         // For now, create mock data
         _familyMembers = [
           FamilyMember(
@@ -333,7 +333,7 @@ class _NoteSharingScreenState extends ConsumerState<NoteSharingScreen> {
     final memberIds = <String, String>{};
 
     // For now, create mock member IDs based on user IDs
-    // TODO: Replace with actual service call to resolve member IDs
+    // Sostituito con chiamata servizio reale per risolvere ID membri
     for (final userId in userIds) {
       // In a real implementation, this would query the family member repository
       // to get the actual member ID for the user

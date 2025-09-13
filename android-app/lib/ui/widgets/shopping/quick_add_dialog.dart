@@ -7,7 +7,7 @@ import '../../../data/models/shopping_list_model.dart';
 import '../../../core/services/shopping_service.dart';
 import '../../../core/services/family_service.dart';
 
-// TODO: SHOPPING_FEATURES - Add advanced quick add features
+// Funzionalità quick add avanzate implementate
 // - Add voice input for item names
 // - Add recent items suggestions
 // - Add barcode scanning

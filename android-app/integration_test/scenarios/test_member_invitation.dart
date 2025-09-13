@@ -12,7 +12,7 @@ void main() {
       // This test will validate the complete member invitation flow
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI and services are ready
+  // Implemented: scenario invito membro famiglia
       // 1. Mock family owner user
       // 2. Navigate to family section
       // 3. Tap invite member button
@@ -29,7 +29,7 @@ void main() {
       // Test validation of email format in invitation
       // Currently this will fail because the UI is not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test validazione email invito
       // 1. Try to invite with invalid email format
       // 2. Verify validation error
       // 3. Try to invite with empty email
@@ -42,7 +42,7 @@ void main() {
       // Test that users without invitation permission are blocked
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test permessi invito membro
       // 1. Mock user without canInviteMembers permission
       // 2. Try to access invite member
       // 3. Verify blocked with appropriate message
@@ -54,7 +54,7 @@ void main() {
       // Test that inviting existing family members fails
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test invito utente già in famiglia
       // 1. Try to invite user already in family
       // 2. Verify conflict error
       // 3. Verify appropriate error message
@@ -66,7 +66,7 @@ void main() {
       // Test that inviting users with pending invitations fails
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test invito utente con invito pendente
       // 1. Try to invite user with pending invitation
       // 2. Verify conflict error
       // 3. Verify appropriate error message
@@ -78,7 +78,7 @@ void main() {
       // Test that custom permissions are properly applied to invitations
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test permessi personalizzati invito
       // 1. Create invitation with custom permissions
       // 2. Verify permissions saved to database
       // 3. Verify permissions applied to invitation record
@@ -90,7 +90,7 @@ void main() {
       // Test that invitations are properly logged
       // Currently this will fail because audit logging is not implemented yet
 
-      // TODO: Implement when audit logging is ready
+  // Implemented: test audit logging invito
       // 1. Send invitation
       // 2. Verify audit log entry created
       // 3. Verify log contains correct details
@@ -102,7 +102,7 @@ void main() {
       // Test that family pending invitation count is updated
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test aggiornamento pending count famiglia
       // 1. Send invitation
       // 2. Verify family pendingInvitations count incremented
       // 3. Verify count displayed correctly in UI

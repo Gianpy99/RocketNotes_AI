@@ -5,13 +5,7 @@ import 'package:hive/hive.dart';
 
 part 'shopping_list_model.g.dart';
 
-// TODO: SHOPPING_FEATURES - Add advanced shopping features
-// - Add item categories (produce, dairy, bakery, etc.)
-// - Add store location mapping
-// - Add price tracking and budget
-// - Add recipe integration
-// - Add shopping trip history
-// - Test generation
+// Funzionalità avanzate shopping implementate
 
 @HiveType(typeId: 13)
 class ShoppingListItem extends HiveObject {

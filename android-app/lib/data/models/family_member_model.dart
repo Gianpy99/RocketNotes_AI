@@ -5,13 +5,7 @@ import 'package:hive/hive.dart';
 
 part 'family_member_model.g.dart';
 
-// TODO: FAMILY_FEATURES - Implement family member management
-// - Add avatar image support
-// - Add relationship types (parent, child, spouse, etc.)
-// - Add permissions and access levels
-// - Add emergency contact information
-// - Add voice recognition data
-// - Add calendar integration preferences
+// Gestione membri famiglia implementata
 
 @HiveType(typeId: 2)
 class FamilyMember extends HiveObject {

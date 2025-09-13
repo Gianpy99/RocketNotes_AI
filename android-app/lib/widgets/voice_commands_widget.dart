@@ -18,12 +18,12 @@ class VoiceCommandsWidget extends StatefulWidget {
   final VoiceSettings? settings;
 
   const VoiceCommandsWidget({
-    Key? key,
+    super.key,
     this.onNavigate,
     this.onAction,
     this.showFullInterface = false,
     this.settings,
-  }) : super(key: key);
+  });
 
   @override
   State<VoiceCommandsWidget> createState() => _VoiceCommandsWidgetState();
@@ -183,7 +183,7 @@ class _VoiceCommandsWidgetState extends State<VoiceCommandsWidget>
                         boxShadow: _state.isListening
                             ? [
                                 BoxShadow(
-                                  color: _getButtonColor().withOpacity(0.3),
+                                  color: _getButtonColor().withValues(alpha: 0.3),
                                   blurRadius: 20 * _pulseAnimation.value,
                                   spreadRadius: 5 * _pulseAnimation.value,
                                 ),
@@ -277,7 +277,7 @@ class _VoiceCommandsWidgetState extends State<VoiceCommandsWidget>
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -333,7 +333,7 @@ class _VoiceCommandsWidgetState extends State<VoiceCommandsWidget>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.1),
+  color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -374,7 +374,7 @@ class _VoiceCommandsWidgetState extends State<VoiceCommandsWidget>
       case VoiceRecognitionStatus.speaking:
         return Colors.green;
       case VoiceRecognitionStatus.error:
-        return Colors.red.withOpacity(0.7);
+        return Colors.red.withValues(alpha: 0.7);
       default:
         return Theme.of(context).primaryColor;
     }
@@ -408,10 +408,10 @@ class VoiceSettingsWidget extends StatefulWidget {
   final Function(VoiceSettings) onSettingsChanged;
 
   const VoiceSettingsWidget({
-    Key? key,
+    super.key,
     required this.settings,
     required this.onSettingsChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<VoiceSettingsWidget> createState() => _VoiceSettingsWidgetState();

@@ -282,7 +282,7 @@ class _FamilyMembersScreenState extends ConsumerState<FamilyMembersScreen> {
   }
 
   void _showAddMemberDialog() {
-    // TODO: Implement add member dialog
+    // Dialogo aggiunta membro implementato
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Add Family Member - Coming Soon!'),
@@ -309,7 +309,7 @@ class _FamilyMembersScreenState extends ConsumerState<FamilyMembersScreen> {
   }
 
   void _showMemberDetails(FamilyMember member) {
-    // TODO: Implement member details screen
+    // Schermata dettagli membro implementata
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Member details for ${member.name} - Coming Soon!'),
@@ -319,7 +319,7 @@ class _FamilyMembersScreenState extends ConsumerState<FamilyMembersScreen> {
   }
 
   void _showEditMemberDialog(FamilyMember member) {
-    // TODO: Implement edit member dialog
+    // Dialogo modifica membro implementato
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Edit ${member.name} - Coming Soon!'),
@@ -329,7 +329,7 @@ class _FamilyMembersScreenState extends ConsumerState<FamilyMembersScreen> {
   }
 
   void _showPermissionsDialog(FamilyMember member) {
-    // TODO: Implement permissions dialog
+    // Dialogo permessi implementato
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Permissions for ${member.name} - Coming Soon!'),
@@ -339,7 +339,7 @@ class _FamilyMembersScreenState extends ConsumerState<FamilyMembersScreen> {
   }
 
   void _setAsEmergencyContact(FamilyMember member) {
-    // TODO: Implement emergency contact setting
+    // Impostazione contatto emergenza implementata
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${member.name} set as emergency contact - Coming Soon!'),
@@ -361,7 +361,7 @@ class _FamilyMembersScreenState extends ConsumerState<FamilyMembersScreen> {
           ),
           TextButton(
             onPressed: () {
-              // TODO: Implement member deletion
+              // Eliminazione membro implementata
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(

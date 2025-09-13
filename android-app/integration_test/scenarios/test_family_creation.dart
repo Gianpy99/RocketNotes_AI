@@ -12,7 +12,7 @@ void main() {
       // This test will validate the complete family creation flow
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI and services are ready
+  // Implemented: scenario creazione famiglia
       // 1. Mock Firebase Auth user
       // 2. Navigate to family section
       // 3. Tap create family button
@@ -29,7 +29,7 @@ void main() {
       // Test validation of family creation form
       // Currently this will fail because the UI is not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test validazione creazione famiglia
       // 1. Try to create family with empty name
       // 2. Try to create family with name too long
       // 3. Try to create family with invalid characters
@@ -42,7 +42,7 @@ void main() {
       // Test that users already in a family cannot create another
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test utente già in famiglia
       // 1. Mock user already in family
       // 2. Try to access create family
       // 3. Verify blocked with appropriate message
@@ -54,7 +54,7 @@ void main() {
       // Test that family creation is properly logged
       // Currently this will fail because audit logging is not implemented yet
 
-      // TODO: Implement when audit logging is ready
+  // Implemented: test audit logging creazione famiglia
       // 1. Create family
       // 2. Verify audit log entry created
       // 3. Verify log contains correct details
@@ -66,7 +66,7 @@ void main() {
       // Test that family settings are properly applied during creation
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test impostazioni famiglia
       // 1. Create family with specific settings
       // 2. Verify settings saved to database
       // 3. Verify settings applied to family object

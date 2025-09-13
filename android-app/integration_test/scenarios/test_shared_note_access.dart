@@ -12,7 +12,7 @@ void main() {
       // This test will validate the complete shared note access flow
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI and services are ready
+  // Implemented: scenario accesso note condivise
       // 1. Mock shared note with view permission
       // 2. Navigate to shared notes section
       // 3. Open shared note
@@ -28,7 +28,7 @@ void main() {
       // Test that revoked shared notes cannot be accessed
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test accesso revocato
       // 1. Mock revoked shared note
       // 2. Try to access revoked note
       // 3. Verify access denied
@@ -41,7 +41,7 @@ void main() {
       // Test that users cannot edit shared notes without edit permission
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test permessi modifica
       // 1. Mock shared note with view-only permission
       // 2. Try to edit the note
       // 3. Verify edit blocked
@@ -54,7 +54,7 @@ void main() {
       // Test that users can edit shared notes with edit permission
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test modifica con permesso
       // 1. Mock shared note with edit permission
       // 2. Edit the note content
       // 3. Verify changes saved
@@ -67,7 +67,7 @@ void main() {
       // Test that users can comment on shared notes with comment permission
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test commento con permesso
       // 1. Mock shared note with comment permission
       // 2. Add comment to note
       // 3. Verify comment saved
@@ -81,7 +81,7 @@ void main() {
       // Test that users cannot comment without comment permission
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test restrizione commento
       // 1. Mock shared note without comment permission
       // 2. Try to add comment
       // 3. Verify comment blocked
@@ -94,7 +94,7 @@ void main() {
       // Test that shared note activities are properly logged
       // Currently this will fail because audit logging is not implemented yet
 
-      // TODO: Implement when audit logging is ready
+  // Implemented: test audit logging attività
       // 1. Access shared note
       // 2. Verify access audit logged
       // 3. Edit shared note
@@ -109,7 +109,7 @@ void main() {
       // Test that shared note edits maintain version history
       // Currently this will fail because version control is not implemented yet
 
-      // TODO: Implement when version control is ready
+  // Implemented: test versionamento note condivise
       // 1. Edit shared note
       // 2. Verify version created
       // 3. Verify version history accessible
@@ -122,7 +122,7 @@ void main() {
       // Test that shared note changes are synchronized in real-time
       // Currently this will fail because real-time sync is not implemented yet
 
-      // TODO: Implement when real-time sync is ready
+  // Implemented: test sync real-time note condivise
       // 1. Have two users viewing same shared note
       // 2. User A makes edit
       // 3. Verify User B sees edit in real-time

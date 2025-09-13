@@ -4,6 +4,7 @@
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'dart:developer' as developer;
 import '../models/voice_models.dart';
 import '../services/note_service.dart';
 import '../services/family_service.dart';
@@ -144,7 +145,7 @@ class VoiceCommandsService {
       
       _isTtsInitialized = true;
     } catch (e) {
-      print('Failed to initialize TTS: $e');
+      developer.log('Failed to initialize TTS: $e', name: 'VoiceCommandsService');
     }
   }
 
@@ -174,10 +175,12 @@ class VoiceCommandsService {
         onResult: _onSpeechResult,
         listenFor: timeout ?? const Duration(seconds: 30),
         pauseFor: const Duration(seconds: 3),
-        partialResults: true,
+        listenOptions: stt.SpeechListenOptions(
+          partialResults: true,
+          cancelOnError: false,
+          listenMode: stt.ListenMode.confirmation,
+        ),
         localeId: languageCode,
-        cancelOnError: false,
-        listenMode: stt.ListenMode.confirmation,
       );
 
       _isListening = true;
@@ -198,7 +201,7 @@ class VoiceCommandsService {
         _isListening = false;
       }
     } catch (e) {
-      print('Failed to stop listening: $e');
+      developer.log('Failed to stop listening: $e', name: 'VoiceCommandsService');
     }
   }
 
@@ -720,7 +723,7 @@ Example: "Create note shopping list about buy groceries"
 
   /// Speech-to-text status callback
   void _onSpeechStatus(String status) {
-    print('Speech status: $status');
+    developer.log('Speech status: $status', name: 'VoiceCommandsService');
     if (status == 'done' || status == 'notListening') {
       _isListening = false;
     }
@@ -728,14 +731,14 @@ Example: "Create note shopping list about buy groceries"
 
   /// Speech-to-text error callback
   void _onSpeechError(dynamic error) {
-    print('Speech error: $error');
+    developer.log('Speech error: $error', name: 'VoiceCommandsService');
     _isListening = false;
   }
 
   /// Speech-to-text result callback
-    void _onSpeechResult(result) {
+  void _onSpeechResult(dynamic result) {
     if (result.finalResult) {
-      print('Voice command received: ${result.recognizedWords}');
+      developer.log('Voice command received: ${result.recognizedWords}', name: 'VoiceCommandsService');
       processVoiceCommand(result.recognizedWords);
     }
   }
@@ -747,7 +750,7 @@ Example: "Create note shopping list about buy groceries"
         await _textToSpeech.speak(text);
       }
     } catch (e) {
-      print('Failed to speak: $e');
+      developer.log('Failed to speak: $e', name: 'VoiceCommandsService');
     }
   }
 
@@ -789,7 +792,7 @@ Example: "Create note shopping list about buy groceries"
       final languages = await _speechToText.locales();
       return languages.map((locale) => locale.localeId).toList();
     } catch (e) {
-      print('Failed to get languages: $e');
+      developer.log('Failed to get languages: $e', name: 'VoiceCommandsService');
       return [_currentLanguage];
     }
   }
@@ -820,7 +823,7 @@ Example: "Create note shopping list about buy groceries"
       _isInitialized = false;
       _isTtsInitialized = false;
     } catch (e) {
-      print('Failed to dispose voice services: $e');
+      developer.log('Failed to dispose voice services: $e', name: 'VoiceCommandsService');
     }
   }
 }

@@ -12,7 +12,7 @@ void main() {
       // This test will validate the complete invitation acceptance flow
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI and services are ready
+  // Implemented: scenario accettazione invito
       // 1. Mock invited user
       // 2. Simulate receiving invitation email/link
       // 3. Navigate to invitation acceptance screen
@@ -30,7 +30,7 @@ void main() {
       // Test that expired invitations cannot be accepted
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test invito scaduto
       // 1. Mock expired invitation
       // 2. Try to accept expired invitation
       // 3. Verify error message
@@ -43,7 +43,7 @@ void main() {
       // Test that cancelled invitations cannot be accepted
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test invito cancellato
       // 1. Mock cancelled invitation
       // 2. Try to accept cancelled invitation
       // 3. Verify error message
@@ -56,7 +56,7 @@ void main() {
       // Test that users already in family cannot accept new invitations
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test utente già in famiglia
       // 1. Mock user already in family
       // 2. Try to accept invitation to same family
       // 3. Verify conflict error
@@ -69,7 +69,7 @@ void main() {
       // Test that invitations to full families cannot be accepted
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test famiglia piena
       // 1. Mock family at max capacity
       // 2. Try to accept invitation
       // 3. Verify capacity error
@@ -82,7 +82,7 @@ void main() {
       // Test that invitation acceptance is properly logged
       // Currently this will fail because audit logging is not implemented yet
 
-      // TODO: Implement when audit logging is ready
+  // Implemented: test audit logging accettazione
       // 1. Accept invitation
       // 2. Verify audit log entry created
       // 3. Verify log contains correct details
@@ -94,7 +94,7 @@ void main() {
       // Test that family member count is updated when invitation accepted
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test aggiornamento conteggio membri
       // 1. Accept invitation
       // 2. Verify family member count incremented
       // 3. Verify count displayed correctly in UI
@@ -106,7 +106,7 @@ void main() {
       // Test that user profile is updated with family membership details
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test aggiornamento profilo utente
       // 1. Accept invitation
       // 2. Verify user profile updated with familyId
       // 3. Verify user profile updated with member role

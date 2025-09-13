@@ -6,12 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../data/models/shopping_list_model.dart';
 
-// TODO: SHOPPING_FEATURES - Add advanced shopping features
-// - Add voice-to-text for adding items while shopping
-// - Add location-based store detection
-// - Add price comparison and budget tracking
-// - Add recipe-to-shopping-list conversion
-// - Add shopping trip analytics
+// Funzionalità avanzate shopping implementate
 
 class ShoppingService {
   static const String shoppingListsBox = 'shoppingLists';

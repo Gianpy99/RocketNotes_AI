@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,7 +42,7 @@ class FCMConfig {
     final String? payload = response.payload;
     if (payload != null) {
       // Parse payload and navigate accordingly
-      print('Notification tapped with payload: $payload');
+      developer.log('Notification tapped with payload: $payload', name: 'FCMConfig');
     }
   }
   
@@ -66,7 +67,7 @@ class FCMConfig {
       final String? token = await messaging.getToken();
       return token;
     } catch (e) {
-      print('Error getting FCM token: $e');
+      developer.log('Error getting FCM token: $e', name: 'FCMConfig');
       return null;
     }
   }
@@ -78,9 +79,9 @@ class FCMConfig {
           .httpsCallable('updateFCMToken');
       
       await callable.call({'token': token});
-      print('FCM token updated on server');
+      developer.log('FCM token updated on server', name: 'FCMConfig');
     } catch (e) {
-      print('Error updating FCM token on server: $e');
+      developer.log('Error updating FCM token on server: $e', name: 'FCMConfig');
     }
   }
   
@@ -97,14 +98,14 @@ class FCMConfig {
   }
   
   static Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    print('Received foreground message: ${message.messageId}');
+    developer.log('Received foreground message: ${message.messageId}', name: 'FCMConfig');
     
     // Show local notification for foreground messages
     await _showLocalNotification(message);
   }
   
   static Future<void> _handleMessageOpenedApp(RemoteMessage message) async {
-    print('Message opened app: ${message.messageId}');
+    developer.log('Message opened app: ${message.messageId}', name: 'FCMConfig');
     
     // Handle navigation based on message data
     _handleNotificationNavigation(message.data);
@@ -139,24 +140,24 @@ class FCMConfig {
     switch (type) {
       case 'family_invitation':
         // Navigate to family invitations screen
-        print('Navigate to family invitations');
+        developer.log('Navigate to family invitations', name: 'FCMConfig');
         break;
       case 'note_shared':
         // Navigate to shared note
         final String? noteId = data['noteId'];
-        print('Navigate to shared note: $noteId');
+        developer.log('Navigate to shared note: $noteId', name: 'FCMConfig');
         break;
       case 'note_comment':
         // Navigate to note with comments
         final String? noteId = data['noteId'];
-        print('Navigate to note comments: $noteId');
+        developer.log('Navigate to note comments: $noteId', name: 'FCMConfig');
         break;
       case 'family_activity':
         // Navigate to family activity feed
-        print('Navigate to family activity');
+        developer.log('Navigate to family activity', name: 'FCMConfig');
         break;
       default:
-        print('Unknown notification type: $type');
+        developer.log('Unknown notification type: $type', name: 'FCMConfig');
     }
   }
 }
@@ -164,7 +165,7 @@ class FCMConfig {
 // Background message handler (must be top-level function)
 @pragma('vm:entry-point')
 Future<void> _handleBackgroundMessage(RemoteMessage message) async {
-  print('Handling background message: ${message.messageId}');
+  developer.log('Handling background message: ${message.messageId}', name: 'FCMConfig');
   
   // Handle background message
   // Note: UI updates are not allowed in background handlers
@@ -186,7 +187,7 @@ class FCMService {
       // Request permissions
       final bool permissionGranted = await FCMConfig.requestPermissions();
       if (!permissionGranted) {
-        print('FCM permissions not granted');
+        developer.log('FCM permissions not granted', name: 'FCMService');
         return;
       }
       
@@ -200,10 +201,10 @@ class FCMService {
       FirebaseMessaging.instance.onTokenRefresh.listen(_onTokenRefresh);
       
       _isInitialized = true;
-      print('FCM service initialized');
+      developer.log('FCM service initialized', name: 'FCMService');
       
     } catch (e) {
-      print('Error initializing FCM service: $e');
+      developer.log('Error initializing FCM service: $e', name: 'FCMService');
     }
   }
   
@@ -215,12 +216,12 @@ class FCMService {
         _currentToken = token;
       }
     } catch (e) {
-      print('Error updating FCM token: $e');
+      developer.log('Error updating FCM token: $e', name: 'FCMService');
     }
   }
   
   Future<void> _onTokenRefresh(String token) async {
-    print('FCM token refreshed: $token');
+    developer.log('FCM token refreshed: $token', name: 'FCMService');
     if (token != _currentToken) {
       await FCMConfig.updateTokenOnServer(token);
       _currentToken = token;
@@ -234,9 +235,9 @@ class FCMService {
   Future<void> subscribeToTopic(String topic) async {
     try {
       await FirebaseMessaging.instance.subscribeToTopic(topic);
-      print('Subscribed to topic: $topic');
+      developer.log('Subscribed to topic: $topic', name: 'FCMService');
     } catch (e) {
-      print('Error subscribing to topic $topic: $e');
+      developer.log('Error subscribing to topic $topic: $e', name: 'FCMService');
     }
   }
   
@@ -244,9 +245,9 @@ class FCMService {
   Future<void> unsubscribeFromTopic(String topic) async {
     try {
       await FirebaseMessaging.instance.unsubscribeFromTopic(topic);
-      print('Unsubscribed from topic: $topic');
+      developer.log('Unsubscribed from topic: $topic', name: 'FCMService');
     } catch (e) {
-      print('Error unsubscribing from topic $topic: $e');
+      developer.log('Error unsubscribing from topic $topic: $e', name: 'FCMService');
     }
   }
   

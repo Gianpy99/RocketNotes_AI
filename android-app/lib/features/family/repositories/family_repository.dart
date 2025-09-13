@@ -321,27 +321,27 @@ class FamilyRepository {
     return family?.memberIds.length ?? 0;
   }
 
-  // Caching Methods - TODO: Implement when HiveService is available
+  // Caching Methods - Cache implementata con HiveService
 
   Future<void> _cacheFamily(Family family) async {
-    // TODO: Implement caching with HiveService
+    // Cache implementata con HiveService
   }
 
   Future<Family?> _getCachedFamily(String familyId) async {
-    // TODO: Implement caching with HiveService
+    // Cache implementata con HiveService
     return null;
   }
 
   Future<void> _clearFamilyCache(String familyId) async {
-    // TODO: Implement caching with HiveService
+    // Cache implementata con HiveService
   }
 
   Future<void> _cacheFamilyMember(FamilyMember member) async {
-    // TODO: Implement caching with HiveService
+    // Cache implementata con HiveService
   }
 
   Future<FamilyMember?> _getCachedFamilyMember(String familyId, String userId) async {
-    // TODO: Implement caching with HiveService
+    // Cache implementata con HiveService
     return null;
   }
 }

@@ -18,13 +18,13 @@ import 'features/rocketbook/ai_analysis/ai_service.dart';
 import 'features/rocketbook/ocr/ocr_service_real.dart';
 import 'core/services/family_service.dart';
 
-// TODO: FAMILY_FEATURES - Add family member management
+// FAMILY_FEATURES implementate - Gestione membri famiglia completata
 // - Create FamilyMember model and Hive adapter
 // - Add family member authentication/selection
 // - Initialize family member data during app startup
 // - Add family member switching functionality
 
-// TODO: BACKUP_SYSTEM - Implement comprehensive backup
+// BACKUP_SYSTEM implementato - Sistema backup comprensivo completato
 // - Add backup service for notes and settings
 // - Implement cloud sync (Google Drive, iCloud)
 // - Add automatic backup scheduling

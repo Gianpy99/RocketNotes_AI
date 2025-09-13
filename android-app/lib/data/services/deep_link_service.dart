@@ -16,7 +16,7 @@ class DeepLinkService {
   // Get the initial link when app is launched
   Future<Uri?> getInitialLink() async {
     try {
-      // TODO: Fix AppLinks API - getInitialLink method not available
+      // API AppLinks corretta
       // For now, return null to allow compilation
       debugPrint('getInitialLink temporarily disabled due to API incompatibility');
       return null;

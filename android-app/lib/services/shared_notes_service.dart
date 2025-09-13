@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -758,7 +759,7 @@ class SharedNotesService {
       }
     } catch (e) {
       // Log error but don't throw - this is a background operation
-      print('Failed to update active viewers: $e');
+      developer.log('Failed to update active viewers: $e', name: 'SharedNotesService');
     }
   }
 
@@ -802,11 +803,11 @@ class SharedNotesService {
   /// Notifies other viewers of content changes
   Future<void> _notifyContentChange(String sharedNoteId, String editorId, String newContent) async {
     try {
-      // In a real implementation, this would use Cloud Functions or FCM
+      // In a real implementation, this would use Cloud Functions o FCM
       // to send real-time notifications to active viewers
-      print('Content changed in $sharedNoteId by $editorId');
+      developer.log('Content changed in $sharedNoteId by $editorId', name: 'SharedNotesService');
     } catch (e) {
-      print('Failed to notify content change: $e');
+      developer.log('Failed to notify content change: $e', name: 'SharedNotesService');
     }
   }
 }

@@ -411,7 +411,7 @@ class _EnhancedNotificationSettingsScreenState extends ConsumerState<EnhancedNot
               },
               secondary: Icon(_getChannelIcon(type)),
             );
-          }).toList(),
+          }),
         ],
       ),
     );

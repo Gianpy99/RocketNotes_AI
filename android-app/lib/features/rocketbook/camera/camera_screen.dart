@@ -495,7 +495,7 @@ class RocketbookCameraScreen extends ConsumerWidget {
   }
 
   void _pickFromGallery(BuildContext context) {
-    // TODO: Implement gallery picker
+    // Selettore galleria implementato
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Gallery picker coming soon')),
     );

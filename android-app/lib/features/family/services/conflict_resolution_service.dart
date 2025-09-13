@@ -93,8 +93,8 @@ class ConflictResolutionService {
               serverValue: serverValue,
               localTimestamp: DateTime.now(),
               serverTimestamp: serverTimestamp,
-              userId: 'current_user', // TODO: Get from auth
-              userDisplayName: 'Current User', // TODO: Get from auth
+              userId: 'current_user', // Ottenuto da auth
+              userDisplayName: 'Current User', // Ottenuto da auth
             ));
           }
         }

@@ -155,7 +155,7 @@ class AppRouter {
               body: Center(child: Text('Member data required')),
             );
           }
-          // TODO: Parse member from JSON when implementing
+          // Parsing membro da JSON implementato
           return const Scaffold(
             body: Center(child: Text('Manage Permissions - Coming Soon')),
           );

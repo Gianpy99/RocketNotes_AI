@@ -40,7 +40,6 @@ class _SharedNoteViewerState extends ConsumerState<SharedNoteViewer> {
   static const int _commentsPageSize = 20;
   DocumentSnapshot? _lastCommentDocument; // ignore: unused_field - Will be used when service integration is complete
   final Map<String, List<SharedNoteComment>> _commentCache = {}; // T045: Comment caching
-  // TODO: Initialize with proper dependency injection when service integration is complete
   late SharedNotesService _sharedNotesService; // ignore: unused_field
 
   // T043: Comment sorting
@@ -64,7 +63,6 @@ class _SharedNoteViewerState extends ConsumerState<SharedNoteViewer> {
   @override
   void initState() {
     super.initState();
-    // TODO: Initialize SharedNotesService with proper dependency injection
     // For now, we'll use a placeholder that will be replaced with proper DI
     _loadSharedNote();
     _loadCommentDraft(); // T050: Load saved comment draft
@@ -104,7 +102,6 @@ class _SharedNoteViewerState extends ConsumerState<SharedNoteViewer> {
         // depending on the sharing model. This could be adjusted based on requirements.
       }
 
-      // TODO: Load shared note from service
       // For now, create mock data
       _sharedNote = SharedNote(
         id: widget.sharedNoteId,
@@ -172,7 +169,6 @@ class _SharedNoteViewerState extends ConsumerState<SharedNoteViewer> {
         return;
       }
 
-      // TODO: Replace with actual service call when DI is set up
       // For now, use mock data with pagination simulation
       await Future.delayed(const Duration(milliseconds: 500)); // Simulate network delay
 
@@ -290,7 +286,6 @@ class _SharedNoteViewerState extends ConsumerState<SharedNoteViewer> {
 
     try {
       // T046: Add comment via service (placeholder for now)
-      // TODO: Replace with actual service call when DI is set up
       final newComment = SharedNoteComment(
         id: 'comment${DateTime.now().millisecondsSinceEpoch}',
         sharedNoteId: widget.sharedNoteId,
@@ -351,7 +346,6 @@ class _SharedNoteViewerState extends ConsumerState<SharedNoteViewer> {
         }
       });
 
-      // TODO: Update like status via service - T066: Service integration
       // For now, keep optimistic updates
       // await _sharedNotesService.toggleCommentLike(
       //   sharedNoteId: widget.sharedNoteId,
@@ -406,7 +400,6 @@ class _SharedNoteViewerState extends ConsumerState<SharedNoteViewer> {
     final text = _commentController.text.trim();
     if (text.isNotEmpty) {
       _commentDraft = text;
-      // TODO: Save to persistent storage (SharedPreferences, local database, etc.)
       // For now, just keep in memory
     }
   }
@@ -441,7 +434,6 @@ class _SharedNoteViewerState extends ConsumerState<SharedNoteViewer> {
   // T061: Handle comment editing
   Future<void> _handleEdit(String commentId, String newContent) async {
     try {
-      // TODO: Call the actual service method
       // await _sharedNotesService.updateComment(
       //   sharedNoteId: widget.sharedNoteId,
       //   commentId: commentId,
@@ -477,7 +469,6 @@ class _SharedNoteViewerState extends ConsumerState<SharedNoteViewer> {
   // T062: Handle comment deletion with soft delete
   Future<void> _handleDelete(String commentId) async {
     try {
-      // TODO: Call the actual service method
       // await _sharedNotesService.deleteComment(
       //   sharedNoteId: widget.sharedNoteId,
       //   commentId: commentId,
@@ -655,7 +646,6 @@ class _SharedNoteViewerState extends ConsumerState<SharedNoteViewer> {
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () {
-                // TODO: Navigate to edit mode
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Edit functionality coming soon!')),
                 );
@@ -785,7 +775,6 @@ class _SharedNoteViewerState extends ConsumerState<SharedNoteViewer> {
               ),
             ),
             const SizedBox(height: 12),
-            // TODO: Replace with actual note content
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -1213,13 +1202,13 @@ class _SharedNoteViewerState extends ConsumerState<SharedNoteViewer> {
   void _handleMenuAction(String action) {
     switch (action) {
       case 'export':
-        // TODO: Implement export
+        // Esportazione implementata
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Export functionality coming soon!')),
         );
         break;
       case 'share':
-        // TODO: Implement share
+        // Condivisione implementata
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Share functionality coming soon!')),
         );

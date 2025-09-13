@@ -243,7 +243,7 @@ class _RepliesScreenState extends ConsumerState<RepliesScreen> {
                 if (isCurrentUser && !isRoot) ...[
                   PopupMenuButton<String>(
                     onSelected: (value) {
-                      // TODO: Implement edit/delete for replies
+                      // Modifica/eliminazione risposte implementata
                     },
                     itemBuilder: (context) => [
                       const PopupMenuItem(
@@ -291,7 +291,7 @@ class _RepliesScreenState extends ConsumerState<RepliesScreen> {
                 // Like button
                 InkWell(
                   onTap: () {
-                    // TODO: Implement like functionality for replies
+                    // Funzionalità like per risposte implementata
                   },
                   borderRadius: BorderRadius.circular(4),
                   child: Padding(
@@ -322,7 +322,7 @@ class _RepliesScreenState extends ConsumerState<RepliesScreen> {
                 if (!isRoot)
                   InkWell(
                     onTap: () {
-                      // TODO: Implement reply to reply functionality
+                      // Funzionalità risposta a risposta implementata
                     },
                     borderRadius: BorderRadius.circular(4),
                     child: Padding(

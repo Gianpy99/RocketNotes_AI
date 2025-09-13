@@ -137,7 +137,16 @@ class _NotificationHistoryScreenState extends ConsumerState<NotificationHistoryS
 
     // Filter by type
     if (_selectedFilter != 'all') {
-      filtered = filtered.where((n) => n.type == _selectedFilter).toList();
+      NotificationType? typeEnum;
+      try {
+        typeEnum = NotificationType.values.firstWhere(
+          (e) => e.toString().split('.').last == _selectedFilter,
+          orElse: () => NotificationType.system,
+        );
+      } catch (_) {
+        typeEnum = NotificationType.system;
+      }
+      filtered = filtered.where((n) => n.type == typeEnum).toList();
     }
 
     // Filter by read status

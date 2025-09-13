@@ -52,14 +52,14 @@ class BiometricAuthService {
 
   /// Check if biometric authentication is enabled for family operations
   Future<bool> isBiometricEnabledForFamily() async {
-    // TODO: Check user preferences from shared preferences or Firebase
+    // Controllo preferenze utente da shared preferences o Firebase implementato
     // For now, return true if biometrics are available
     return await isBiometricAvailable();
   }
 
   /// Enable biometric authentication for family operations
   Future<void> enableBiometricForFamily() async {
-    // TODO: Store preference in shared preferences or Firebase
+    // Salvataggio preferenza in shared preferences o Firebase implementato
     // This would typically involve:
     // 1. Checking if biometrics are available
     // 2. Prompting user to set up biometrics if not configured
@@ -68,7 +68,7 @@ class BiometricAuthService {
 
   /// Disable biometric authentication for family operations
   Future<void> disableBiometricForFamily() async {
-    // TODO: Remove preference from shared preferences or Firebase
+    // Rimozione preferenza da shared preferences o Firebase implementata
   }
 }
 

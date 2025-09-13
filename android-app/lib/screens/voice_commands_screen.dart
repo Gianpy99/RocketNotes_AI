@@ -13,7 +13,7 @@ import '../services/voice_commands_service.dart';
 // - Integration with app navigation
 
 class VoiceCommandsScreen extends StatefulWidget {
-  const VoiceCommandsScreen({Key? key}) : super(key: key);
+  const VoiceCommandsScreen({super.key});
 
   @override
   State<VoiceCommandsScreen> createState() => _VoiceCommandsScreenState();
@@ -25,7 +25,7 @@ class _VoiceCommandsScreenState extends State<VoiceCommandsScreen>
   
   late TabController _tabController;
   VoiceSettings _settings = const VoiceSettings();
-  List<VoiceCommandHistoryEntry> _commandHistory = [];
+  final List<VoiceCommandHistoryEntry> _commandHistory = [];
   
   @override
   void initState() {
@@ -369,7 +369,7 @@ class _VoiceCommandsScreenState extends State<VoiceCommandsScreen>
 
   Widget _buildTipsSection() {
     return Card(
-      color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.1),
+  color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

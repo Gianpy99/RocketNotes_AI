@@ -266,7 +266,6 @@ class CommentWidget extends StatelessWidget {
         }
         break;
       case 'report':
-        // TODO: Implement report comment
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Report functionality coming soon!')),
         );

@@ -1,6 +1,7 @@
 // ==========================================
 // lib/services/fcm_preference_manager.dart
 // ==========================================
+import 'dart:developer' as developer;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -118,9 +119,9 @@ class FCMPreferenceManager {
         'lastTokenUpdate': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-      print('FCM token registered successfully');
+      developer.log('FCM token registered successfully');
     } catch (e) {
-      print('Failed to register FCM token: $e');
+      developer.log('Failed to register FCM token: $e');
     }
   }
 
@@ -154,9 +155,9 @@ class FCMPreferenceManager {
         });
       }
 
-      print('FCM token unregistered successfully');
+      developer.log('FCM token unregistered successfully');
     } catch (e) {
-      print('Failed to unregister FCM token: $e');
+      developer.log('Failed to unregister FCM token: $e');
     }
   }
 
@@ -185,9 +186,9 @@ class FCMPreferenceManager {
         'lastTokenUpdate': FieldValue.serverTimestamp(),
       });
 
-      print('FCM token refreshed and updated');
+      developer.log('FCM token refreshed and updated');
     } catch (e) {
-      print('Failed to handle token refresh: $e');
+      developer.log('Failed to handle token refresh: $e');
     }
   }
 
@@ -217,7 +218,7 @@ class FCMPreferenceManager {
       // Show in-app notification
       await _showInAppNotification(message);
     } catch (e) {
-      print('Failed to handle foreground message: $e');
+      developer.log('Failed to handle foreground message: $e');
     }
   }
 
@@ -225,15 +226,15 @@ class FCMPreferenceManager {
   Future<void> _handleMessageOpenedApp(RemoteMessage message) async {
     try {
       final data = message.data;
-      print('Message opened app: ${data}');
+      developer.log('Message opened app: $data');
       
       // Handle deep linking based on message data
       if (data.containsKey('deepLink')) {
         // Navigate to specific screen based on deep link
-        print('Navigating to: ${data['deepLink']}');
+        developer.log('Navigating to: ${data['deepLink']}');
       }
     } catch (e) {
-      print('Failed to handle message opened app: $e');
+      developer.log('Failed to handle message opened app: $e');
     }
   }
 
@@ -345,7 +346,7 @@ class FCMPreferenceManager {
       final defaultPrefs = _getDefaultPreferences(userId);
       await _preferencesCollection.doc(userId).set(defaultPrefs.toJson());
     } catch (e) {
-      print('Failed to store default preferences: $e');
+      developer.log('Failed to store default preferences: $e');
     }
   }
 
@@ -421,13 +422,13 @@ class FCMPreferenceManager {
   Future<void> _showInAppNotification(RemoteMessage message) async {
     try {
       // This would typically show a local notification or in-app banner
-      print('Showing in-app notification: ${message.notification?.title}');
-      print('Body: ${message.notification?.body}');
+      developer.log('Showing in-app notification: ${message.notification?.title}');
+      developer.log('Body: ${message.notification?.body}');
       
       // In a real implementation, this would use a package like flutter_local_notifications
       // or show a custom in-app notification UI
     } catch (e) {
-      print('Failed to show in-app notification: $e');
+      developer.log('Failed to show in-app notification: $e');
     }
   }
 
@@ -436,7 +437,7 @@ class FCMPreferenceManager {
     try {
       return await _messaging.getToken();
     } catch (e) {
-      print('Failed to get FCM token: $e');
+      developer.log('Failed to get FCM token: $e');
       return null;
     }
   }
@@ -447,7 +448,7 @@ class FCMPreferenceManager {
       final settings = await _messaging.getNotificationSettings();
       return settings.authorizationStatus == AuthorizationStatus.authorized;
     } catch (e) {
-      print('Failed to check notification status: $e');
+      developer.log('Failed to check notification status: $e');
       return false;
     }
   }
@@ -474,9 +475,9 @@ class FCMPreferenceManager {
         await _messaging.subscribeToTopic('family_activity');
       }
 
-      print('Subscribed to notification topics based on preferences');
+      developer.log('Subscribed to notification topics based on preferences');
     } catch (e) {
-      print('Failed to subscribe to topics: $e');
+      developer.log('Failed to subscribe to topics: $e');
     }
   }
 
@@ -500,9 +501,9 @@ class FCMPreferenceManager {
         await _messaging.unsubscribeFromTopic('family_activity');
       }
 
-      print('Unsubscribed from disabled notification topics');
+      developer.log('Unsubscribed from disabled notification topics');
     } catch (e) {
-      print('Failed to unsubscribe from topics: $e');
+      developer.log('Failed to unsubscribe from topics: $e');
     }
   }
 
@@ -533,10 +534,10 @@ class FCMPreferenceManager {
           'lastCleanup': FieldValue.serverTimestamp(),
         });
         
-        print('Cleaned up ${tokens.length - activeTokens.length} inactive tokens');
+        developer.log('Cleaned up ${tokens.length - activeTokens.length} inactive tokens');
       }
     } catch (e) {
-      print('Failed to cleanup inactive tokens: $e');
+      developer.log('Failed to cleanup inactive tokens: $e');
     }
   }
 }

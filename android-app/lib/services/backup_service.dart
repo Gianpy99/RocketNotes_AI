@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -576,7 +577,7 @@ class BackupService {
           await ref.delete();
         } catch (e) {
           // Continue even if storage deletion fails
-          print('Failed to delete backup from storage: $e');
+          developer.log('Failed to delete backup from storage: $e', name: 'BackupService');
         }
       }
 

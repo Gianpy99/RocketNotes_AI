@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -184,14 +185,16 @@ class VoiceProcessingService {
         },
         listenFor: timeout ?? const Duration(minutes: 2),
         pauseFor: const Duration(seconds: 3),
-        partialResults: partialResults,
+        listenOptions: SpeechListenOptions(
+          partialResults: partialResults,
+          cancelOnError: true,
+          listenMode: ListenMode.confirmation,
+        ),
         localeId: language,
         onSoundLevelChange: (level) {
           // Handle sound level changes for UI feedback
           _handleSoundLevelChange(sessionId, level);
         },
-        cancelOnError: true,
-        listenMode: ListenMode.confirmation,
       );
 
       // Wait for completion or timeout
@@ -249,7 +252,7 @@ class VoiceProcessingService {
       // Generate AI suggestions if applicable
       await _generateAISuggestions(sessionId, transcription);
     } catch (e) {
-      print('Failed to process transcription: $e');
+      developer.log('Failed to process transcription: $e', name: 'VoiceProcessingService');
     }
   }
 
@@ -319,9 +322,9 @@ class VoiceProcessingService {
 
       // In a real implementation, this would trigger the actual command execution
       // through the appropriate services (e.g., notes service, reminders service)
-      print('Executing command: ${command.command}');
+  developer.log('Executing command: ${command.command}', name: 'VoiceProcessingService');
     } catch (e) {
-      print('Failed to execute voice command: $e');
+      developer.log('Failed to execute voice command: $e', name: 'VoiceProcessingService');
     }
   }
 
@@ -340,7 +343,7 @@ class VoiceProcessingService {
 
       await _aiSuggestionsCollection.doc(aiSuggestion.requestId).set(aiSuggestion.toJson());
     } catch (e) {
-      print('Failed to generate AI suggestions: $e');
+      developer.log('Failed to generate AI suggestions: $e', name: 'VoiceProcessingService');
     }
   }
 
@@ -554,30 +557,30 @@ class VoiceProcessingService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print('Failed to update session status: $e');
+      developer.log('Failed to update session status: $e', name: 'VoiceProcessingService');
     }
   }
 
   /// Handles partial transcription results
   void _handlePartialTranscription(String sessionId, String partialText) {
     // This would typically update UI with real-time transcription
-    print('Partial transcription for $sessionId: $partialText');
+  developer.log('Partial transcription for $sessionId: $partialText', name: 'VoiceProcessingService');
   }
 
   /// Handles sound level changes
   void _handleSoundLevelChange(String sessionId, double level) {
     // This would update UI with audio level indicators
-    print('Sound level for $sessionId: $level');
+  developer.log('Sound level for $sessionId: $level', name: 'VoiceProcessingService');
   }
 
   /// Speech recognition error handler
   void _onSpeechError(dynamic error) {
-    print('Speech recognition error: $error');
+  developer.log('Speech recognition error: $error', name: 'VoiceProcessingService');
   }
 
   /// Speech recognition status handler
   void _onSpeechStatus(String status) {
-    print('Speech recognition status: $status');
+  developer.log('Speech recognition status: $status', name: 'VoiceProcessingService');
   }
 
   /// Calculates confidence score for transcription

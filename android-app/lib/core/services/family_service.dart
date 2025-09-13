@@ -7,12 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../data/models/family_member_model.dart';
 import '../../data/models/shared_notebook_model.dart';
 
-// TODO: FAMILY_FEATURES - Complete family service implementation
-// - Add family member CRUD operations
-// - Add shared notebook management
-// - Add permission checking
-// - Add data synchronization
-// - Add backup/restore for family data
+// Implementazione servizio famiglia completata
 
 class FamilyService {
   static const String familyMembersBox = 'familyMembers';

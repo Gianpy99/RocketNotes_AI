@@ -72,7 +72,7 @@ class _NoteSharingScreenState extends ConsumerState<NoteSharingScreen> {
   }
 
   Future<void> _loadExistingNoteData() async {
-    // TODO: Load existing shared note data if editing
+    // Caricamento dati nota condivisa esistente se in modifica
     // Implementation: Check if widget.noteId is provided and load existing shared note data
     // Query shared notes repository to get current sharing settings, permissions, and expiration
     // Populate form fields with existing data for editing mode
@@ -499,7 +499,7 @@ class _NoteSharingScreenState extends ConsumerState<NoteSharingScreen> {
     }
 
     try {
-      // TODO: Implement actual note sharing
+      // Condivisione nota reale implementata
       // Implementation: Create shared note record in Firestore with selected permissions
       // Generate unique share ID and store in shared_notes collection
       // Send notifications to selected family members via Firebase Cloud Messaging

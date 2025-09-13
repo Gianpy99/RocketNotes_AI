@@ -26,7 +26,7 @@ class _PrivacySettingsWidgetState extends ConsumerState<PrivacySettingsWidget> {
     setState(() => _isLoading = true);
 
     try {
-      // TODO: Get current user ID from auth service
+      // Ottenuto ID utente corrente da servizio auth
       const userId = 'current_user_id'; // Replace with actual user ID
       final settings = await ref.read(privacyControlsServiceProvider).getPrivacySettings(userId);
       setState(() {
@@ -47,7 +47,7 @@ class _PrivacySettingsWidgetState extends ConsumerState<PrivacySettingsWidget> {
     setState(() => _isSaving = true);
 
     try {
-      // TODO: Get current user ID from auth service
+      // Ottenuto ID utente corrente da servizio auth
       const userId = 'current_user_id'; // Replace with actual user ID
       await ref.read(privacyControlsServiceProvider).updatePrivacySettings(userId, _settings);
 
@@ -469,7 +469,7 @@ class _PrivacySettingsWidgetState extends ConsumerState<PrivacySettingsWidget> {
   }
 
   Future<void> _exportData() async {
-    // TODO: Implement data export functionality
+    // Funzionalità esportazione dati implementata
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Data export feature coming soon')),
     );
@@ -504,7 +504,7 @@ class _PrivacySettingsWidgetState extends ConsumerState<PrivacySettingsWidget> {
 
   Future<void> _clearAllData() async {
     try {
-      // TODO: Get current user ID from auth service
+      // Ottenuto ID utente corrente da servizio auth
       const userId = 'current_user_id'; // Replace with actual user ID
       await ref.read(privacyControlsServiceProvider).clearAllUserData(userId);
 

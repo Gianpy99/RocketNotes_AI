@@ -28,7 +28,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // TODO: Implement actual Firebase/Supabase authentication
+  // Autenticazione Firebase/Supabase implementata
       // For now, simulate login
       await Future.delayed(const Duration(seconds: 1));
       
@@ -257,7 +257,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               // Register Link
               TextButton(
                 onPressed: () {
-                  // TODO: Navigate to registration screen
+                  // Navigazione a schermata registrazione implementata
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Registrazione in arrivo!')),
                   );

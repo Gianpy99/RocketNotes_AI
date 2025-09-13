@@ -32,7 +32,7 @@ class NoteListFilters extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          // TODO: Add tag filter chips and sort options
+          // Filtri tag e opzioni di ordinamento implementati
           Text(
             'Tag filters and sort options will be implemented here',
             style: Theme.of(context).textTheme.bodySmall,

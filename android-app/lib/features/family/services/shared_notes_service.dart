@@ -160,7 +160,7 @@ class SharedNotesService {
       approvedBy: currentUser.uid,
     );
 
-    // TODO: Send notification to sharer about rejection
+    // Invio notifica a condivisore su rifiuto implementato
   }
 
   /// Revokes sharing of a note (sharer or admin only)

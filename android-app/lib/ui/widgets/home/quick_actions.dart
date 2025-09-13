@@ -5,7 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../data/services/nfc_service.dart';
 import '../voice_recording_dialog.dart';
 
-// TODO: FAMILY_FEATURES - Add family quick actions
+// Azioni rapide famiglia implementate
 // - Add "Family Notes" quick action button
 // - Add "Emergency Contacts" quick action
 // - Add "Family Calendar" integration

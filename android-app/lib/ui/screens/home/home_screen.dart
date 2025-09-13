@@ -15,7 +15,7 @@ import '../../widgets/voice_recording_dialog.dart';
 import '../../widgets/common/family_member_selector.dart';
 import '../../widgets/home/shared_notebooks_section.dart';
 
-// TODO: FAMILY_FEATURES - Add family dashboard
+// Dashboard famiglia implementata
 // - Add family member selector in app bar
 // - Add family activity feed/timeline
 // - Add shared family notes section

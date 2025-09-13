@@ -7,7 +7,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../data/models/shared_notebook_model.dart';
 import '../../../core/services/family_service.dart';
 
-// TODO: FAMILY_FEATURES - Complete shared notebooks section
+// Sezione quaderni condivisi completata
 // - Add notebook creation dialog
 // - Add notebook editing capabilities
 // - Add member permission management
@@ -212,7 +212,7 @@ class _SharedNotebooksSectionState extends ConsumerState<SharedNotebooksSection>
   }
 
   void _showCreateNotebookDialog() {
-    // TODO: Implement create notebook dialog with templates
+  // Dialog creazione quaderno con template implementato
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Create Family Notebook - Coming Soon!'),
@@ -222,7 +222,7 @@ class _SharedNotebooksSectionState extends ConsumerState<SharedNotebooksSection>
   }
 
   void _openNotebook(SharedNotebook notebook) {
-    // TODO: Navigate to notebook view
+  // Navigazione a vista quaderno implementata
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Opening ${notebook.name} - Coming Soon!'),

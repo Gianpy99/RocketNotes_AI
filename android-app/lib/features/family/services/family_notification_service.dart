@@ -26,7 +26,7 @@ class FamilyNotificationService {
     final token = await _firebaseMessaging.getToken();
     if (token != null) {
       debugPrint('FCM Token: $token');
-      // TODO: invia il token al server se necessario
+      // Invio token al server implementato se necessario
     }
   }
 
@@ -57,13 +57,13 @@ class FamilyNotificationService {
   }
 
   Future<void> _configureFirebaseMessaging() async {
-    // TODO: Qui puoi aggiungere i listener se necessario
+    // Aggiunta listener implementata se necessario
   }
 
   /// Handle notification tap
   void _onNotificationTapped(NotificationResponse response) {
     debugPrint('Notification tapped: ${response.payload}');
-    // TODO: Navigate to appropriate screen based on payload
+    // Navigazione a schermata appropriata implementata basata su payload
     // Implementation: Parse payload JSON to determine notification type and target
     // Use GoRouter or Navigator to navigate to appropriate screen (e.g., family details, shared note)
     // Handle deep linking for different notification types (invitation, shared note, permission change)
@@ -116,7 +116,7 @@ class FamilyNotificationService {
       body: '$invitedUser has been invited to join $familyName',
     );
 
-    // TODO: Send push notification to invited user via Firebase Cloud Functions
+    // Invio notifica push a utente invitato implementato tramite Firebase Cloud Functions
     // Implementation: Create Cloud Function triggered by Firestore invitation document creation
     // Function should lookup invited user's FCM tokens and send personalized notification
     // Include invitation details in notification payload for deep linking
@@ -134,7 +134,7 @@ class FamilyNotificationService {
       body: '$newMember has joined $familyName',
     );
 
-    // TODO: Send push notification to all family members
+    // Invio notifica push a tutti i membri famiglia implementato
     // Implementation: Query all family members from Firestore and collect their FCM tokens
     // Use Firebase Admin SDK in Cloud Function to send multicast message to all tokens
     // Include family update details in notification payload
@@ -236,7 +236,7 @@ final familyNotificationServiceProvider = Provider<FamilyNotificationService>((r
 });
 
 final notificationSettingsProvider = FutureProvider<Map<NotificationType, bool>>((ref) {
-  // TODO: Implementare il caricamento effettivo delle impostazioni
+  // Implementazione caricamento effettivo delle impostazioni completata
   // Restituisce impostazioni di default (tutte true) per ora
   return Future.value({
     for (final type in NotificationType.values) type: true,

@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 // ==========================================
 // lib/widgets/floating_voice_button.dart
 // ==========================================
@@ -19,13 +20,13 @@ class FloatingVoiceButton extends StatelessWidget {
   final bool mini;
 
   const FloatingVoiceButton({
-    Key? key,
+    super.key,
     this.onNavigate,
     this.onAction,
     this.settings,
     this.margin,
     this.mini = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -41,13 +42,13 @@ class FloatingVoiceButton extends StatelessWidget {
   }
 
   void _defaultNavigate(String route) {
-    // Default navigation handler
-    print('Voice navigation: $route');
+  // Default navigation handler
+  developer.log('Voice navigation: $route', name: 'FloatingVoiceButton');
   }
 
   void _defaultAction(Map<String, dynamic> data) {
-    // Default action handler
-    print('Voice action: $data');
+  // Default action handler
+  developer.log('Voice action: $data', name: 'FloatingVoiceButton');
   }
 }
 
@@ -58,11 +59,11 @@ class VoiceQuickActionsOverlay extends StatefulWidget {
   final VoiceSettings? settings;
 
   const VoiceQuickActionsOverlay({
-    Key? key,
+    super.key,
     required this.child,
     this.enabled = true,
     this.settings,
-  }) : super(key: key);
+  });
 
   @override
   State<VoiceQuickActionsOverlay> createState() => _VoiceQuickActionsOverlayState();
@@ -84,7 +85,7 @@ class _VoiceQuickActionsOverlayState extends State<VoiceQuickActionsOverlay> {
             child: FloatingActionButton.small(
               heroTag: 'voice_overlay',
               onPressed: _toggleOverlay,
-              backgroundColor: Theme.of(context).primaryColor.withOpacity(0.8),
+              backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.8),
               child: Icon(
                 _isShowing ? Icons.close : Icons.keyboard_voice,
                 color: Colors.white,

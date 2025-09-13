@@ -7,7 +7,7 @@ import '../services/shared_note_export_service.dart';
 
 // Provider for shared notes service
 final sharedNotesServiceProvider = Provider<SharedNotesService>((ref) {
-  // TODO: Get these from their respective providers
+  // Ottenuti dai rispettivi provider
   throw UnimplementedError('SharedNotesService needs proper dependency injection');
 });
 

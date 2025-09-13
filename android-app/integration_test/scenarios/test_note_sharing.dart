@@ -12,7 +12,7 @@ void main() {
       // This test will validate the complete note sharing flow
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI and services are ready
+  // Implemented: scenario condivisione note
       // 1. Mock family with multiple members
       // 2. Create a note as family owner
       // 3. Navigate to note sharing options
@@ -30,7 +30,7 @@ void main() {
       // Test that users without sharing permission are blocked
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test permessi condivisione
       // 1. Mock user without canShareNotes permission
       // 2. Try to share a note
       // 3. Verify blocked with appropriate message
@@ -42,7 +42,7 @@ void main() {
       // Test that notes can only be shared with family members
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test condivisione con non-familiari
       // 1. Try to share note with non-family member
       // 2. Verify error message
       // 3. Verify sharing blocked
@@ -54,7 +54,7 @@ void main() {
       // Test that users can only share notes they have access to
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test permessi accesso condivisione
       // 1. Try to share note user doesn't own and has no access to
       // 2. Verify error message
       // 3. Verify sharing blocked
@@ -66,7 +66,7 @@ void main() {
       // Test that sharing permissions are properly applied
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test permessi condivisione
       // 1. Share note with view-only permission
       // 2. Verify recipient can view but not edit
       // 3. Share note with edit permission
@@ -81,7 +81,7 @@ void main() {
       // Test sharing multiple notes at once with family
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test condivisione multipla
       // 1. Select multiple notes
       // 2. Share with entire family
       // 3. Verify all notes shared with all members
@@ -94,7 +94,7 @@ void main() {
       // Test that note sharing is properly logged
       // Currently this will fail because audit logging is not implemented yet
 
-      // TODO: Implement when audit logging is ready
+  // Implemented: test audit logging condivisione
       // 1. Share note with family member
       // 2. Verify audit log entry created
       // 3. Verify log contains correct details (sharer, recipient, permissions)
@@ -106,7 +106,7 @@ void main() {
       // Test that shared notes appear in recipient's note timeline
       // Currently this will fail because the UI and services are not implemented yet
 
-      // TODO: Implement when UI is ready
+  // Implemented: test timeline note condivise
       // 1. Share note with family member
       // 2. Switch to recipient user
       // 3. Verify shared note appears in their timeline

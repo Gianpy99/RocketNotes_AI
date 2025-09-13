@@ -95,7 +95,16 @@ class NotificationHistoryNotifier extends StateNotifier<List<NotificationHistory
   }
 
   List<NotificationHistory> getByType(String type) {
-    return state.where((notification) => notification.type == type).toList();
+    NotificationType? typeEnum;
+    try {
+      typeEnum = NotificationType.values.firstWhere(
+        (e) => e.toString().split('.').last == type,
+        orElse: () => NotificationType.system,
+      );
+    } catch (_) {
+      typeEnum = NotificationType.system;
+    }
+    return state.where((notification) => notification.type == typeEnum).toList();
   }
 }
 

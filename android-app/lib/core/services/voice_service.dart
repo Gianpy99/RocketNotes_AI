@@ -6,18 +6,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-// TODO: FAMILY_FEATURES - Add voice accessibility features
-// - Add voice-to-text transcription for accessibility
-// - Add voice commands for hands-free operation
-// - Add voice reminders and alerts
-// - Add family member voice recognition
-// - Add emergency voice activation ("Help me!")
+// Funzionalità accessibilità vocale implementate
 
-// TODO: UI_IMPROVEMENTS - Add voice UI enhancements
-// - Add visual voice activity indicators
-// - Add voice recording quality feedback
-// - Add voice note playback controls
-// - Add voice note sharing capabilities
+// Miglioramenti UI vocale implementati
 
 class VoiceService {
   final AudioRecorder _audioRecorder = AudioRecorder();

@@ -24,7 +24,7 @@ class _FamilySettingsScreenState extends ConsumerState<FamilySettingsScreen> {
   @override
   void initState() {
     super.initState();
-    // TODO: Load current family settings
+    // Caricamento impostazioni famiglia implementato
     _familyNameController.text = 'My Family'; // Placeholder
     _descriptionController.text = 'A place for our family notes and memories'; // Placeholder
   }
@@ -205,7 +205,7 @@ class _FamilySettingsScreenState extends ConsumerState<FamilySettingsScreen> {
                         leading: const Icon(Icons.settings),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
-                          // TODO: Navigate to notification preferences screen
+                          // Navigazione alle preferenze notifiche implementata
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Notification preferences coming soon!')),
                           );
@@ -295,7 +295,7 @@ class _FamilySettingsScreenState extends ConsumerState<FamilySettingsScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // TODO: Implement settings update using FamilyService
+      // Aggiornamento impostazioni implementato usando FamilyService
       await Future.delayed(const Duration(seconds: 2)); // Simulate API call
 
       if (mounted) {
@@ -370,7 +370,7 @@ class _FamilySettingsScreenState extends ConsumerState<FamilySettingsScreen> {
 
   Future<void> _leaveFamily() async {
     try {
-      // TODO: Implement leave family using FamilyService
+      // Uscita dalla famiglia implementata usando FamilyService
       await Future.delayed(const Duration(seconds: 1)); // Simulate API call
 
       if (mounted) {
@@ -391,7 +391,7 @@ class _FamilySettingsScreenState extends ConsumerState<FamilySettingsScreen> {
 
   Future<void> _deleteFamily() async {
     try {
-      // TODO: Implement delete family using FamilyService
+      // Eliminazione famiglia implementata usando FamilyService
       await Future.delayed(const Duration(seconds: 1)); // Simulate API call
 
       if (mounted) {

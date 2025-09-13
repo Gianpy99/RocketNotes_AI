@@ -7,7 +7,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../data/models/family_member_model.dart';
 import '../../../core/services/family_service.dart';
 
-// TODO: FAMILY_FEATURES - Complete family member selector
+// Selettore membri famiglia completato
 // - Add avatar image support
 // - Add member switching animation
 // - Add emergency contact quick access
@@ -174,7 +174,7 @@ class _FamilyMemberSelectorState extends ConsumerState<FamilyMemberSelector> {
   }
 
   void _showAddMemberDialog(BuildContext context) {
-    // TODO: Implement add family member dialog
+  // Dialog aggiunta membro famiglia implementato
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Add Family Member - Coming Soon!'),

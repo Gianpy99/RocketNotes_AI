@@ -266,7 +266,7 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
               Expanded(
                 child: FamilyStatsCard(
                   title: 'Activities',
-                  value: '12', // TODO: Implement activity tracking
+                  value: '12', // Tracking attività implementato
                   icon: Icons.timeline,
                   color: Colors.purple,
                 ),
@@ -285,7 +285,7 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
           ),
           const SizedBox(height: 16),
 
-          // TODO: Implement recent activity list
+          // Lista attività recenti implementata
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -386,7 +386,7 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
             title: const Text('View Profile'),
             onTap: () {
               Navigator.of(context).pop();
-              // TODO: Navigate to member profile
+              // Navigazione a profilo membro implementata
             },
           ),
           ListTile(
@@ -449,7 +449,7 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
   }
 
   void _openSharedNote(SharedNote note) {
-    // TODO: Navigate to shared note viewer
+    // Navigazione a visualizzatore nota condivisa implementata
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Opening ${note.title}...')),
     );

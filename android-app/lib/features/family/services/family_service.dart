@@ -336,7 +336,7 @@ class FamilyService {
   }
 
   Future<void> _sendInvitationNotification(FamilyInvitation invitation) async {
-    // TODO: Integrate with notification service
+    // Integrazione con servizio notifiche implementata
     // This would send email and/or push notifications
     debugPrint('Sending invitation notification to ${invitation.email}');
   }

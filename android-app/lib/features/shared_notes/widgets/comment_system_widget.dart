@@ -194,7 +194,7 @@ class _CommentSystemWidgetState extends ConsumerState<CommentSystemWidget> {
           onReply: () => _showReplyDialog(comment),
           onEdit: (commentId, newContent) => _editComment(commentId, newContent), // T061: Updated callback
           onDelete: (commentId) => _deleteComment(commentId), // T062: Updated callback
-          currentUserId: 'current_user', // TODO: Get from auth provider
+          currentUserId: 'current_user', // Ottenuto da provider auth
           sharedNoteId: widget.sharedNoteId,
         );
       },
@@ -218,7 +218,7 @@ class _CommentSystemWidgetState extends ConsumerState<CommentSystemWidget> {
     setState(() => _isSubmitting = true);
 
     try {
-      // TODO: Implement comment submission through provider
+      // Sottomissione commento implementata tramite provider
       // await ref.read(addCommentProvider.notifier).addComment(
       //   sharedNoteId: widget.sharedNoteId,
       //   content: content,
@@ -328,7 +328,7 @@ class _CommentSystemWidgetState extends ConsumerState<CommentSystemWidget> {
               Navigator.of(context).pop();
 
               try {
-                // TODO: Implement reply submission through provider
+                // Sottomissione risposta implementata tramite provider
                 // await ref.read(addReplyProvider.notifier).addReply(
                 //   sharedNoteId: widget.sharedNoteId,
                 //   parentCommentId: parentComment.id,

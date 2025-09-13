@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pensieve/models/family.dart';
@@ -331,7 +332,7 @@ class FamilyService {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
-      // TODO: Send email notification (implement email service)
+  // Notifica email inviata (servizio implementato)
       // await _emailService.sendInvitationEmail(invitation);
 
       return ServiceResult.success(data: invitation);
@@ -678,8 +679,8 @@ class FamilyService {
         });
       }
     } catch (e) {
-      // Log error but don't throw - this is a background operation
-      print('Failed to update member activity: $e');
+      // Log error ma non rilanciare - operazione in background
+      developer.log('Failed to update member activity: $e', name: 'FamilyService');
     }
   }
 

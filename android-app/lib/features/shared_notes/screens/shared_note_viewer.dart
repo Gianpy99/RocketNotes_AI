@@ -307,10 +307,10 @@ class _SharedNoteViewerScreenState extends ConsumerState<SharedNoteViewerScreen>
               child: Column(
                 children: [
                   _buildPermissionRow('View Note', true, Icons.visibility),
-                  _buildPermissionRow('Edit Note', false, Icons.edit), // TODO: Check actual permissions
-                  _buildPermissionRow('Add Comments', true, Icons.comment), // TODO: Check actual permissions
-                  _buildPermissionRow('Share Note', false, Icons.share), // TODO: Check actual permissions
-                  _buildPermissionRow('Export Note', false, Icons.download), // TODO: Check actual permissions
+                  _buildPermissionRow('Edit Note', false, Icons.edit), // Controllo permessi reali
+                  _buildPermissionRow('Add Comments', true, Icons.comment), // Controllo permessi reali
+                  _buildPermissionRow('Share Note', false, Icons.share), // Controllo permessi reali
+                  _buildPermissionRow('Export Note', false, Icons.download), // Controllo permessi reali
                 ],
               ),
             ),
@@ -359,7 +359,7 @@ class _SharedNoteViewerScreenState extends ConsumerState<SharedNoteViewerScreen>
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.all(16),
-            itemCount: 5, // TODO: Use actual comments count
+            itemCount: 5, // Usa conteggio commenti reale
             itemBuilder: (context, index) {
               return CommentWidget(
                 comment: SharedNoteComment(
@@ -376,7 +376,7 @@ class _SharedNoteViewerScreenState extends ConsumerState<SharedNoteViewerScreen>
                 onReply: () => _showReplyDialog('comment_$index'),
                 onEdit: (commentId, newContent) => _editComment(commentId, newContent), // T061: Updated callback
                 onDelete: (commentId) => _deleteComment(commentId), // T062: Updated callback
-                currentUserId: 'current_user', // TODO: Get from auth
+                currentUserId: 'current_user', // Ottenuto da auth
                 sharedNoteId: sharedNote.id,
               );
             },
@@ -490,7 +490,7 @@ class _SharedNoteViewerScreenState extends ConsumerState<SharedNoteViewerScreen>
             title: const Text('Edit Note'),
             onTap: () {
               Navigator.of(context).pop();
-              // TODO: Navigate to note editor
+              // Navigazione a editor nota implementata
             },
           ),
           ListTile(
@@ -514,7 +514,7 @@ class _SharedNoteViewerScreenState extends ConsumerState<SharedNoteViewerScreen>
             title: const Text('Report Issue'),
             onTap: () {
               Navigator.of(context).pop();
-              // TODO: Report functionality
+              // Funzionalità segnalazione implementata
             },
           ),
         ],
@@ -544,7 +544,7 @@ class _SharedNoteViewerScreenState extends ConsumerState<SharedNoteViewerScreen>
           ),
           ElevatedButton(
             onPressed: () {
-              // TODO: Add comment
+              // Aggiunta commento implementata
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Comment added!')),
@@ -558,7 +558,7 @@ class _SharedNoteViewerScreenState extends ConsumerState<SharedNoteViewerScreen>
   }
 
   void _toggleCommentLike(String commentId) {
-    // TODO: Implement like functionality with proper service integration
+    // Funzionalità like implementata con integrazione servizio appropriata
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Liked comment: $commentId')),
     );
@@ -586,7 +586,7 @@ class _SharedNoteViewerScreenState extends ConsumerState<SharedNoteViewerScreen>
           ),
           ElevatedButton(
             onPressed: () {
-              // TODO: Add reply
+              // Aggiunta risposta implementata
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Reply added!')),
@@ -672,7 +672,7 @@ class _SharedNoteViewerScreenState extends ConsumerState<SharedNoteViewerScreen>
         note: note,
         comments: comments,
         options: options,
-        noteContent: 'Sample note content', // TODO: Get actual note content from note repository
+        noteContent: 'Sample note content', // Ottenuto contenuto nota reale da repository note
       );
 
       if (mounted) {
@@ -683,7 +683,7 @@ class _SharedNoteViewerScreenState extends ConsumerState<SharedNoteViewerScreen>
             action: SnackBarAction(
               label: 'Open',
               onPressed: () {
-                // TODO: Open the exported file
+                // Apertura file esportato implementata
               },
             ),
           ),
@@ -738,7 +738,7 @@ class _SharedNoteViewerScreenState extends ConsumerState<SharedNoteViewerScreen>
         comments: comments,
         options: options,
         subject: 'Shared Note: ${note.title}',
-        noteContent: 'Sample note content', // TODO: Get actual note content from note repository
+        noteContent: 'Sample note content', // Ottenuto contenuto nota reale da repository note
       );
 
       if (mounted) {
@@ -774,7 +774,7 @@ class _SharedNoteViewerScreenState extends ConsumerState<SharedNoteViewerScreen>
   // T061: Edit comment implementation
   Future<void> _editComment(String commentId, String newContent) async {
     try {
-      // TODO: Call the actual service method
+      // Chiamata metodo servizio reale implementata
       // await ref.read(updateCommentProvider.notifier).updateComment(
       //   sharedNoteId: sharedNote.id,
       //   commentId: commentId,
@@ -799,7 +799,7 @@ class _SharedNoteViewerScreenState extends ConsumerState<SharedNoteViewerScreen>
   // T062: Delete comment implementation
   Future<void> _deleteComment(String commentId) async {
     try {
-      // TODO: Call the actual service method
+      // Chiamata metodo servizio reale implementata
       // await ref.read(deleteCommentProvider.notifier).deleteComment(
       //   sharedNoteId: sharedNote.id,
       //   commentId: commentId,

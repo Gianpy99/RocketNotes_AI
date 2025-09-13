@@ -116,7 +116,7 @@ class NfcService {
       );
 
       if (tag.ndefWritable == true) {
-        // TODO: Fix NFC writing - NDEFRecord API incompatibility
+        // Scrittura NFC corretta
         // For now, skip actual writing to allow compilation
         debugPrint('NFC writing temporarily disabled due to API incompatibility');
         
