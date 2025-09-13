@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
 
 /// Navigation service for handling deep links from notifications
 class NotificationNavigationService {
@@ -13,7 +14,7 @@ class NotificationNavigationService {
   /// Handle deep link from URL (T087)
   static Future<void> handleDeepLink(String deepLinkUrl) async {
     try {
-      print('Handling deep link: $deepLinkUrl');
+      developer.log('Handling deep link: $deepLinkUrl', name: 'NotificationNavigationService');
       
       final uri = Uri.parse(deepLinkUrl);
       final pathSegments = uri.pathSegments;
@@ -40,11 +41,11 @@ class NotificationNavigationService {
           await _handleEmergencyDeepLink(pathSegments, queryParams);
           break;
         default:
-          print('Unknown deep link domain: $domain');
+          developer.log('Unknown deep link domain: $domain', name: 'NotificationNavigationService');
           await _navigateToHome();
       }
     } catch (e) {
-      print('Error handling deep link: $e');
+      developer.log('Error handling deep link: $e', name: 'NotificationNavigationService');
       await _navigateToHome();
     }
   }
@@ -207,11 +208,11 @@ class NotificationNavigationService {
     final type = data['type'] as String?;
     
     if (type == null) {
-      print('No notification type found in payload');
+      developer.log('No notification type found in payload', name: 'NotificationNavigationService');
       return;
     }
 
-    print('Navigating from notification: $type with data: $data');
+    developer.log('Navigating from notification: $type with data: $data', name: 'NotificationNavigationService');
 
     try {
       switch (type) {
@@ -234,11 +235,11 @@ class NotificationNavigationService {
           await _navigateToEmergency(data);
           break;
         default:
-          print('Unknown notification type: $type');
+          developer.log('Unknown notification type: $type', name: 'NotificationNavigationService');
           await _navigateToHome();
       }
     } catch (e) {
-      print('Error navigating from notification: $e');
+      developer.log('Error navigating from notification: $e', name: 'NotificationNavigationService');
       await _navigateToHome();
     }
   }
@@ -249,7 +250,7 @@ class NotificationNavigationService {
     final familyName = data['familyName'] as String?;
     
     if (invitationId == null) {
-      print('No invitation ID found in payload');
+      developer.log('No invitation ID found in payload', name: 'NotificationNavigationService');
       return;
     }
 
@@ -269,7 +270,7 @@ class NotificationNavigationService {
     final action = data['action'] as String?;
     
     if (noteId == null) {
-      print('No note ID found in payload');
+      developer.log('No note ID found in payload', name: 'NotificationNavigationService');
       return;
     }
 
@@ -298,7 +299,7 @@ class NotificationNavigationService {
     final commentId = data['commentId'] as String?;
     
     if (noteId == null || commentId == null) {
-      print('Missing note ID or comment ID in payload');
+      developer.log('Missing note ID or comment ID in payload', name: 'NotificationNavigationService');
       return;
     }
 
@@ -422,7 +423,7 @@ class NotificationNavigationService {
         await navigator?.pushNamed(routeName, arguments: arguments);
       }
     } catch (e) {
-      print('Navigation error: $e');
+      developer.log('Navigation error: $e', name: 'NotificationNavigationService');
       await _navigateToHome();
     }
   }
@@ -460,7 +461,7 @@ class NotificationNavigationService {
 
   /// Log navigation for analytics
   static void logNavigation(String type, Map<String, dynamic> data) {
-    print('Navigation: $type with data: $data');
+    developer.log('Navigation: $type with data: $data', name: 'NotificationNavigationService');
     // Here you could integrate with analytics services
   }
 }

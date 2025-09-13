@@ -263,6 +263,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> with Ti
     final service = ref.read(shoppingCollaborationServiceProvider);
     await service.joinListSession(list.id, 'current_user', 'Utente Corrente');
     
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Apertura: ${list.name}')),
     );
@@ -299,6 +300,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> with Ti
     
     if (result == true) {
       // Lista condivisa con successo
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Lista condivisa con successo!'),

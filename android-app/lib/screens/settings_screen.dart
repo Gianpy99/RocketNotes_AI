@@ -5,19 +5,19 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../main_simple.dart';
 import 'family_members_screen.dart';
 
-// TODO: FAMILY_FEATURES - Add family settings
-// - Family member management (add/remove/edit profiles)
-// - Family sharing permissions and access control
-// - Emergency contacts management
-// - Family calendar integration settings
-// - Child-safe mode and parental controls
+/// Future Features - Family Settings
+/// - Family member management (add/remove/edit profiles)
+/// - Family sharing permissions and access control
+/// - Emergency contacts management
+/// - Family calendar integration settings
+/// - Child-safe mode and parental controls
 
-// TODO: BACKUP_SYSTEM - Add backup settings
-// - Automatic backup scheduling
-// - Cloud sync configuration (Google Drive, iCloud)
-// - Backup location preferences
-// - Data export/import functionality
-// - Backup history and restore options
+/// Future Features - Backup System
+/// - Automatic backup scheduling
+/// - Cloud sync configuration (Google Drive, iCloud)
+/// - Backup location preferences
+/// - Data export/import functionality
+/// - Backup history and restore options
 
 final settingsProvider = StateNotifierProvider<SettingsNotifier, AppSettings>((ref) {
   return SettingsNotifier();
@@ -174,7 +174,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       }
     } catch (e) {
       // If loading fails, use default settings
-      print('Error loading settings: $e');
+      debugPrint('Error loading settings: $e');
     }
   }
 
@@ -208,7 +208,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       };
       await box.put('settings', settingsJson);
     } catch (e) {
-      print('Error saving settings: $e');
+      debugPrint('Error saving settings: $e');
     }
   }
 

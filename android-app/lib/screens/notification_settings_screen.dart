@@ -375,7 +375,7 @@ class _NotificationSettingsScreenState extends ConsumerState<NotificationSetting
         priority: preferences['defaultPriority'] ?? 'normal',
       );
     } catch (e) {
-      print('Error updating server preferences: $e');
+      debugPrint('Error updating server preferences: $e');
     }
   }
 }

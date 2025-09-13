@@ -69,10 +69,7 @@ class _ExportOptionsDialogState extends State<ExportOptionsDialog> {
   Widget _buildFormatSelection() {
     return Column(
       children: ExportFormat.values.map((format) {
-        return RadioListTile<ExportFormat>(
-          contentPadding: EdgeInsets.zero,
-          title: Text(_getFormatDisplayName(format)),
-          subtitle: Text(_getFormatDescription(format)),
+        return RadioMenuButton<ExportFormat>(
           value: format,
           groupValue: _selectedFormat,
           onChanged: (value) {
@@ -82,6 +79,18 @@ class _ExportOptionsDialogState extends State<ExportOptionsDialog> {
               });
             }
           },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(_getFormatDisplayName(format)),
+              Text(
+                _getFormatDescription(format),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+          ),
         );
       }).toList(),
     );

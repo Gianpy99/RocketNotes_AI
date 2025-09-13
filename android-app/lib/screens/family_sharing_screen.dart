@@ -199,9 +199,7 @@ class _FamilySharingScreenState extends ConsumerState<FamilySharingScreen> {
   Widget _buildPermissionSelector() {
     return Column(
       children: SharePermission.values.map((permission) {
-        return RadioListTile<SharePermission>(
-          title: Text(_getPermissionTitle(permission)),
-          subtitle: Text(_getPermissionDescription(permission)),
+        return RadioMenuButton<SharePermission>(
           value: permission,
           groupValue: _selectedPermission,
           onChanged: (SharePermission? value) {
@@ -211,6 +209,18 @@ class _FamilySharingScreenState extends ConsumerState<FamilySharingScreen> {
               });
             }
           },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(_getPermissionTitle(permission)),
+              Text(
+                _getPermissionDescription(permission),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+          ),
         );
       }).toList(),
     );

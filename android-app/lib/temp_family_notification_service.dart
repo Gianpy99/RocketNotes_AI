@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -44,7 +45,7 @@ class FamilyNotificationService {
 
       _isInitialized = true;
     } catch (e) {
-      print('Error initializing notification service: $e');
+      developer.log('Error initializing notification service: $e', name: 'FamilyNotificationService');
       rethrow;
     }
   }
@@ -60,11 +61,11 @@ class FamilyNotificationService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('User granted permission');
+      developer.log('User granted permission', name: 'FamilyNotificationService');
     } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
-      print('User granted provisional permission');
+      developer.log('User granted provisional permission', name: 'FamilyNotificationService');
     } else {
-      print('User declined or has not accepted permission');
+      developer.log('User declined or has not accepted permission', name: 'FamilyNotificationService');
     }
 
     // Request local notification permissions (Android)
@@ -146,13 +147,13 @@ class FamilyNotificationService {
 
   /// Handle background messages
   static Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-    print('Handling background message: ${message.messageId}');
+    developer.log('Handling background message: ${message.messageId}', name: 'FamilyNotificationService');
     // Handle background message processing
   }
 
   /// Handle foreground messages (T086)
   void _onForegroundMessage(RemoteMessage message) {
-    print('Received foreground message: ${message.notification?.title}');
+    developer.log('Received foreground message: ${message.notification?.title}', name: 'FamilyNotificationService');
 
     final notification = message.notification;
     if (notification != null) {
@@ -179,7 +180,7 @@ class FamilyNotificationService {
 
   /// Handle notification taps when app is opened from terminated state
   void _onMessageOpenedApp(RemoteMessage message) {
-    print('Message opened app: ${message.notification?.title}');
+    developer.log('Message opened app: ${message.notification?.title}', name: 'FamilyNotificationService');
     _handleNotificationTap(message.data);
   }
 
@@ -193,11 +194,11 @@ class FamilyNotificationService {
 
   /// Handle notification tap based on data (T086)
   void _handleNotificationTap(Map<String, dynamic> data) {
-    print('Handling notification tap with data: $data');
+    developer.log('Handling notification tap with data: $data', name: 'FamilyNotificationService');
     
     // Validate the notification data
     if (!NotificationNavigationService.isValidDeepLink(data)) {
-      print('Invalid notification data for navigation');
+      developer.log('Invalid notification data for navigation', name: 'FamilyNotificationService');
       return;
     }
 
@@ -214,7 +215,7 @@ class FamilyNotificationService {
       await Future.delayed(const Duration(milliseconds: 100)); // Small delay for app initialization
       _handleNotificationTap(data);
     } catch (e) {
-      print('Error handling notification tap: $e');
+      developer.log('Error handling notification tap: $e', name: 'FamilyNotificationService');
       // Fallback to home screen
       NotificationNavigationService.navigateFromNotification({'type': 'home'});
     }
@@ -287,12 +288,12 @@ class FamilyNotificationService {
       final savedToken = box.get(_fcmTokenKey);
 
       if (savedToken != null) {
-        print('Loaded saved FCM token');
+        developer.log('Loaded saved FCM token', name: 'FamilyNotificationService');
       } else {
         await _getAndSaveToken();
       }
     } catch (e) {
-      print('Error loading saved token: $e');
+      developer.log('Error loading saved token: $e', name: 'FamilyNotificationService');
     }
   }
 
@@ -303,11 +304,11 @@ class FamilyNotificationService {
       if (token != null) {
         await _saveToken(token);
         await _sendTokenToServer(token);
-        print('FCM Token obtained and saved: $token');
+        developer.log('FCM Token obtained and saved: $token', name: 'FamilyNotificationService');
         return token;
       }
     } catch (e) {
-      print('Error getting FCM token: $e');
+      developer.log('Error getting FCM token: $e', name: 'FamilyNotificationService');
     }
     return null;
   }
@@ -318,7 +319,7 @@ class FamilyNotificationService {
       final box = await Hive.openBox(_notificationBoxName);
       await box.put(_fcmTokenKey, token);
     } catch (e) {
-      print('Error saving token: $e');
+      developer.log('Error saving token: $e', name: 'FamilyNotificationService');
     }
   }
 
@@ -327,7 +328,7 @@ class FamilyNotificationService {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        print('No authenticated user, skipping token send');
+        developer.log('No authenticated user, skipping token send', name: 'FamilyNotificationService');
         return;
       }
 
@@ -338,9 +339,9 @@ class FamilyNotificationService {
         'platform': 'mobile',
       });
 
-      print('Token sent to server successfully: ${result.data}');
+      developer.log('Token sent to server successfully: ${result.data}', name: 'FamilyNotificationService');
     } catch (e) {
-      print('Error sending token to server: $e');
+      developer.log('Error sending token to server: $e', name: 'FamilyNotificationService');
       rethrow;
     }
   }
@@ -364,9 +365,9 @@ class FamilyNotificationService {
         'timestamp': DateTime.now().toIso8601String(),
       });
 
-      print('Invitation notification sent successfully: ${result.data}');
+      developer.log('Invitation notification sent successfully: ${result.data}', name: 'FamilyNotificationService');
     } catch (e) {
-      print('Error sending invitation notification: $e');
+      developer.log('Error sending invitation notification: $e', name: 'FamilyNotificationService');
       rethrow;
     }
   }
@@ -391,9 +392,9 @@ class FamilyNotificationService {
         'timestamp': DateTime.now().toIso8601String(),
       });
 
-      print('Activity notification sent successfully: ${result.data}');
+      developer.log('Activity notification sent successfully: ${result.data}', name: 'FamilyNotificationService');
     } catch (e) {
-      print('Error sending activity notification: $e');
+      developer.log('Error sending activity notification: $e', name: 'FamilyNotificationService');
       rethrow;
     }
   }
@@ -421,9 +422,9 @@ class FamilyNotificationService {
         'timestamp': DateTime.now().toIso8601String(),
       });
 
-      print('Comment notification sent successfully: ${result.data}');
+      developer.log('Comment notification sent successfully: ${result.data}', name: 'FamilyNotificationService');
     } catch (e) {
-      print('Error sending comment notification: $e');
+      developer.log('Error sending comment notification: $e', name: 'FamilyNotificationService');
       rethrow;
     }
   }
@@ -449,9 +450,9 @@ class FamilyNotificationService {
         'timestamp': DateTime.now().toIso8601String(),
       });
 
-      print('Shared note notification sent successfully: ${result.data}');
+      developer.log('Shared note notification sent successfully: ${result.data}', name: 'FamilyNotificationService');
     } catch (e) {
-      print('Error sending shared note notification: $e');
+      developer.log('Error sending shared note notification: $e', name: 'FamilyNotificationService');
       rethrow;
     }
   }
@@ -462,7 +463,7 @@ class FamilyNotificationService {
   }) async {
     try {
       if (notifications.isEmpty) {
-        print('No notifications to send');
+        developer.log('No notifications to send', name: 'FamilyNotificationService');
         return;
       }
 
@@ -478,9 +479,9 @@ class FamilyNotificationService {
         'timestamp': DateTime.now().toIso8601String(),
       });
 
-      print('Batch notifications sent successfully: ${result.data}');
+      developer.log('Batch notifications sent successfully: ${result.data}', name: 'FamilyNotificationService');
     } catch (e) {
-      print('Error sending batch notifications: $e');
+      developer.log('Error sending batch notifications: $e', name: 'FamilyNotificationService');
       rethrow;
     }
   }
@@ -517,7 +518,7 @@ class FamilyNotificationService {
 
       await sendBatchNotifications(notifications: allNotifications);
     } catch (e) {
-      print('Error sending prioritized batch notifications: $e');
+      developer.log('Error sending prioritized batch notifications: $e', name: 'FamilyNotificationService');
       rethrow;
     }
   }
@@ -589,9 +590,9 @@ class FamilyNotificationService {
         'timestamp': DateTime.now().toIso8601String(),
       });
 
-      print('Priority notification sent successfully: ${result.data}');
+      developer.log('Priority notification sent successfully: ${result.data}', name: 'FamilyNotificationService');
     } catch (e) {
-      print('Error sending priority notification: $e');
+      developer.log('Error sending priority notification: $e', name: 'FamilyNotificationService');
       rethrow;
     }
   }
@@ -685,9 +686,9 @@ class FamilyNotificationService {
         'timestamp': DateTime.now().toIso8601String(),
       });
 
-      print('Priority settings configured successfully: ${result.data}');
+      developer.log('Priority settings configured successfully: ${result.data}', name: 'FamilyNotificationService');
     } catch (e) {
-      print('Error configuring priority settings: $e');
+      developer.log('Error configuring priority settings: $e', name: 'FamilyNotificationService');
       rethrow;
     }
   }
@@ -709,7 +710,7 @@ class FamilyNotificationService {
 
       return Map<String, dynamic>.from(result.data ?? {});
     } catch (e) {
-      print('Error getting priority statistics: $e');
+      developer.log('Error getting priority statistics: $e', name: 'FamilyNotificationService');
       return {};
     }
   }
@@ -733,9 +734,9 @@ class FamilyNotificationService {
         'timestamp': DateTime.now().toIso8601String(),
       });
 
-      print('Emergency notification sent successfully: ${result.data}');
+      developer.log('Emergency notification sent successfully: ${result.data}', name: 'FamilyNotificationService');
     } catch (e) {
-      print('Error sending emergency notification: $e');
+      developer.log('Error sending emergency notification: $e', name: 'FamilyNotificationService');
       rethrow;
     }
   }
@@ -762,9 +763,9 @@ class FamilyNotificationService {
         },
       });
 
-      print('Notification preferences updated successfully');
+      developer.log('Notification preferences updated successfully', name: 'FamilyNotificationService');
     } catch (e) {
-      print('Error updating notification preferences: $e');
+      developer.log('Error updating notification preferences: $e', name: 'FamilyNotificationService');
       rethrow;
     }
   }
@@ -787,7 +788,7 @@ class FamilyNotificationService {
 
       return List<Map<String, dynamic>>.from(result.data ?? []);
     } catch (e) {
-      print('Error getting notification history: $e');
+      developer.log('Error getting notification history: $e', name: 'FamilyNotificationService');
       return [];
     }
   }
@@ -804,9 +805,9 @@ class FamilyNotificationService {
         'notificationId': notificationId,
       });
 
-      print('Notification marked as read');
+      developer.log('Notification marked as read', name: 'FamilyNotificationService');
     } catch (e) {
-      print('Error marking notification as read: $e');
+      developer.log('Error marking notification as read: $e', name: 'FamilyNotificationService');
       rethrow;
     }
   }
@@ -816,7 +817,7 @@ class FamilyNotificationService {
     try {
       return await _firebaseMessaging.getToken();
     } catch (e) {
-      print('Error getting current token: $e');
+      developer.log('Error getting current token: $e', name: 'FamilyNotificationService');
       return null;
     }
   }
@@ -825,9 +826,9 @@ class FamilyNotificationService {
   Future<void> refreshToken() async {
     try {
       await _getAndSaveToken();
-      print('FCM token refreshed');
+      developer.log('FCM token refreshed', name: 'FamilyNotificationService');
     } catch (e) {
-      print('Error refreshing token: $e');
+      developer.log('Error refreshing token: $e', name: 'FamilyNotificationService');
       rethrow;
     }
   }
