@@ -344,4 +344,24 @@ class FamilyRepository {
     // Cache implementata con HiveService
     return null;
   }
+
+  /// Updates user's family ID in their user document
+  Future<void> updateUserFamilyId(String userId, String? familyId) async {
+    final userRef = _firestore.collection('users').doc(userId);
+    
+    // Check if user document exists, create if it doesn't
+    final userDoc = await userRef.get();
+    if (!userDoc.exists) {
+      await userRef.set({
+        'familyId': familyId,
+        'createdAt': DateTime.now().toIso8601String(),
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+    } else {
+      await userRef.update({
+        'familyId': familyId,
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+    }
+  }
 }

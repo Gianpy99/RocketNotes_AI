@@ -3,6 +3,7 @@
 // ==========================================
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/shared_notebook_model.dart';
 import '../../../core/services/family_service.dart';
@@ -212,22 +213,28 @@ class _SharedNotebooksSectionState extends ConsumerState<SharedNotebooksSection>
   }
 
   void _showCreateNotebookDialog() {
-  // Dialog creazione quaderno con template implementato
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Create Family Notebook - Coming Soon!'),
-        backgroundColor: Colors.blue,
-      ),
-    );
+    // Navigate to Family Hub instead of showing placeholder
+    try {
+      // Import go_router for navigation
+      context.go('/family');
+    } catch (e) {
+      // Fallback: show instructions to user
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Navigate to Family Hub to create notebooks'),
+          backgroundColor: Colors.blue,
+        ),
+      );
+    }
   }
 
   void _openNotebook(SharedNotebook notebook) {
-  // Navigazione a vista quaderno implementata
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Opening ${notebook.name} - Coming Soon!'),
-        backgroundColor: Colors.blue,
-      ),
-    );
+    // Navigate to Family Hub with the specific notebook selected
+    try {
+      context.go('/family?notebook=${notebook.id}');
+    } catch (e) {
+      // Fallback: navigate to family hub
+      context.go('/family');
+    }
   }
 }

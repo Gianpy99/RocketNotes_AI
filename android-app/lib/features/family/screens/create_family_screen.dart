@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../app/routes.dart';
 
@@ -29,6 +30,9 @@ class _CreateFamilyScreenState extends ConsumerState<CreateFamilyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print('🏗️ CreateFamilyScreen: Build method called!');
+    print('📍 Current route: ${GoRouter.of(context).routeInformationProvider.value.uri}');
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create Family'),

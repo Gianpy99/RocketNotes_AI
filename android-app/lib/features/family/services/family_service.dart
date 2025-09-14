@@ -33,8 +33,8 @@ class FamilyService {
       permissions: MemberPermissions.owner(),
     );
 
-    // Update user's family membership (this would be handled by auth service)
-    // await _authService.updateUserFamilyId(_authGuard.user!.uid, family.id);
+    // Update user's family membership
+    await _familyRepository.updateUserFamilyId(_authGuard.user!.uid, family.id);
 
     return family;
   }

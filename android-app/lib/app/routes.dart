@@ -25,6 +25,32 @@ class AppRouter {
     initialLocation: '/',
     debugLogDiagnostics: true,
     routes: [
+      // EMERGENCY TEST ROUTE - FIRST PRIORITY
+      GoRoute(
+        path: '/emergency-test',
+        builder: (context, state) {
+          print('🚨 EMERGENCY TEST ROUTE LOADED! 🚨');
+          return Scaffold(
+            backgroundColor: Colors.yellow,
+            body: Container(
+              width: double.infinity,
+              height: double.infinity,
+              color: Colors.red,
+              child: const Center(
+                child: Text(
+                  'EMERGENCY TEST SUCCESS!!!',
+                  style: TextStyle(
+                    fontSize: 48,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+
       // Splash Screen
       GoRoute(
         path: '/',
@@ -126,17 +152,75 @@ class AppRouter {
         },
       ),
 
+      // Test route - simplified
+      GoRoute(
+        path: '/test',
+        builder: (context, state) {
+          print('🎯 TEST ROUTE LOADED!');
+          return const Scaffold(
+            body: Center(
+              child: Text(
+                'TEST SUCCESS!',
+                style: TextStyle(fontSize: 48, color: Colors.red),
+              ),
+            ),
+          );
+        },
+      ),
+
       // Family Screens
       GoRoute(
-        path: '/family',
-        name: 'family-home',
-        builder: (context, state) => const FamilyHomeScreen(),
+        path: '/create-family',
+        name: 'family-create',
+        builder: (context, state) {
+          print('🏗️ GoRouter: Building CreateFamilyScreen for path: ${state.matchedLocation}');
+          return Scaffold(
+            appBar: AppBar(title: const Text('Test Create Family')),
+            body: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.check_circle, size: 64, color: Colors.green),
+                  SizedBox(height: 16),
+                  Text('SUCCESS! Navigation Works!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 8),
+                  Text('Route: /create-family'),
+                ],
+              ),
+            ),
+          );
+        },
       ),
 
       GoRoute(
-        path: '/family/create',
-        name: 'family-create',
-        builder: (context, state) => const CreateFamilyScreen(),
+        path: '/family',
+        name: 'family-home',
+        builder: (context, state) {
+          print('🔥 MODIFIED FAMILY ROUTE LOADED! 🔥');
+          return Scaffold(
+            backgroundColor: Colors.green,
+            body: Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: 200,
+                  color: Colors.blue,
+                  child: const Center(
+                    child: Text(
+                      'MODIFIED FAMILY ROUTE WORKS!',
+                      style: TextStyle(
+                        fontSize: 24,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const Expanded(child: FamilyHomeScreen()),
+              ],
+            ),
+          );
+        },
       ),
 
       GoRoute(
@@ -288,7 +372,10 @@ class AppRouter {
   }
 
   static void goToCreateFamily() {
-    router.go('/family/create');
+    print('🚀 AppRouter.goToCreateFamily() called');
+    print('📍 Current location before navigation: ${router.routeInformationProvider.value.uri}');
+    router.go('/create-family');
+    print('✅ Navigation to /create-family executed');
   }
 
   static void goToInviteMember() {

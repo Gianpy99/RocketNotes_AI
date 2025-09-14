@@ -8,7 +8,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 // App imports
 import 'app/app_simple.dart';
 import 'core/constants/app_constants.dart';
-import 'core/config/firebase_config.dart';
+import 'core/config/firebase_config_new.dart';
 import 'data/models/note_model.dart';
 import 'data/models/app_settings_model.dart';
 import 'data/models/family_member_model.dart';

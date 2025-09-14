@@ -106,7 +106,16 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => AppRouter.goToCreateFamily(),
+        onPressed: () {
+          print('🔘 FloatingActionButton pressed');
+          try {
+            print('📍 Using context.push to navigate...');
+            context.push('/test');
+            print('✅ FAB Push Navigation initiated');
+          } catch (e) {
+            print('❌ FAB Navigation error: $e');
+          }
+        },
         icon: const Icon(Icons.add),
         label: const Text('Create Family'),
         backgroundColor: AppColors.primary,
@@ -142,7 +151,34 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
           ),
           const SizedBox(height: 32),
           ElevatedButton.icon(
-            onPressed: () => AppRouter.goToCreateFamily(),
+            onPressed: () {
+              print('🔘 Create Family button pressed');
+              try {
+                print('📍 Using Navigator.push instead of GoRouter...');
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => Scaffold(
+                      appBar: AppBar(title: const Text('Create Family - Navigator')),
+                      body: const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.check_circle, size: 64, color: Colors.green),
+                            SizedBox(height: 16),
+                            Text('SUCCESS with Navigator!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                            SizedBox(height: 8),
+                            Text('This bypasses GoRouter completely'),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+                print('✅ Navigator Navigation initiated');
+              } catch (e) {
+                print('❌ Navigation error: $e');
+              }
+            },
             icon: const Icon(Icons.add),
             label: const Text('Create Family'),
             style: ElevatedButton.styleFrom(

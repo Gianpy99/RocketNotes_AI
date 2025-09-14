@@ -1,7 +1,7 @@
 // lib/core/services/firebase_service.dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../config/firebase_config.dart';
+import '../config/firebase_config_new.dart';
 import '../../data/models/note_model.dart';
 import '../../data/models/user_profile.dart';
 import '../../data/models/family_member_model.dart';
@@ -11,14 +11,18 @@ class FirebaseService {
   FirebaseFirestore? _firestore;
 
   FirebaseAuth get _authInstance {
-    _auth ??= FirebaseConfig.isConfigured ? FirebaseConfig.auth : null;
-    if (_auth == null) throw Exception('Firebase not configured');
+    if (!FirebaseConfig.isConfigured) {
+      throw Exception('Firebase not configured');
+    }
+    _auth ??= FirebaseAuth.instance;
     return _auth!;
   }
 
   FirebaseFirestore get _firestoreInstance {
-    _firestore ??= FirebaseConfig.isConfigured ? FirebaseConfig.firestore : null;
-    if (_firestore == null) throw Exception('Firebase not configured');
+    if (!FirebaseConfig.isConfigured) {
+      throw Exception('Firebase not configured');
+    }
+    _firestore ??= FirebaseFirestore.instance;
     return _firestore!;
   }
 
