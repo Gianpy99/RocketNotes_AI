@@ -11,6 +11,7 @@ import '../providers/family_providers.dart';
 import '../widgets/family_member_card.dart';
 import '../widgets/shared_note_card.dart';
 import '../widgets/family_stats_card.dart';
+import 'create_family_screen.dart';
 
 class FamilyHomeScreen extends ConsumerStatefulWidget {
   const FamilyHomeScreen({super.key});
@@ -108,13 +109,15 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           print('🔘 FloatingActionButton pressed');
-          try {
-            print('📍 Using context.push to navigate...');
-            context.push('/test');
-            print('✅ FAB Push Navigation initiated');
-          } catch (e) {
-            print('❌ FAB Navigation error: $e');
-          }
+          print('📍 Navigating to CreateFamilyScreen with Navigator.push...');
+          
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CreateFamilyScreen(),
+            ),
+          );
+          print('✅ Navigation to CreateFamilyScreen initiated');
         },
         icon: const Icon(Icons.add),
         label: const Text('Create Family'),
@@ -153,31 +156,15 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
           ElevatedButton.icon(
             onPressed: () {
               print('🔘 Create Family button pressed');
-              try {
-                print('📍 Using Navigator.push instead of GoRouter...');
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => Scaffold(
-                      appBar: AppBar(title: const Text('Create Family - Navigator')),
-                      body: const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.check_circle, size: 64, color: Colors.green),
-                            SizedBox(height: 16),
-                            Text('SUCCESS with Navigator!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                            SizedBox(height: 8),
-                            Text('This bypasses GoRouter completely'),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-                print('✅ Navigator Navigation initiated');
-              } catch (e) {
-                print('❌ Navigation error: $e');
-              }
+              print('📍 Navigating to CreateFamilyScreen with Navigator.push...');
+              
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateFamilyScreen(),
+                ),
+              );
+              print('✅ Navigation to CreateFamilyScreen initiated');
             },
             icon: const Icon(Icons.add),
             label: const Text('Create Family'),
