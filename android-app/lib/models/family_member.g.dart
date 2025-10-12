@@ -16,6 +16,11 @@ FamilyMember _$FamilyMemberFromJson(Map<String, dynamic> json) => FamilyMember(
       lastActiveAt: FamilyMember._nullableDateTimeFromJson(
           json['lastActiveAt'] as String?),
       isActive: json['isActive'] as bool? ?? true,
+      name: json['name'] as String?,
+      avatarPath: json['avatarPath'] as String?,
+      relationship: json['relationship'] as String?,
+      phoneNumber: json['phoneNumber'] as String?,
+      isEmergencyContact: json['isEmergencyContact'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$FamilyMemberToJson(FamilyMember instance) =>
@@ -28,6 +33,11 @@ Map<String, dynamic> _$FamilyMemberToJson(FamilyMember instance) =>
       'lastActiveAt':
           FamilyMember._nullableDateTimeToJson(instance.lastActiveAt),
       'isActive': instance.isActive,
+      'name': instance.name,
+      'avatarPath': instance.avatarPath,
+      'relationship': instance.relationship,
+      'phoneNumber': instance.phoneNumber,
+      'isEmergencyContact': instance.isEmergencyContact,
     };
 
 const _$FamilyRoleEnumMap = {

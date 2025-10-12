@@ -22,10 +22,23 @@ class FirebaseConfig {
   
   static Future<void> initialize() async {
     try {
+      // Check if Firebase is already initialized
+      if (Firebase.apps.isNotEmpty) {
+        print('✅ Firebase already initialized, skipping...');
+        print('📊 Config status: ${ApiConfig.configStatus}');
+        return;
+      }
+      
       await Firebase.initializeApp(options: currentPlatform);
       print('✅ Firebase initialized successfully');
       print('📊 Config status: ${ApiConfig.configStatus}');
     } catch (e) {
+      // Handle duplicate app error specifically
+      if (e.toString().contains('duplicate-app') || e.toString().contains('[DEFAULT]')) {
+        print('✅ Firebase app already exists, continuing...');
+        print('📊 Config status: ${ApiConfig.configStatus}');
+        return;
+      }
       print('❌ Firebase initialization failed: $e');
       rethrow;
     }

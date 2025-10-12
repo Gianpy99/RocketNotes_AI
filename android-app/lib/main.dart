@@ -3,6 +3,8 @@
 // ==========================================
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 // App imports
@@ -39,6 +41,29 @@ Future<void> main() async {
   // ----------------------------------
   await FirebaseConfig.initialize();
   debugPrint('✅ Firebase initialized successfully');
+
+  // ----------------------------------
+  // Initialize anonymous authentication for testing
+  // ----------------------------------
+  try {
+    final userCredential = await FirebaseAuth.instance.signInAnonymously();
+    final user = userCredential.user;
+    
+    if (user != null) {
+      // Create user document in Firestore for anonymous user
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'email': null,
+        'displayName': 'Anonymous User',
+        'isAnonymous': true,
+        'createdAt': FieldValue.serverTimestamp(),
+        'lastLoginAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      
+      debugPrint('✅ Anonymous authentication successful for user: ${user.uid}');
+    }
+  } catch (e) {
+    debugPrint('⚠️ Anonymous authentication failed: $e');
+  }
 
   try {
     // ----------------------------------

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../app/routes.dart';
+import '../../../models/family.dart';
+import '../providers/family_providers.dart';
 
 class CreateFamilyScreen extends ConsumerStatefulWidget {
   const CreateFamilyScreen({super.key});
@@ -194,20 +195,45 @@ class _CreateFamilyScreenState extends ConsumerState<CreateFamilyScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // For now, just show a success message
-      // Creazione famiglia implementata con FamilyService
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+      // Create FamilySettings from form data
+      final settings = FamilySettings(
+        allowPublicSharing: true,
+        requireApprovalForSharing: _requireApproval,
+        maxMembers: _maxMembers,
+        defaultNoteExpiration: const Duration(days: 30),
+        enableRealTimeSync: true,
+        notifications: const NotificationPreferences(
+          emailInvitations: true,
+          pushNotifications: true,
+          activityDigest: ActivityDigestFrequency.weekly,
+        ),
+      );
+
+      // Create the family using the service
+      final familyService = ref.read(familyServiceProvider);
+      final family = await familyService.createFamily(
+        name: _nameController.text.trim(),
+        settings: settings,
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Family creation coming soon!')),
+          SnackBar(
+            content: Text('Family "${family.name}" created successfully!'),
+            backgroundColor: Colors.green,
+          ),
         );
-        AppRouter.goToFamilyHome();
+        
+        // Navigate back to family home
+        Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error creating family: $e')),
+          SnackBar(
+            content: Text('Error creating family: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
