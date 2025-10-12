@@ -18,6 +18,7 @@ import 'data/models/usage_monitoring_model.dart';
 import 'data/services/cost_monitoring_service.dart';
 import 'features/rocketbook/ai_analysis/ai_service.dart';
 import 'features/rocketbook/ocr/ocr_service_real.dart';
+import 'features/rocketbook/models/scanned_content.dart';
 import 'core/services/family_service.dart';
 
 // FAMILY_FEATURES implementate - Gestione membri famiglia completata
@@ -71,29 +72,32 @@ Future<void> main() async {
     // ----------------------------------
     await Hive.initFlutter();
 
-    // Clear any existing corrupted data first
-    try {
-      await Hive.deleteFromDisk();
-      debugPrint('🧹 Cleared existing Hive data to prevent compatibility issues');
-    } catch (e) {
-      debugPrint('ℹ️ No existing Hive data to clear: $e');
-    }
+    // NOTE: Non cancelliamo più i dati Hive all'avvio per preservare lo storage
+    // Se necessario, eventuali routine di migrazione/repair vanno gestite in modo mirato
 
-    // Re-initialize Hive after clearing
-    await Hive.initFlutter();
-
-    // Register Hive adapters
-    Hive.registerAdapter(NoteModelAdapter());
-    Hive.registerAdapter(AppSettingsModelAdapter());
-    Hive.registerAdapter(UsageMonitoringModelAdapter());
+  // Register Hive adapters
+  Hive.registerAdapter(NoteModelAdapter());
+  Hive.registerAdapter(AppSettingsModelAdapter());
+  Hive.registerAdapter(UsageMonitoringModelAdapter());
+  // OCR/AI adapters
+  Hive.registerAdapter(ScannedContentAdapter());
+  Hive.registerAdapter(TableDataAdapter());
+  Hive.registerAdapter(DiagramDataAdapter());
+  Hive.registerAdapter(OCRMetadataAdapter());
+  Hive.registerAdapter(AIAnalysisAdapter());
+  Hive.registerAdapter(ActionItemAdapter());
+  Hive.registerAdapter(BoundingBoxAdapter());
+  Hive.registerAdapter(ProcessingStatusAdapter());
+  Hive.registerAdapter(ContentTypeAdapter());
 
     // Register family member adapter
     Hive.registerAdapter(FamilyMemberAdapter());
 
     // Open Hive boxes
-    await Hive.openBox<NoteModel>(AppConstants.notesBox);
+  await Hive.openBox<NoteModel>(AppConstants.notesBox);
     await Hive.openBox<AppSettingsModel>(AppConstants.settingsBox);
     await Hive.openBox<UsageMonitoringModel>('usage_monitoring');
+  await Hive.openBox<ScannedContent>(AppConstants.scansBox);
 
     // Open family member box
     await Hive.openBox<FamilyMember>('familyMembers');
@@ -121,7 +125,8 @@ Future<void> main() async {
     // ----------------------------------
     // Initialize Family Service
     // ----------------------------------
-    await FamilyService.instance.initialize();
+  await FamilyService.instance.initialize();
+  debugPrint('✅ Family backend: ${AppConstants.familyBackend} (local storage)');
     debugPrint('✅ Family Service initialized successfully');
 
   } catch (e) {

@@ -19,6 +19,9 @@ import '../screens/shared_notes/shared_note_viewer.dart';
 import '../screens/shopping_list_screen.dart';
 import '../screens/shopping_templates_screen.dart';
 import '../screens/shopping_categories_screen.dart';
+import '../presentation/screens/statistics_screen.dart' as stats;
+import '../../features/rocketbook/camera/camera_screen.dart';
+import '../screens/audio_note_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -111,6 +114,19 @@ class AppRouter {
       GoRoute(
         path: '/shopping/categories',
         builder: (context, state) => const ShoppingCategoriesScreen(),
+      ),
+      GoRoute(
+        path: '/statistics',
+        builder: (context, state) => const stats.StatisticsScreen(),
+      ),
+      // Widget deep links
+      GoRoute(
+        path: '/camera',
+        builder: (context, state) => const RocketbookCameraScreen(),
+      ),
+      GoRoute(
+        path: '/audio',
+        builder: (context, state) => const AudioNoteScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

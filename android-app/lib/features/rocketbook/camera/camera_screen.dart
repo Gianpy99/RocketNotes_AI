@@ -8,11 +8,13 @@ import 'package:photo_view/photo_view.dart';
 import 'camera_service.dart';
 import 'web_camera_service.dart';
 import '../ocr/ocr_service_real.dart';
-import '../models/scanned_content.dart';
 import '../../../data/models/note_model.dart';
 import '../../../presentation/providers/app_providers_simple.dart';
 import '../../../core/debug/debug_logger.dart';
 import 'package:uuid/uuid.dart';
+import 'package:hive/hive.dart';
+import '../../../core/constants/app_constants.dart';
+import '../models/scanned_content.dart';
 
 // Provider per il camera service (web o mobile)
 final cameraServiceProvider = Provider<dynamic>((ref) {
@@ -1161,6 +1163,15 @@ class ImagePreviewScreen extends ConsumerWidget {
       // Save the note using the notesProvider
       final notesNotifier = ref.read(notesProvider.notifier);
       await notesNotifier.saveNote(note);
+
+      // Save structured scan for future queries/analytics
+      try {
+        final scansBox = Hive.box<ScannedContent>(AppConstants.scansBox);
+        await scansBox.put(scannedContent.id, scannedContent);
+        DebugLogger().log('💾 Scan saved for analytics: ${scannedContent.id}');
+      } catch (e) {
+        DebugLogger().log('⚠️ Unable to save scan content: $e');
+      }
       
       DebugLogger().log('✅ Note saved successfully!');
       

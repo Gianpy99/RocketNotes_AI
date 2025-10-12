@@ -35,13 +35,14 @@ class AppSettingsModelAdapter extends TypeAdapter<AppSettingsModel> {
       imageAnalysisModel: fields[15] as String?,
       openAIServiceTier: fields[16] as String?,
       audioTranscriptionModel: fields[17] as String?,
+      autoQuickCaptureAI: fields[18] as bool? ?? false,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettingsModel obj) {
     writer
-      ..writeByte(18)
+      ..writeByte(19)
       ..writeByte(0)
       ..write(obj.defaultMode)
       ..writeByte(1)
@@ -77,7 +78,9 @@ class AppSettingsModelAdapter extends TypeAdapter<AppSettingsModel> {
       ..writeByte(16)
       ..write(obj.openAIServiceTier)
       ..writeByte(17)
-      ..write(obj.audioTranscriptionModel);
+    ..write(obj.audioTranscriptionModel)
+    ..writeByte(18)
+    ..write(obj.autoQuickCaptureAI);
   }
 
   @override

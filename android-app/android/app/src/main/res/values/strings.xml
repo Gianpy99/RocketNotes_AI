@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pensieve</string>
+    <string name="camera_widget_description">Quick Camera Capture</string>
+    <string name="audio_widget_description">Quick Audio Note</string>
+</resources>

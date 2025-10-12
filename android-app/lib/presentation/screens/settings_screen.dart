@@ -220,6 +220,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Card(
             child: Column(
               children: [
+                // Toggle: Auto AI after OCR in Quick Capture
+                Consumer(
+                  builder: (context, ref, child) {
+                    return ref.watch(appSettingsProvider).when(
+                      data: (settings) => SwitchListTile(
+                        secondary: const Icon(Icons.flash_on),
+                        title: const Text('Auto-analisi AI in Quick Capture'),
+                        subtitle: const Text('Esegui automaticamente l\'analisi AI dopo l\'OCR'),
+                        value: settings.autoQuickCaptureAI,
+                        onChanged: (val) async {
+                          await ref.read(appSettingsProvider.notifier).updateSettings(
+                            settings.copyWith(autoQuickCaptureAI: val),
+                          );
+                        },
+                      ),
+                      loading: () => const ListTile(
+                        leading: Icon(Icons.flash_on),
+                        title: Text('Auto-analisi AI in Quick Capture'),
+                        subtitle: Text('Loading...'),
+                      ),
+                      error: (_, __) => const SizedBox.shrink(),
+                    );
+                  },
+                ),
+                const Divider(),
                 Consumer(
                   builder: (context, ref, child) {
                     return ref.watch(appSettingsProvider).when(

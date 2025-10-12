@@ -5,6 +5,11 @@ import '../widgets/ocr_widget.dart';
 import '../widgets/rocketbook_analyzer_widget.dart';
 import '../data/models/note_model.dart';
 import '../main_simple.dart';
+import 'package:hive/hive.dart';
+import '../features/rocketbook/models/scanned_content.dart';
+import '../core/constants/app_constants.dart';
+import '../data/repositories/settings_repository.dart';
+import '../features/rocketbook/ai_analysis/ai_service.dart';
 
 /// Screen principale per la cattura e analisi delle immagini
 class QuickCaptureScreen extends ConsumerStatefulWidget {
@@ -22,8 +27,9 @@ class QuickCaptureScreen extends ConsumerStatefulWidget {
 class _QuickCaptureScreenState extends ConsumerState<QuickCaptureScreen> {
   String? _capturedImagePath;
   bool _isProcessing = false;
-  String? _extractedText;
-  String? _aiAnalysis;
+  ScannedContent? _scanned; // contiene testo OCR e metadata
+  AIAnalysis? _ai; // risultato AI
+  Duration _aiDuration = Duration.zero;
 
   @override
   Widget build(BuildContext context) {
@@ -150,23 +156,50 @@ class _QuickCaptureScreenState extends ConsumerState<QuickCaptureScreen> {
           OCRWidget(
             imagePath: _capturedImagePath!,
             autoExtract: true,
-            onOCRComplete: (result) {
+            onOCRComplete: (result) async {
               debugPrint('OCR completato: ${result.rawText.length} caratteri');
-              setState(() {
-                _extractedText = result.rawText;
-              });
+              setState(() { _scanned = result; });
+              // Auto-run AI se abilitato in impostazioni
+              try {
+                final settingsRepo = SettingsRepository();
+                final settings = await settingsRepo.getSettings();
+                if (settings.autoQuickCaptureAI && mounted) {
+                  setState(() { _isProcessing = true; });
+                  final sw = Stopwatch()..start();
+                  final analysis = await AIService.instance.analyzeContent(result);
+                  sw.stop();
+                  setState(() {
+                    _ai = analysis;
+                    _aiDuration = sw.elapsed;
+                    _isProcessing = false;
+                  });
+                }
+              } catch (e) {
+                debugPrint('Auto AI error: $e');
+                if (mounted) setState(() { _isProcessing = false; });
+              }
             },
           ),
           
           const SizedBox(height: 16),
           
-          // Rocketbook Analyzer Widget
+          // Rocketbook Analyzer Widget (genera prompt AI opzionale)
           RocketbookAnalyzerWidget(
             imagePath: _capturedImagePath!,
             onAnalysisGenerated: (request) {
               debugPrint('Analisi generata per template: ${request.template.name}');
               setState(() {
-                _aiAnalysis = request.prompt;
+                // Se l'utente usa Analyzer, salviamo il prompt nel testo AI
+                _ai = AIAnalysis(
+                  summary: 'Prompt generato',
+                  keyTopics: const [],
+                  suggestedTags: const [],
+                  suggestedTitle: 'Analisi Rocketbook',
+                  contentType: ContentType.mixed,
+                  sentiment: 0,
+                  actionItems: const [],
+                  insights: {'generated_prompt': request.prompt},
+                );
               });
             },
           ),
@@ -174,7 +207,7 @@ class _QuickCaptureScreenState extends ConsumerState<QuickCaptureScreen> {
           const SizedBox(height: 16),
           
           // Status indicators
-          if (_extractedText != null || _aiAnalysis != null)
+          if ((_scanned?.rawText.isNotEmpty ?? false) || _ai != null)
             Card(
               color: Colors.blue.shade50,
               child: Padding(
@@ -185,9 +218,9 @@ class _QuickCaptureScreenState extends ConsumerState<QuickCaptureScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        _extractedText != null && _aiAnalysis != null
+                        (_scanned?.rawText.isNotEmpty ?? false) && _ai != null
                             ? 'OCR e analisi AI completati'
-                            : _extractedText != null
+                            : (_scanned?.rawText.isNotEmpty ?? false)
                                 ? 'Testo estratto dall\'immagine'
                                 : 'Analisi AI completata',
                         style: const TextStyle(fontSize: 14),
@@ -290,9 +323,10 @@ class _QuickCaptureScreenState extends ConsumerState<QuickCaptureScreen> {
     try {
       // Genera un titolo basato sul contenuto estratto
       String title = '📷 Nota da immagine';
-      if (_extractedText != null && _extractedText!.isNotEmpty) {
+      final extracted = _scanned?.rawText ?? '';
+      if (extracted.isNotEmpty) {
         // Usa le prime parole del testo estratto come titolo
-        final words = _extractedText!.trim().split(' ');
+        final words = extracted.trim().split(' ');
         if (words.isNotEmpty) {
           title = words.take(5).join(' ');
           if (title.length > 30) {
@@ -305,13 +339,13 @@ class _QuickCaptureScreenState extends ConsumerState<QuickCaptureScreen> {
       String content = '';
 
       // Aggiungi il testo estratto dall'OCR
-      if (_extractedText != null && _extractedText!.isNotEmpty) {
-        content += '📝 Testo estratto:\n$_extractedText\n\n';
+      if (extracted.isNotEmpty) {
+        content += '📝 Testo estratto:\n$extracted\n\n';
       }
 
       // Aggiungi l'analisi AI se disponibile
-      if (_aiAnalysis != null && _aiAnalysis!.isNotEmpty) {
-        content += '🤖 Analisi AI:\n$_aiAnalysis\n\n';
+      if (_ai != null) {
+        content += '🤖 Analisi AI:\n${_ai!.summary}\n\n';
       }
 
       // Aggiungi un riferimento all'immagine
@@ -324,7 +358,7 @@ class _QuickCaptureScreenState extends ConsumerState<QuickCaptureScreen> {
         content: content,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        tags: ['quick-capture', 'image', if (_extractedText != null) 'ocr'],
+        tags: ['quick-capture', 'image', if (extracted.isNotEmpty) 'ocr'],
         mode: 'personal', // Default mode
         attachments: [_capturedImagePath!],
         isFavorite: false,
@@ -334,6 +368,25 @@ class _QuickCaptureScreenState extends ConsumerState<QuickCaptureScreen> {
       // Salva la nota usando il provider
       final notesNotifier = ref.read(notesProvider.notifier);
       await notesNotifier.addNote(note);
+
+      // Salva anche lo scan strutturato per analytics
+      try {
+        final scan = _scanned ?? ScannedContent.fromImage(_capturedImagePath!);
+        if (_scanned == null) {
+          scan.rawText = extracted;
+          scan.status = extracted.isNotEmpty ? ProcessingStatus.completed : ProcessingStatus.pending;
+        }
+        if (_ai != null) {
+          scan.aiAnalysis = _ai;
+          // salviamo la durata AI negli insights
+          scan.aiAnalysis!.insights = {
+            ...scan.aiAnalysis!.insights,
+            'ai_processing_ms': _aiDuration.inMilliseconds,
+          };
+        }
+        final box = Hive.box<ScannedContent>(AppConstants.scansBox);
+        await box.put(scan.id, scan);
+      } catch (_) {}
 
       setState(() => _isProcessing = false);
 
@@ -362,8 +415,9 @@ class _QuickCaptureScreenState extends ConsumerState<QuickCaptureScreen> {
     setState(() {
       _capturedImagePath = null;
       _isProcessing = false;
-      _extractedText = null;
-      _aiAnalysis = null;
+      _scanned = null;
+      _ai = null;
+      _aiDuration = Duration.zero;
     });
   }
 

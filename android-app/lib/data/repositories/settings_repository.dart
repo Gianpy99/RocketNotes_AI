@@ -231,6 +231,9 @@ class SettingsRepository {
         case 'imageAnalysisModel':
           updatedSettings = settings.copyWith(imageAnalysisModel: value as String);
           break;
+        case 'autoQuickCaptureAI':
+          updatedSettings = settings.copyWith(autoQuickCaptureAI: value as bool);
+          break;
         default:
           throw Exception('Unknown setting key: $key');
       }
@@ -238,6 +241,16 @@ class SettingsRepository {
       await saveSettings(updatedSettings);
     } catch (e) {
       throw Exception('Failed to update setting $key: $e');
+    }
+  }
+
+  Future<void> updateAutoQuickCaptureAI(bool enabled) async {
+    try {
+      final settings = await getSettings();
+      final updatedSettings = settings.copyWith(autoQuickCaptureAI: enabled);
+      await saveSettings(updatedSettings);
+    } catch (e) {
+      throw Exception('Failed to update auto quick capture AI setting: $e');
     }
   }
 

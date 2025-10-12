@@ -12,6 +12,8 @@ import '../widgets/mode_card.dart';
 import '../widgets/quick_action_button.dart';
 import '../../ui/widgets/common/family_member_selector.dart';
 import '../../ui/widgets/home/shared_notebooks_section.dart';
+import '../../screens/audio_note_screen.dart';
+import '../../data/services/widget_deep_link_service.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   final String? initialMode;
@@ -36,6 +38,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       });
     }
     _listenToDeepLinks();
+    _checkWidgetDeepLink();
+  }
+
+  void _checkWidgetDeepLink() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await WidgetDeepLinkService.initialize(context);
+    });
   }
 
   void _listenToDeepLinks() {
@@ -339,7 +349,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: Container(), // Placeholder per simmetria
+                        child: QuickActionButton(
+                          icon: Icons.bar_chart,
+                          label: 'Statistics',
+                          color: Colors.indigo,
+                          onTap: () => context.push('/statistics'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: QuickActionButton(
+                          icon: Icons.mic,
+                          label: 'Audio Note',
+                          color: Colors.deepPurple,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const AudioNoteScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Container(), // Empty space for symmetry
                       ),
                     ],
                   ),

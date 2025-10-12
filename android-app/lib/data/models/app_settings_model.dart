@@ -62,6 +62,10 @@ class AppSettingsModel extends HiveObject {
   @HiveField(17)
   String? audioTranscriptionModel; // AI model for audio transcription
 
+  // Quick Capture: auto eseguire analisi AI dopo OCR
+  @HiveField(18)
+  bool autoQuickCaptureAI;
+
   AppSettingsModel({
     this.defaultMode = 'work',
     this.themeMode = 0,
@@ -81,6 +85,7 @@ class AppSettingsModel extends HiveObject {
     this.imageAnalysisModel = 'gpt-5-mini',
     this.openAIServiceTier = 'flex',
     this.audioTranscriptionModel = 'gpt-4o-mini-transcribe',
+    this.autoQuickCaptureAI = false,
   });
 
   // Factory constructor with defaults
@@ -102,6 +107,7 @@ class AppSettingsModel extends HiveObject {
       imageAnalysisModel: 'gpt-5-mini',
       openAIServiceTier: 'flex',
       audioTranscriptionModel: 'gpt-4o-mini-transcribe',
+      autoQuickCaptureAI: false,
     );
   }
 
@@ -197,6 +203,7 @@ class AppSettingsModel extends HiveObject {
     String? imageAnalysisModel,
     String? openAIServiceTier,
     String? audioTranscriptionModel,
+    bool? autoQuickCaptureAI,
   }) {
     return AppSettingsModel(
       defaultMode: defaultMode ?? this.defaultMode,
@@ -217,6 +224,7 @@ class AppSettingsModel extends HiveObject {
       imageAnalysisModel: imageAnalysisModel ?? this.imageAnalysisModel,
       openAIServiceTier: openAIServiceTier ?? this.openAIServiceTier,
       audioTranscriptionModel: audioTranscriptionModel ?? this.audioTranscriptionModel,
+      autoQuickCaptureAI: autoQuickCaptureAI ?? this.autoQuickCaptureAI,
     );
   }
 
@@ -256,6 +264,7 @@ class AppSettingsModel extends HiveObject {
       'imageAnalysisModel': imageAnalysisModel,
       'openAIServiceTier': openAIServiceTier,
       'audioTranscriptionModel': audioTranscriptionModel,
+      'autoQuickCaptureAI': autoQuickCaptureAI,
     };
   }
 
@@ -281,6 +290,7 @@ class AppSettingsModel extends HiveObject {
       imageAnalysisModel: json['imageAnalysisModel'] as String? ?? 'gpt-5-mini',
       openAIServiceTier: json['openAIServiceTier'] as String? ?? 'flex',
       audioTranscriptionModel: json['audioTranscriptionModel'] as String? ?? 'gpt-4o-mini-transcribe',
+      autoQuickCaptureAI: json['autoQuickCaptureAI'] as bool? ?? false,
     );
   }
 }

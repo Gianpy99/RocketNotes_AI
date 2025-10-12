@@ -20,10 +20,14 @@ class AppConstants {
   static const String notesBox = 'notes';
   static const String settingsBox = 'settings';
   static const String familyMembersBox = 'family_members';
+  static const String scansBox = 'scans';
   static const String currentModeKey = 'current_mode';
   static const String themeModeKey = 'theme_mode';
   static const String lastBackupKey = 'last_backup';
   static const String userPreferencesKey = 'user_preferences';
+  
+  // Feature configuration
+  static const String familyBackend = 'local'; // 'local' or 'firebase' (future)
   
   // Animation Durations
   static const Duration shortAnimation = Duration(milliseconds: 200);
