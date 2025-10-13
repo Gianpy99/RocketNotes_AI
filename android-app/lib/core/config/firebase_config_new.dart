@@ -1,5 +1,6 @@
 // lib/core/config/firebase_config.dart
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'api_config.dart';
 
 /// Firebase Configuration
@@ -24,22 +25,30 @@ class FirebaseConfig {
     try {
       // Check if Firebase is already initialized
       if (Firebase.apps.isNotEmpty) {
-        print('✅ Firebase already initialized, skipping...');
-        print('📊 Config status: ${ApiConfig.configStatus}');
+        if (kDebugMode) {
+          debugPrint('✅ Firebase already initialized, skipping...');
+          debugPrint('📊 Config status: ${ApiConfig.configStatus}');
+        }
         return;
       }
       
       await Firebase.initializeApp(options: currentPlatform);
-      print('✅ Firebase initialized successfully');
-      print('📊 Config status: ${ApiConfig.configStatus}');
+      if (kDebugMode) {
+        debugPrint('✅ Firebase initialized successfully');
+        debugPrint('📊 Config status: ${ApiConfig.configStatus}');
+      }
     } catch (e) {
       // Handle duplicate app error specifically
       if (e.toString().contains('duplicate-app') || e.toString().contains('[DEFAULT]')) {
-        print('✅ Firebase app already exists, continuing...');
-        print('📊 Config status: ${ApiConfig.configStatus}');
+        if (kDebugMode) {
+          debugPrint('✅ Firebase app already exists, continuing...');
+          debugPrint('📊 Config status: ${ApiConfig.configStatus}');
+        }
         return;
       }
-      print('❌ Firebase initialization failed: $e');
+      if (kDebugMode) {
+        debugPrint('❌ Firebase initialization failed: $e');
+      }
       rethrow;
     }
   }

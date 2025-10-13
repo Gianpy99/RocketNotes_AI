@@ -32,17 +32,17 @@ cd c:\Development\RocketNotes_AI\android-app
 
 **Test Camera Widget:**
 ```bash
-adb shell am start -W -a android.intent.action.VIEW -d "rocketnotes://camera" com.example.rocket_notes_ai
+adb shell am start -W -a android.intent.action.VIEW -d "rocketnotes://camera" com.example.pensieve
 ```
 
 **Test Audio Widget:**
 ```bash
-adb shell am start -W -a android.intent.action.VIEW -d "rocketnotes://audio" com.example.rocket_notes_ai
+adb shell am start -W -a android.intent.action.VIEW -d "rocketnotes://audio" com.example.pensieve
 ```
 
 **Test Both:**
 ```bash
-adb shell am start -W -a android.intent.action.VIEW -d "rocketnotes://camera" com.example.rocket_notes_ai ; Start-Sleep -Seconds 2 ; adb shell am start -W -a android.intent.action.VIEW -d "rocketnotes://audio" com.example.rocket_notes_ai
+adb shell am start -W -a android.intent.action.VIEW -d "rocketnotes://camera" com.example.pensieve ; Start-Sleep -Seconds 2 ; adb shell am start -W -a android.intent.action.VIEW -d "rocketnotes://audio" com.example.pensieve
 ```
 
 ## Debugging
@@ -77,10 +77,10 @@ adb shell getprop ro.build.version.sdk
 adb shell pm list packages | grep rocket
 
 # App info
-adb shell dumpsys package com.example.rocket_notes_ai | grep version
+adb shell dumpsys package com.example.pensieve | grep version
 
 # Clear app data
-adb shell pm clear com.example.rocket_notes_ai
+adb shell pm clear com.example.pensieve
 ```
 
 ## Widget Management
@@ -91,15 +91,15 @@ adb shell pm clear com.example.rocket_notes_ai
 adb shell dumpsys appwidget
 
 # List only Pensieve widgets
-adb shell dumpsys appwidget | grep -A 20 rocket_notes_ai
+adb shell dumpsys appwidget | grep -A 20 pensieve
 ```
 
 ### Force Widget Update
 ```bash
 # Broadcast update intent
-adb shell am broadcast -a android.appwidget.action.APPWIDGET_UPDATE -n com.example.rocket_notes_ai/.CameraWidgetProvider
+adb shell am broadcast -a android.appwidget.action.APPWIDGET_UPDATE -n com.example.pensieve/.CameraWidgetProvider
 
-adb shell am broadcast -a android.appwidget.action.APPWIDGET_UPDATE -n com.example.rocket_notes_ai/.AudioWidgetProvider
+adb shell am broadcast -a android.appwidget.action.APPWIDGET_UPDATE -n com.example.pensieve/.AudioWidgetProvider
 ```
 
 ## Development
@@ -135,7 +135,7 @@ dart format .
 ### Widget Files (Android)
 ```
 android/app/src/main/
-├── kotlin/com/example/rocket_notes_ai/
+├── kotlin/com/example/pensieve/
 │   ├── CameraWidgetProvider.kt
 │   └── AudioWidgetProvider.kt
 ├── res/
@@ -198,7 +198,7 @@ GoRoute(
 flutter clean
 flutter pub get
 flutter build apk --debug
-adb uninstall com.example.rocket_notes_ai
+adb uninstall com.example.pensieve
 adb install -r build\app\outputs\flutter-apk\app-debug.apk
 # Then reboot device
 adb reboot
@@ -210,7 +210,7 @@ adb reboot
 adb shell dumpsys activity intents | grep rocketnotes
 
 # Check if deep link is registered
-adb shell pm dump com.example.rocket_notes_ai | grep rocketnotes
+adb shell pm dump com.example.pensieve | grep rocketnotes
 ```
 
 ### App Crashes on Widget Tap
@@ -292,7 +292,7 @@ flutter run
 adb logcat | grep -i "widget\|deeplink"
 
 # 2. Test deep link directly
-adb shell am start -W -a android.intent.action.VIEW -d "rocketnotes://camera" com.example.rocket_notes_ai
+adb shell am start -W -a android.intent.action.VIEW -d "rocketnotes://camera" com.example.pensieve
 
 # 3. Check if widget is registered
 adb shell dumpsys appwidget | grep rocket

@@ -54,8 +54,11 @@ class StatisticsScreen extends ConsumerWidget {
                           now = DateTime.now();
                           if (value == '7') {
                             selected = const Duration(days: 7);
-                          } else if (value == '30') selected = const Duration(days: 30);
-                          else selected = const Duration(days: 365);
+                          } else if (value == '30') {
+                            selected = const Duration(days: 30);
+                          } else {
+                            selected = const Duration(days: 365);
+                          }
                           from = now.subtract(selected);
                         });
                       },
@@ -114,10 +117,10 @@ class StatisticsScreen extends ConsumerWidget {
   Widget _kpiCard(BuildContext context, String title, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        decoration: BoxDecoration(
+        color: color.withAlpha((0.08 * 255).round()),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withAlpha((0.3 * 255).round())),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

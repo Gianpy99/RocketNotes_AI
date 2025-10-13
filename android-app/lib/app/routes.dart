@@ -2,6 +2,7 @@
 // lib/app/routes.dart
 // ==========================================
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import '../presentation/screens/splash_screen.dart';
 import '../presentation/screens/home_screen.dart';
@@ -28,7 +29,7 @@ class AppRouter {
       GoRoute(
         path: '/emergency-test',
         builder: (context, state) {
-          print('🚨 EMERGENCY TEST ROUTE LOADED! 🚨');
+          if (kDebugMode) debugPrint('🚨 EMERGENCY TEST ROUTE LOADED! 🚨');
           return Scaffold(
             backgroundColor: Colors.yellow,
             body: Container(
@@ -155,7 +156,7 @@ class AppRouter {
       GoRoute(
         path: '/test',
         builder: (context, state) {
-          print('🎯 TEST ROUTE LOADED!');
+          if (kDebugMode) debugPrint('🎯 TEST ROUTE LOADED!');
           return const Scaffold(
             body: Center(
               child: Text(
@@ -172,7 +173,7 @@ class AppRouter {
         path: '/create-family',
         name: 'family-create',
         builder: (context, state) {
-          print('🏗️ GoRouter: Building CreateFamilyScreen for path: ${state.matchedLocation}');
+          if (kDebugMode) debugPrint('🏗️ GoRouter: Building CreateFamilyScreen for path: ${state.matchedLocation}');
           return Scaffold(
             appBar: AppBar(title: const Text('Test Create Family')),
             body: const Center(
@@ -195,7 +196,7 @@ class AppRouter {
         path: '/family',
         name: 'family-home',
         builder: (context, state) {
-          print('🔥 MODIFIED FAMILY ROUTE LOADED! 🔥');
+          if (kDebugMode) debugPrint('🔥 MODIFIED FAMILY ROUTE LOADED! 🔥');
           return Scaffold(
             backgroundColor: Colors.green,
             body: Column(
@@ -371,10 +372,10 @@ class AppRouter {
   }
 
   static void goToCreateFamily() {
-    print('🚀 AppRouter.goToCreateFamily() called');
-    print('📍 Current location before navigation: ${router.routeInformationProvider.value.uri}');
+  if (kDebugMode) debugPrint('🚀 AppRouter.goToCreateFamily() called');
+  if (kDebugMode) debugPrint('📍 Current location before navigation: ${router.routeInformationProvider.value.uri}');
     router.go('/create-family');
-    print('✅ Navigation to /create-family executed');
+  if (kDebugMode) debugPrint('✅ Navigation to /create-family executed');
   }
 
   static void goToInviteMember() {

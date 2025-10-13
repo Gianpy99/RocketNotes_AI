@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 
 class WidgetDeepLinkService {
-  static const MethodChannel _channel = MethodChannel('com.example.rocket_notes_ai/deeplink');
+  static const MethodChannel _channel = MethodChannel('com.example.pensieve/deeplink');
   
   /// Ottiene il link iniziale dai widget Android
   static Future<String?> getInitialWidgetLink() async {

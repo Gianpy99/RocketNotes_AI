@@ -21,7 +21,7 @@ $devices = adb devices
 Write-Host $devices
 Write-Host ""
 
-$packageName = "com.example.rocket_notes_ai"
+$packageName = "com.example.pensieve"
 
 # Menu di scelta
 Write-Host "Select widget to test:" -ForegroundColor Cyan

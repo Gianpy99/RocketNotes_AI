@@ -125,11 +125,7 @@ class AudioRecordingNotifier extends StateNotifier<AudioRecordingState> {
 
     try {
       // Get user's preferred language from settings if not provided
-      if (targetLanguage == null) {
-        // TODO: add user language preference to settings
-        // final settings = await SettingsRepository().getSettings();
-        targetLanguage = 'it'; // default Italian, make this configurable
-      }
+      targetLanguage ??= 'it';
 
       final result = await AudioTranscriptionService.instance.transcribeAudio(
         audioFilePath: state.recordingPath!,

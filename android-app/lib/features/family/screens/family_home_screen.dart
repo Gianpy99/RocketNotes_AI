@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
@@ -108,16 +109,21 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          print('🔘 FloatingActionButton pressed');
-          print('📍 Navigating to CreateFamilyScreen with Navigator.push...');
-          
+          if (kDebugMode) {
+            debugPrint('🔘 FloatingActionButton pressed');
+            debugPrint('📍 Navigating to CreateFamilyScreen with Navigator.push...');
+          }
+
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => const CreateFamilyScreen(),
             ),
           );
-          print('✅ Navigation to CreateFamilyScreen initiated');
+
+          if (kDebugMode) {
+            debugPrint('✅ Navigation to CreateFamilyScreen initiated');
+          }
         },
         icon: const Icon(Icons.add),
         label: const Text('Create Family'),
@@ -155,16 +161,21 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
           const SizedBox(height: 32),
           ElevatedButton.icon(
             onPressed: () {
-              print('🔘 Create Family button pressed');
-              print('📍 Navigating to CreateFamilyScreen with Navigator.push...');
-              
+              if (kDebugMode) {
+                debugPrint('🔘 Create Family button pressed');
+                debugPrint('📍 Navigating to CreateFamilyScreen with Navigator.push...');
+              }
+
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const CreateFamilyScreen(),
                 ),
               );
-              print('✅ Navigation to CreateFamilyScreen initiated');
+
+              if (kDebugMode) {
+                debugPrint('✅ Navigation to CreateFamilyScreen initiated');
+              }
             },
             icon: const Icon(Icons.add),
             label: const Text('Create Family'),

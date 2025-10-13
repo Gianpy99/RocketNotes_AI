@@ -1,6 +1,6 @@
 {
-    "name": "rocket_notes_ai",
-    "short_name": "rocket_notes_ai",
+    "name": "pensieve",
+    "short_name": "pensieve",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

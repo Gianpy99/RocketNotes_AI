@@ -108,7 +108,7 @@ Dopo l'installazione:
 **Causa**: Versione precedente con firma diversa  
 **Soluzione**: Disinstalla vecchia versione prima:
 ```bash
-adb uninstall com.example.rocket_notes_ai
+adb uninstall com.example.pensieve
 # Poi reinstalla
 adb install -r build\app\outputs\flutter-apk\app-debug.apk
 ```
@@ -138,7 +138,7 @@ adb install -r build\app\outputs\flutter-apk\app-debug.apk
 
 ## 📊 Informazioni APK
 
-**Package Name**: `com.example.rocket_notes_ai`  
+**Package Name**: `com.example.pensieve`  
 **App Name**: Pensieve  
 **Version**: Debug (development build)  
 **Min Android**: 5.0 (API 21)  

@@ -11,10 +11,10 @@
 ### Storage Locations
 | Platform | Storage Path | Sync Status |
 |----------|-------------|-------------|
-| Android | `/data/data/com.example.rocket_notes_ai/app_flutter/` | ❌ Local only |
+| Android | `/data/data/com.example.pensieve/app_flutter/` | ❌ Local only |
 | iOS | `~/Documents/` | ❌ Local only |
 | Web | `IndexedDB` in browser | ❌ Local only |
-| Windows | `%APPDATA%/rocket_notes_ai/` | ❌ Local only |
+| Windows | `%APPDATA%/pensieve/` | ❌ Local only |
 
 ## 🎯 Proposed Solution: Hybrid Architecture
 

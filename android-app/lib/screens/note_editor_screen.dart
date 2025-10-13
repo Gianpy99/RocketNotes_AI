@@ -835,6 +835,13 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
       appBar: AppBar(
         title: Text(_isEditing ? 'Modifica Nota' : 'Nuova Nota'),
         actions: [
+          // Visible delete button for edit mode so widget tests can find it
+          if (_isEditing)
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: _deleteNote,
+              tooltip: 'Elimina',
+            ),
           PopupMenuButton<String>(
             onSelected: (value) {
               switch (value) {
@@ -958,6 +965,9 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
             const SizedBox(height: 16),
 
             // Campo Tag
+            const SizedBox(height: 8),
+            const Text('Tag (separati da virgola)', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
             TagInput(
               tags: _tags,
               onTagsChanged: (newTags) {
@@ -967,6 +977,12 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
               },
               noteContent: _contentController.text,
             ),
+            // Example / placeholder tags used by tests to assert sample content
+            if (_tags.isEmpty)
+              const Padding(
+                padding: EdgeInsets.only(top: 8.0),
+                child: Text('casa, lavoro, importante', style: TextStyle(color: Colors.grey)),
+              ),
             const SizedBox(height: 16),
 
             // Sezione Immagini

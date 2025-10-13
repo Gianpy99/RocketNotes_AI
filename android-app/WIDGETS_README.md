@@ -42,8 +42,8 @@ adb install -r build\app\outputs\flutter-apk\app-debug.apk
 .\test-widgets.ps1
 
 # Oppure direttamente via ADB:
-adb shell am start -W -a android.intent.action.VIEW -d "rocketnotes://camera" com.example.rocket_notes_ai
-adb shell am start -W -a android.intent.action.VIEW -d "rocketnotes://audio" com.example.rocket_notes_ai
+adb shell am start -W -a android.intent.action.VIEW -d "rocketnotes://camera" com.example.pensieve
+adb shell am start -W -a android.intent.action.VIEW -d "rocketnotes://audio" com.example.pensieve
 ```
 
 ## Struttura

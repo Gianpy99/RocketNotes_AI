@@ -21,7 +21,7 @@ RocketNotes AI offre due **widget nativi Android** per l'accesso rapido alle fun
 
 ```
 android/app/src/main/
-├── kotlin/com/example/rocket_notes_ai/
+├── kotlin/com/example/pensieve/
 │   ├── MainActivity.kt              # Gestisce i deep links in entrata
 │   ├── CameraWidgetProvider.kt      # Provider per widget camera
 │   └── AudioWidgetProvider.kt       # Provider per widget audio
@@ -232,10 +232,10 @@ val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 
 ```bash
 # Test camera deep link via ADB
-adb shell am start -W -a android.intent.action.VIEW -d "rocketnotes://camera" com.example.rocket_notes_ai
+adb shell am start -W -a android.intent.action.VIEW -d "rocketnotes://camera" com.example.pensieve
 
 # Test audio deep link via ADB
-adb shell am start -W -a android.intent.action.VIEW -d "rocketnotes://audio" com.example.rocket_notes_ai
+adb shell am start -W -a android.intent.action.VIEW -d "rocketnotes://audio" com.example.pensieve
 ```
 
 ### Debug Logging

@@ -1,6 +1,10 @@
 # Build scripts for Firebase configuration
 # These scripts help you build the Flutter app with Firebase environment variables
-
+#
+# 📋 NOTE: For comprehensive builds with Firebase support, consider using:
+#    .\build-universal.ps1 -BuildType release
+#    (Includes Firebase config loading, device detection, and more!)
+#
 # Windows PowerShell script for Android builds
 param(
     [string]$BuildType = "debug"

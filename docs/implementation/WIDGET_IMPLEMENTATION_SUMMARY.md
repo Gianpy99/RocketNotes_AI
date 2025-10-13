@@ -155,7 +155,7 @@ class CameraWidgetProvider : AppWidgetProvider() {
 ```dart
 class WidgetDeepLinkService {
     static const MethodChannel _channel = 
-        MethodChannel('com.example.rocket_notes_ai/deeplink');
+    MethodChannel('com.example.pensieve/deeplink');
     
     static Future<String?> getInitialWidgetLink() async {
         final String? link = await _channel.invokeMethod('getInitialLink');
@@ -203,10 +203,10 @@ class WidgetDeepLinkService {
 
 # Or manually:
 adb shell am start -W -a android.intent.action.VIEW \
-    -d "rocketnotes://camera" com.example.rocket_notes_ai
+    -d "rocketnotes://camera" com.example.pensieve
 
 adb shell am start -W -a android.intent.action.VIEW \
-    -d "rocketnotes://audio" com.example.rocket_notes_ai
+    -d "rocketnotes://audio" com.example.pensieve
 ```
 
 ### Debug Logging
