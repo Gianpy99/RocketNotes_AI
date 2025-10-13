@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../models/family.dart';
 import '../providers/family_providers.dart';
@@ -32,9 +30,6 @@ class _CreateFamilyScreenState extends ConsumerState<CreateFamilyScreen> {
 
   @override
   Widget build(BuildContext context) {
-  if (kDebugMode) debugPrint('🏗️ CreateFamilyScreen: Build method called!');
-  if (kDebugMode) debugPrint('📍 Current route: ${GoRouter.of(context).routeInformationProvider.value.uri}');
-    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create Family'),
@@ -191,11 +186,18 @@ class _CreateFamilyScreenState extends ConsumerState<CreateFamilyScreen> {
   }
 
   Future<void> _createFamily() async {
-    if (!_formKey.currentState!.validate()) return;
+    debugPrint('🚀 [CREATE FAMILY] Starting family creation...');
+    
+    if (!_formKey.currentState!.validate()) {
+      debugPrint('❌ [CREATE FAMILY] Form validation failed');
+      return;
+    }
 
+    debugPrint('✅ [CREATE FAMILY] Form validated successfully');
     setState(() => _isLoading = true);
 
     try {
+      debugPrint('📋 [CREATE FAMILY] Creating FamilySettings...');
       // Create FamilySettings from form data
       final settings = FamilySettings(
         allowPublicSharing: true,
@@ -209,15 +211,28 @@ class _CreateFamilyScreenState extends ConsumerState<CreateFamilyScreen> {
           activityDigest: ActivityDigestFrequency.weekly,
         ),
       );
+      debugPrint('✅ [CREATE FAMILY] FamilySettings created');
 
+      debugPrint('🔍 [CREATE FAMILY] Getting familyServiceProvider...');
       // Create the family using the service
       final familyService = ref.read(familyServiceProvider);
+      debugPrint('✅ [CREATE FAMILY] FamilyService obtained: ${familyService.runtimeType}');
+      
+      debugPrint('🏗️ [CREATE FAMILY] Calling createFamily with name: "${_nameController.text.trim()}"');
       final family = await familyService.createFamily(
         name: _nameController.text.trim(),
         settings: settings,
       );
+      debugPrint('✅ [CREATE FAMILY] Family created successfully: ${family.id}');
 
       if (mounted) {
+        debugPrint('🔄 [CREATE FAMILY] Invalidating family providers to refresh data');
+        // Invalidate providers to refresh the family list
+        ref.invalidate(currentUserFamilyIdProvider);
+        ref.invalidate(currentFamilyProvider);
+        ref.invalidate(familyMembersProvider);
+        
+        debugPrint('✅ [CREATE FAMILY] Showing success message');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Family "${family.name}" created successfully!'),
@@ -225,20 +240,25 @@ class _CreateFamilyScreenState extends ConsumerState<CreateFamilyScreen> {
           ),
         );
         
+        debugPrint('↩️ [CREATE FAMILY] Navigating back');
         // Navigate back to family home
         Navigator.of(context).pop();
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('❌ [CREATE FAMILY] Error creating family: $e');
+      debugPrint('📚 [CREATE FAMILY] Stack trace: $stackTrace');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error creating family: $e'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
           ),
         );
       }
     } finally {
       if (mounted) {
+        debugPrint('🏁 [CREATE FAMILY] Setting isLoading to false');
         setState(() => _isLoading = false);
       }
     }

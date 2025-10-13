@@ -4,7 +4,7 @@ import 'package:json_annotation/json_annotation.dart';
 part 'family.g.dart';
 
 /// Represents a family group that can share notes and collaborate.
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class Family extends Equatable {
   /// Unique identifier (UUID)
   final String id;
@@ -89,7 +89,7 @@ class Family extends Equatable {
 }
 
 /// Family-wide configuration settings.
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class FamilySettings extends Equatable {
   /// Whether family members can share notes publicly
   final bool allowPublicSharing;
@@ -173,7 +173,7 @@ class FamilySettings extends Equatable {
 }
 
 /// Notification preferences for the family.
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class NotificationPreferences extends Equatable {
   /// Whether to send email invitations
   final bool emailInvitations;

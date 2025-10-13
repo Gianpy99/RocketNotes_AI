@@ -28,7 +28,7 @@ Map<String, dynamic> _$FamilyMemberToJson(FamilyMember instance) =>
       'userId': instance.userId,
       'familyId': instance.familyId,
       'role': _$FamilyRoleEnumMap[instance.role]!,
-      'permissions': instance.permissions,
+      'permissions': instance.permissions.toJson(),
       'joinedAt': FamilyMember._dateTimeToJson(instance.joinedAt),
       'lastActiveAt':
           FamilyMember._nullableDateTimeToJson(instance.lastActiveAt),

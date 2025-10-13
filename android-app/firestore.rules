@@ -70,8 +70,8 @@ service cloud.firestore {
     // Families collection
     match /families/{familyId} {
       allow read: if isFamilyMember(familyId);
-      allow create: if isAuthenticated() && 
-                       request.auth.uid == resource.data.ownerId;
+      // Allow any authenticated user (including anonymous) to create a family
+      allow create: if isAuthenticated();
       allow update: if isFamilyAdmin(familyId);
       allow delete: if isFamilyOwner(familyId);
 

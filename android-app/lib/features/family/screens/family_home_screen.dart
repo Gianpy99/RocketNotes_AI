@@ -50,6 +50,18 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            // Navigate back to home screen
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              context.go('/');
+            }
+          },
+          tooltip: 'Back to Home',
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -107,27 +119,36 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          if (kDebugMode) {
-            debugPrint('🔘 FloatingActionButton pressed');
-            debugPrint('📍 Navigating to CreateFamilyScreen with Navigator.push...');
-          }
+      floatingActionButton: currentFamilyAsync.when(
+        data: (familyData) {
+          // Only show "Create Family" button if user doesn't have a family
+          if (familyData != null) return null;
+          
+          return FloatingActionButton.extended(
+            onPressed: () {
+              if (kDebugMode) {
+                debugPrint('🔘 FloatingActionButton pressed');
+                debugPrint('📍 Navigating to CreateFamilyScreen with Navigator.push...');
+              }
 
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CreateFamilyScreen(),
-            ),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateFamilyScreen(),
+                ),
+              );
+
+              if (kDebugMode) {
+                debugPrint('✅ Navigation to CreateFamilyScreen initiated');
+              }
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('Create Family'),
+            backgroundColor: AppColors.primary,
           );
-
-          if (kDebugMode) {
-            debugPrint('✅ Navigation to CreateFamilyScreen initiated');
-          }
         },
-        icon: const Icon(Icons.add),
-        label: const Text('Create Family'),
-        backgroundColor: AppColors.primary,
+        loading: () => null,
+        error: (_, __) => null,
       ),
     );
   }

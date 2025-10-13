@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -26,14 +27,26 @@ final currentUserProvider = Provider<User?>((ref) {
 /// Provider for current user's family ID
 final currentUserFamilyIdProvider = FutureProvider<String?>((ref) async {
   final user = ref.watch(currentUserProvider);
-  if (user == null) return null;
+  debugPrint('🔍 [FAMILY ID PROVIDER] Current user: ${user?.uid}');
+  
+  if (user == null) {
+    debugPrint('⚠️ [FAMILY ID PROVIDER] No user logged in');
+    return null;
+  }
 
+  debugPrint('🔎 [FAMILY ID PROVIDER] Fetching user document...');
   final userDoc = await FamilyFirebaseConfig.firestore
       .collection('users')
       .doc(user.uid)
       .get();
 
-  return userDoc.data()?['familyId'] as String?;
+  debugPrint('📄 [FAMILY ID PROVIDER] User doc exists: ${userDoc.exists}');
+  debugPrint('📄 [FAMILY ID PROVIDER] User doc data: ${userDoc.data()}');
+  
+  final familyId = userDoc.data()?['familyId'] as String?;
+  debugPrint('✅ [FAMILY ID PROVIDER] FamilyId: $familyId');
+  
+  return familyId;
 });
 
 /// Provider for current family data
@@ -47,17 +60,33 @@ final currentFamilyProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
 
 /// Provider for family members
 final familyMembersProvider = FutureProvider<List<FamilyMember>>((ref) async {
+  debugPrint('🔍 [FAMILY MEMBERS PROVIDER] Starting to fetch members...');
+  
   final familyId = await ref.watch(currentUserFamilyIdProvider.future);
-  if (familyId == null) return [];
+  debugPrint('📋 [FAMILY MEMBERS PROVIDER] FamilyId: $familyId');
+  
+  if (familyId == null) {
+    debugPrint('⚠️ [FAMILY MEMBERS PROVIDER] No familyId found, returning empty list');
+    return [];
+  }
 
+  debugPrint('🔎 [FAMILY MEMBERS PROVIDER] Querying family_members collection...');
   final membersSnapshot = await FamilyFirebaseConfig.firestore
       .collection('family_members')
       .where('familyId', isEqualTo: familyId)
       .get();
 
-  return membersSnapshot.docs
-      .map((doc) => FamilyMember.fromJson(doc.data()..['id'] = doc.id))
+  debugPrint('📊 [FAMILY MEMBERS PROVIDER] Found ${membersSnapshot.docs.length} members');
+  
+  final members = membersSnapshot.docs
+      .map((doc) {
+        debugPrint('👤 [FAMILY MEMBERS PROVIDER] Member doc ID: ${doc.id}, data: ${doc.data()}');
+        return FamilyMember.fromJson(doc.data()..['id'] = doc.id);
+      })
       .toList();
+  
+  debugPrint('✅ [FAMILY MEMBERS PROVIDER] Returning ${members.length} members');
+  return members;
 });
 
 /// Provider for pending family invitations

@@ -8,7 +8,6 @@ import '../../data/services/nfc_service.dart';
 import '../../data/services/deep_link_service.dart';
 import '../../features/rocketbook/camera/camera_screen.dart';
 import '../providers/app_providers_simple.dart';
-import '../widgets/mode_card.dart';
 import '../widgets/quick_action_button.dart';
 import '../../ui/widgets/common/family_member_selector.dart';
 import '../../ui/widgets/home/shared_notebooks_section.dart';
@@ -140,82 +139,69 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Current Mode Indicator
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: currentMode == 'work'
-                          ? AppColors.workBlue.withValues(alpha: 0.1)
-                          : AppColors.personalGreen.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
+                  // Current Mode Toggle Button
+                  InkWell(
+                    onTap: () {
+                      // Toggle between work and personal
+                      final newMode = currentMode == 'work' ? 'personal' : 'work';
+                      ref.read(appModeProvider.notifier).setMode(newMode);
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
                         color: currentMode == 'work'
-                            ? AppColors.workBlue
-                            : AppColors.personalGreen,
-                        width: 2,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          currentMode == 'work' ? Icons.work : Icons.home,
+                            ? AppColors.workBlue.withValues(alpha: 0.1)
+                            : AppColors.personalGreen.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
                           color: currentMode == 'work'
                               ? AppColors.workBlue
                               : AppColors.personalGreen,
-                          size: 28,
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Current Mode',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            Text(
-                              '${currentMode.toUpperCase()} MODE',
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: currentMode == 'work'
-                                    ? AppColors.workBlue
-                                    : AppColors.personalGreen,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Mode Selection
-                  Text(
-                    'Switch Mode',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ModeCard(
-                          mode: 'work',
-                          isSelected: currentMode == 'work',
-                          onTap: () => ref.read(appModeProvider.notifier).setMode('work'),
+                          width: 2,
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ModeCard(
-                          mode: 'personal',
-                          isSelected: currentMode == 'personal',
-                          onTap: () => ref.read(appModeProvider.notifier).setMode('personal'),
-                        ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            currentMode == 'work' ? Icons.work : Icons.home,
+                            color: currentMode == 'work'
+                                ? AppColors.workBlue
+                                : AppColors.personalGreen,
+                            size: 28,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Current Mode',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                                Text(
+                                  '${currentMode.toUpperCase()} MODE',
+                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: currentMode == 'work'
+                                        ? AppColors.workBlue
+                                        : AppColors.personalGreen,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.swap_horiz,
+                            color: currentMode == 'work'
+                                ? AppColors.workBlue
+                                : AppColors.personalGreen,
+                            size: 24,
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
 
                   const SizedBox(height: 24),

@@ -4,7 +4,7 @@ import 'package:json_annotation/json_annotation.dart';
 part 'family_member.g.dart';
 
 /// Represents an individual user within a family with specific permissions.
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class FamilyMember extends Equatable {
   /// Reference to the user account
   final String userId;
@@ -218,7 +218,7 @@ enum FamilyRole {
 }
 
 /// Granular permissions for family members.
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class MemberPermissions extends Equatable {
   /// Whether the member can invite new members
   final bool canInviteMembers;

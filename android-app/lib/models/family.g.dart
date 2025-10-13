@@ -24,7 +24,7 @@ Map<String, dynamic> _$FamilyToJson(Family instance) => <String, dynamic>{
       'adminUserId': instance.adminUserId,
       'createdAt': Family._dateTimeToJson(instance.createdAt),
       'memberIds': instance.memberIds,
-      'settings': instance.settings,
+      'settings': instance.settings.toJson(),
       'updatedAt': Family._dateTimeToJson(instance.updatedAt),
     };
 
@@ -48,7 +48,7 @@ Map<String, dynamic> _$FamilySettingsToJson(FamilySettings instance) =>
       'defaultNoteExpiration':
           FamilySettings._durationToJson(instance.defaultNoteExpiration),
       'enableRealTimeSync': instance.enableRealTimeSync,
-      'notifications': instance.notifications,
+      'notifications': instance.notifications.toJson(),
     };
 
 NotificationPreferences _$NotificationPreferencesFromJson(
