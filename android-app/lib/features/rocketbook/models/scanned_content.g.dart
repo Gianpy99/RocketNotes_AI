@@ -8,7 +8,7 @@ part of 'scanned_content.dart';
 
 class ScannedContentAdapter extends TypeAdapter<ScannedContent> {
   @override
-  final int typeId = 2;
+  final int typeId = 10;
 
   @override
   ScannedContent read(BinaryReader reader) {
@@ -66,7 +66,7 @@ class ScannedContentAdapter extends TypeAdapter<ScannedContent> {
 
 class TableDataAdapter extends TypeAdapter<TableData> {
   @override
-  final int typeId = 3;
+  final int typeId = 11;
 
   @override
   TableData read(BinaryReader reader) {
@@ -111,7 +111,7 @@ class TableDataAdapter extends TypeAdapter<TableData> {
 
 class DiagramDataAdapter extends TypeAdapter<DiagramData> {
   @override
-  final int typeId = 4;
+  final int typeId = 12;
 
   @override
   DiagramData read(BinaryReader reader) {
@@ -157,7 +157,7 @@ class DiagramDataAdapter extends TypeAdapter<DiagramData> {
 
 class OCRMetadataAdapter extends TypeAdapter<OCRMetadata> {
   @override
-  final int typeId = 5;
+  final int typeId = 13;
 
   @override
   OCRMetadata read(BinaryReader reader) {
@@ -203,7 +203,7 @@ class OCRMetadataAdapter extends TypeAdapter<OCRMetadata> {
 
 class AIAnalysisAdapter extends TypeAdapter<AIAnalysis> {
   @override
-  final int typeId = 6;
+  final int typeId = 14;
 
   @override
   AIAnalysis read(BinaryReader reader) {
@@ -258,7 +258,7 @@ class AIAnalysisAdapter extends TypeAdapter<AIAnalysis> {
 
 class ActionItemAdapter extends TypeAdapter<ActionItem> {
   @override
-  final int typeId = 7;
+  final int typeId = 15;
 
   @override
   ActionItem read(BinaryReader reader) {
@@ -301,7 +301,7 @@ class ActionItemAdapter extends TypeAdapter<ActionItem> {
 
 class BoundingBoxAdapter extends TypeAdapter<BoundingBox> {
   @override
-  final int typeId = 8;
+  final int typeId = 16;
 
   @override
   BoundingBox read(BinaryReader reader) {
@@ -344,7 +344,7 @@ class BoundingBoxAdapter extends TypeAdapter<BoundingBox> {
 
 class ProcessingStatusAdapter extends TypeAdapter<ProcessingStatus> {
   @override
-  final int typeId = 9;
+  final int typeId = 17;
 
   @override
   ProcessingStatus read(BinaryReader reader) {
@@ -398,7 +398,7 @@ class ProcessingStatusAdapter extends TypeAdapter<ProcessingStatus> {
 
 class ContentTypeAdapter extends TypeAdapter<ContentType> {
   @override
-  final int typeId = 10;
+  final int typeId = 18;
 
   @override
   ContentType read(BinaryReader reader) {
@@ -462,7 +462,7 @@ class ContentTypeAdapter extends TypeAdapter<ContentType> {
 
 class PriorityAdapter extends TypeAdapter<Priority> {
   @override
-  final int typeId = 11;
+  final int typeId = 21;
 
   @override
   Priority read(BinaryReader reader) {

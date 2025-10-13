@@ -8,7 +8,7 @@ part of 'shared_notebook_model.dart';
 
 class SharedNotebookAdapter extends TypeAdapter<SharedNotebook> {
   @override
-  final int typeId = 2;
+  final int typeId = 22;
 
   @override
   SharedNotebook read(BinaryReader reader) {

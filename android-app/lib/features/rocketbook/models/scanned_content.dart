@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 
 part 'scanned_content.g.dart';
 
-@HiveType(typeId: 2)
+@HiveType(typeId: 10)
 class ScannedContent extends HiveObject {
   @HiveField(0)
   String id;
@@ -56,7 +56,7 @@ class ScannedContent extends HiveObject {
   }
 }
 
-@HiveType(typeId: 3)
+@HiveType(typeId: 11)
 class TableData extends HiveObject {
   @HiveField(0)
   List<List<String>> rows;
@@ -78,7 +78,7 @@ class TableData extends HiveObject {
   });
 }
 
-@HiveType(typeId: 4)
+@HiveType(typeId: 12)
 class DiagramData extends HiveObject {
   @HiveField(0)
   String type; // 'flowchart', 'mindmap', 'graph', 'sketch'
@@ -104,7 +104,7 @@ class DiagramData extends HiveObject {
   });
 }
 
-@HiveType(typeId: 5)
+@HiveType(typeId: 13)
 class OCRMetadata extends HiveObject {
   @HiveField(0)
   String engine; // 'ml_kit', 'tesseract', 'cloud_vision'
@@ -140,7 +140,7 @@ class OCRMetadata extends HiveObject {
   }
 }
 
-@HiveType(typeId: 6)
+@HiveType(typeId: 14)
 class AIAnalysis extends HiveObject {
   @HiveField(0)
   String summary;
@@ -178,7 +178,7 @@ class AIAnalysis extends HiveObject {
   });
 }
 
-@HiveType(typeId: 7)
+@HiveType(typeId: 15)
 class ActionItem extends HiveObject {
   @HiveField(0)
   String text;
@@ -200,7 +200,7 @@ class ActionItem extends HiveObject {
   });
 }
 
-@HiveType(typeId: 8)
+@HiveType(typeId: 16)
 class BoundingBox extends HiveObject {
   @HiveField(0)
   double left;
@@ -222,7 +222,7 @@ class BoundingBox extends HiveObject {
   });
 }
 
-@HiveType(typeId: 9)
+@HiveType(typeId: 17)
 enum ProcessingStatus {
   @HiveField(0)
   pending,
@@ -236,7 +236,7 @@ enum ProcessingStatus {
   cancelled,
 }
 
-@HiveType(typeId: 10)
+@HiveType(typeId: 18)
 enum ContentType {
   @HiveField(0)
   notes,
@@ -254,7 +254,7 @@ enum ContentType {
   mixed,
 }
 
-@HiveType(typeId: 11)
+@HiveType(typeId: 21)
 enum Priority {
   @HiveField(0)
   low,

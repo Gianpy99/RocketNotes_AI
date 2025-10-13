@@ -7,7 +7,7 @@ part 'shared_notebook_model.g.dart';
 
 // Quaderni condivisi implementati
 
-@HiveType(typeId: 2)
+@HiveType(typeId: 22)
 class SharedNotebook extends HiveObject {
   @HiveField(0)
   final String id;

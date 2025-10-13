@@ -8,7 +8,7 @@ part of 'usage_monitoring_model.dart';
 
 class UsageMonitoringModelAdapter extends TypeAdapter<UsageMonitoringModel> {
   @override
-  final int typeId = 3;
+  final int typeId = 20;
 
   @override
   UsageMonitoringModel read(BinaryReader reader) {

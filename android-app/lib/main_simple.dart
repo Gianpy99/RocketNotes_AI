@@ -20,6 +20,7 @@ import 'screens/notification_groups_screen.dart';
 import 'core/utils/web_image_handler.dart';
 import 'temp_family_notification_service.dart';
 import 'services/notification_navigation_service.dart';
+import 'presentation/providers/app_providers.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -372,9 +373,12 @@ class HomeScreen extends ConsumerWidget {
         FloatingActionButton.extended(
           heroTag: "create",
           onPressed: () {
+            // Pass current app mode to editor to avoid race condition
+            final container = ProviderScope.containerOf(context);
+            final currentMode = container.read(appModeProvider);
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const NoteEditorScreen()),
+              MaterialPageRoute(builder: (context) => NoteEditorScreen(initialAppMode: currentMode)),
             );
           },
           label: const Text('Nuova Nota'),
@@ -447,10 +451,11 @@ class NoteCard extends ConsumerWidget {
       elevation: 2,
       child: InkWell(
         onTap: () {
+          // Pass note's existing mode as initialAppMode for consistency
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => NoteEditorScreen(note: note),
+              builder: (context) => NoteEditorScreen(note: note, initialAppMode: note.mode),
             ),
           );
         },

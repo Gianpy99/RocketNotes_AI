@@ -5,7 +5,7 @@ import 'package:hive/hive.dart';
 
 part 'usage_monitoring_model.g.dart';
 
-@HiveType(typeId: 3)
+@HiveType(typeId: 20)
 class UsageMonitoringModel {
   @HiveField(0)
   final DateTime lastResetDate;

@@ -37,7 +37,10 @@ class AppRouter {
       ),
       GoRoute(
         path: '/editor',
-        builder: (context, state) => const NoteEditorScreen(),
+        builder: (context, state) {
+          final mode = state.uri.queryParameters['mode'];
+          return NoteEditorScreen(initialAppMode: mode);
+        },
       ),
       GoRoute(
         path: '/editor/:id',

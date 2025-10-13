@@ -247,7 +247,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       floatingActionButton: FloatingActionMenu(
         controller: _fabAnimationController,
         onNewNote: () => _navigateToNoteEditor(),
-        onNfcScan: () => _handleNfcScan(),
         onVoiceNote: () => _handleVoiceNote(),
       ),
     );
@@ -411,26 +410,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       'editor',
       queryParameters: queryParams,
     );
-  }
-
-  void _handleNfcScan() async {
-    try {
-      final nfcService = ref.read(nfcServiceProvider);
-      final result = await nfcService.readNfcTag();
-      
-      if (result.success && mounted) {
-        context.push('/editor');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('NFC Error: ${e.toString()}'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
   }
 
   void _handleVoiceNote() async {

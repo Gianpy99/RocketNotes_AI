@@ -4,14 +4,12 @@ import 'package:flutter/material.dart';
 class FloatingActionMenu extends StatelessWidget {
   final AnimationController controller;
   final VoidCallback? onNewNote;
-  final VoidCallback? onNfcScan;
   final VoidCallback? onVoiceNote;
 
   const FloatingActionMenu({
     super.key,
     required this.controller,
     this.onNewNote,
-    this.onNfcScan,
     this.onVoiceNote,
   });
 
@@ -30,21 +28,6 @@ class FloatingActionMenu extends StatelessWidget {
                 mini: true,
                 onPressed: onVoiceNote,
                 child: const Icon(Icons.mic_rounded),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 8),
-        AnimatedBuilder(
-          animation: controller,
-          builder: (context, child) {
-            return Transform.scale(
-              scale: controller.value,
-              child: FloatingActionButton(
-                heroTag: "nfc",
-                mini: true,
-                onPressed: onNfcScan,
-                child: const Icon(Icons.nfc_rounded),
               ),
             );
           },

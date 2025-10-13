@@ -38,34 +38,39 @@ final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
 // ==========================================
 final appModeProvider = StateNotifierProvider<AppModeNotifier, String>((ref) {
   final settingsNotifier = ref.read(appSettingsProvider.notifier);
-  return AppModeNotifier(settingsNotifier, ref);
+  final settingsRepository = ref.read(settingsRepositoryProvider);
+  final storedMode = settingsRepository.getStoredDefaultMode();
+  final initialMode = storedMode ?? 'personal';
+  debugPrint('[APP MODE PROVIDER] 🏗️ Creating provider with initial mode: $initialMode (stored: $storedMode)');
+  return AppModeNotifier(settingsNotifier, ref, initialMode);
 });
 
 class AppModeNotifier extends StateNotifier<String> {
   final AppSettingsNotifier _settingsNotifier;
   final Ref _ref;
   
-  AppModeNotifier(this._settingsNotifier, this._ref) : super('personal') {
+  AppModeNotifier(this._settingsNotifier, this._ref, String initialMode) : super(initialMode) {
+    debugPrint('[APP MODE] 🚀 Initialized with mode: $initialMode');
     _initializeFromSettings();
   }
 
   void _initializeFromSettings() {
+    // Impostiamo il valore iniziale dalle impostazioni correnti SE disponibili
+    final currentSettings = _ref.read(appSettingsProvider).valueOrNull;
+    if (currentSettings != null && state != currentSettings.defaultMode) {
+      debugPrint('[APP MODE] 🎯 Immediate sync from settings: ${currentSettings.defaultMode}');
+      state = currentSettings.defaultMode;
+    }
+    
     // Ascoltiamo i cambiamenti delle impostazioni
     _ref.listen(appSettingsProvider, (previous, next) {
       next.whenData((settings) {
         if (state != settings.defaultMode) {
-          debugPrint('[APP MODE] 🔄 Syncing mode from settings: ${settings.defaultMode}');
+          debugPrint('[APP MODE] 🔄 Syncing mode from settings change: ${settings.defaultMode}');
           state = settings.defaultMode;
         }
       });
     });
-    
-    // Impostiamo il valore iniziale dalle impostazioni correnti
-    final currentSettings = _ref.read(appSettingsProvider).valueOrNull;
-    if (currentSettings != null) {
-      debugPrint('[APP MODE] 🎯 Initial mode from settings: ${currentSettings.defaultMode}');
-      state = currentSettings.defaultMode;
-    }
   }
 
   void setMode(String mode) {
@@ -146,15 +151,13 @@ class AppSettingsNotifier extends StateNotifier<AsyncValue<AppSettingsModel>> {
   }
 
   Future<void> updateDefaultMode(String mode) async {
-    final currentSettings = state.valueOrNull;
-    if (currentSettings != null) {
-      try {
-        await _repository.updateDefaultMode(mode);
-        final updatedSettings = currentSettings.copyWith(defaultMode: mode);
-        state = AsyncValue.data(updatedSettings);
-      } catch (error, stackTrace) {
-        state = AsyncValue.error(error, stackTrace);
-      }
+    try {
+      final currentSettings = state.valueOrNull ?? await _repository.getSettings();
+      final updatedSettings = currentSettings.copyWith(defaultMode: mode);
+      await _repository.saveSettings(updatedSettings);
+      state = AsyncValue.data(updatedSettings);
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
     }
   }
 

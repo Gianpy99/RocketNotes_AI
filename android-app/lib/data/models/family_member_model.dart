@@ -7,7 +7,7 @@ part 'family_member_model.g.dart';
 
 // Gestione membri famiglia implementata
 
-@HiveType(typeId: 2)
+@HiveType(typeId: 19)
 class FamilyMember extends HiveObject {
   @HiveField(0)
   final String id;

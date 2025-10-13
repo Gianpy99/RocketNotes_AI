@@ -110,14 +110,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           body: CustomScrollView(
             slivers: [
               SliverAppBar(
-                expandedHeight: 200,
+                expandedHeight: 120,
                 floating: false,
                 pinned: true,
                 flexibleSpace: FlexibleSpaceBar(
-                  title: const Text(
-                    'RocketNotes AI',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
                   background: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -126,13 +122,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     colors: currentMode == 'work'
                         ? [AppColors.workBlue, AppColors.workBlue.withValues(alpha: 0.8)]
                         : [AppColors.personalGreen, AppColors.personalGreen.withValues(alpha: 0.8)],
-                  ),
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.rocket_launch,
-                    size: 60,
-                    color: Colors.white70,
                   ),
                 ),
               ),
@@ -231,55 +220,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                   const SizedBox(height: 24),
 
-                  // NFC Scanning
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Theme.of(context).dividerColor,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.nfc,
-                          size: 48,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'NFC Quick Switch',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Tap an NFC tag to quickly switch modes',
-                          style: Theme.of(context).textTheme.bodySmall,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          onPressed: _isNfcScanning ? null : _scanNfcTag,
-                          icon: _isNfcScanning
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Icon(Icons.nfc),
-                          label: Text(_isNfcScanning ? 'Scanning...' : 'Scan NFC Tag'),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
                   // Family Shared Notebooks
                   const SharedNotebooksSection(),
 
@@ -300,7 +240,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           icon: Icons.add_circle_outline,
                           label: 'New Note',
                           color: AppColors.primaryBlue,
-                          onTap: () => context.push('/editor'),
+                          onTap: () {
+                            // Pass current app mode to avoid race condition
+                            final currentMode = ref.read(appModeProvider);
+                            context.push('/editor?mode=$currentMode');
+                          },
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -378,7 +322,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: Container(), // Empty space for symmetry
+                        child: QuickActionButton(
+                          icon: Icons.nfc,
+                          label: 'NFC Scan',
+                          color: Colors.teal,
+                          onTap: _scanNfcTag,
+                        ),
                       ),
                     ],
                   ),

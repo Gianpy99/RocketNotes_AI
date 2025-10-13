@@ -27,30 +27,44 @@ class _CustomAppBarState extends State<CustomAppBar> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return SliverAppBar(
       expandedHeight: 120,
       floating: true,
       pinned: true,
       backgroundColor: Colors.transparent,
       flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
         title: _isSearching
           ? TextField(
               controller: _searchController,
               onChanged: widget.onSearchChanged,
+              style: theme.textTheme.bodyLarge?.copyWith(color: Colors.white),
               decoration: const InputDecoration(
-                hintText: 'Search...',
+                hintText: 'Search notes...',
+                hintStyle: TextStyle(color: Colors.white70),
                 border: InputBorder.none,
+                prefixIcon: Icon(Icons.search, color: Colors.white70),
               ),
             )
           : Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.title),
+                Text(
+                  widget.title,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 if (widget.subtitle != null)
                   Text(
                     widget.subtitle!,
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.white70,
+                    ),
                   ),
               ],
             ),

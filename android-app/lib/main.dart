@@ -14,6 +14,7 @@ import 'core/config/firebase_config_new.dart';
 import 'data/models/note_model.dart';
 import 'data/models/app_settings_model.dart';
 import 'data/models/family_member_model.dart';
+import 'data/models/shared_notebook_model.dart';
 import 'data/models/usage_monitoring_model.dart';
 import 'data/services/cost_monitoring_service.dart';
 import 'features/rocketbook/ai_analysis/ai_service.dart';
@@ -66,43 +67,62 @@ Future<void> main() async {
     debugPrint('⚠️ Anonymous authentication failed: $e');
   }
 
+  // ----------------------------------
+  // Initialize Hive for local storage
+  // ----------------------------------
   try {
-    // ----------------------------------
-    // Initialize Hive for local storage
-    // ----------------------------------
     await Hive.initFlutter();
+    debugPrint('📦 Hive initialized at path');
 
-    // NOTE: Non cancelliamo più i dati Hive all'avvio per preservare lo storage
-    // Se necessario, eventuali routine di migrazione/repair vanno gestite in modo mirato
+    // Register Hive adapters
+    if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(NoteModelAdapter());
+    if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(AppSettingsModelAdapter());
+    if (!Hive.isAdapterRegistered(20)) Hive.registerAdapter(UsageMonitoringModelAdapter());
+    // OCR/AI adapters
+    if (!Hive.isAdapterRegistered(10)) Hive.registerAdapter(ScannedContentAdapter());
+    if (!Hive.isAdapterRegistered(11)) Hive.registerAdapter(TableDataAdapter());
+    if (!Hive.isAdapterRegistered(12)) Hive.registerAdapter(DiagramDataAdapter());
+    if (!Hive.isAdapterRegistered(13)) Hive.registerAdapter(OCRMetadataAdapter());
+    if (!Hive.isAdapterRegistered(14)) Hive.registerAdapter(AIAnalysisAdapter());
+    if (!Hive.isAdapterRegistered(15)) Hive.registerAdapter(ActionItemAdapter());
+    if (!Hive.isAdapterRegistered(16)) Hive.registerAdapter(BoundingBoxAdapter());
+    if (!Hive.isAdapterRegistered(17)) Hive.registerAdapter(ProcessingStatusAdapter());
+    if (!Hive.isAdapterRegistered(18)) Hive.registerAdapter(ContentTypeAdapter());
+    if (!Hive.isAdapterRegistered(19)) Hive.registerAdapter(FamilyMemberAdapter());
+    if (!Hive.isAdapterRegistered(21)) Hive.registerAdapter(PriorityAdapter());
+    if (!Hive.isAdapterRegistered(22)) Hive.registerAdapter(SharedNotebookAdapter());
+    
+    debugPrint('✅ Hive adapters registered');
 
-  // Register Hive adapters
-  Hive.registerAdapter(NoteModelAdapter());
-  Hive.registerAdapter(AppSettingsModelAdapter());
-  Hive.registerAdapter(UsageMonitoringModelAdapter());
-  // OCR/AI adapters
-  Hive.registerAdapter(ScannedContentAdapter());
-  Hive.registerAdapter(TableDataAdapter());
-  Hive.registerAdapter(DiagramDataAdapter());
-  Hive.registerAdapter(OCRMetadataAdapter());
-  Hive.registerAdapter(AIAnalysisAdapter());
-  Hive.registerAdapter(ActionItemAdapter());
-  Hive.registerAdapter(BoundingBoxAdapter());
-  Hive.registerAdapter(ProcessingStatusAdapter());
-  Hive.registerAdapter(ContentTypeAdapter());
+    // Open Hive boxes with error handling
+    try {
+      await Hive.openBox<NoteModel>(AppConstants.notesBox);
+      debugPrint('✅ Notes box opened');
+    } catch (e) {
+      debugPrint('❌ Error opening notes box: $e');
+      // Try to delete corrupted box and reopen
+      await Hive.deleteBoxFromDisk(AppConstants.notesBox);
+      await Hive.openBox<NoteModel>(AppConstants.notesBox);
+      debugPrint('✅ Notes box recreated');
+    }
 
-    // Register family member adapter
-    Hive.registerAdapter(FamilyMemberAdapter());
+    try {
+      await Hive.openBox<AppSettingsModel>(AppConstants.settingsBox);
+      debugPrint('✅ Settings box opened');
+    } catch (e) {
+      debugPrint('❌ Error opening settings box: $e');
+      await Hive.deleteBoxFromDisk(AppConstants.settingsBox);
+      await Hive.openBox<AppSettingsModel>(AppConstants.settingsBox);
+      debugPrint('✅ Settings box recreated');
+    }
 
-    // Open Hive boxes
-  await Hive.openBox<NoteModel>(AppConstants.notesBox);
-    await Hive.openBox<AppSettingsModel>(AppConstants.settingsBox);
     await Hive.openBox<UsageMonitoringModel>('usage_monitoring');
-  await Hive.openBox<ScannedContent>(AppConstants.scansBox);
-
-    // Open family member box
+    await Hive.openBox<ScannedContent>(AppConstants.scansBox);
     await Hive.openBox<FamilyMember>('familyMembers');
 
-    debugPrint('✅ Hive initialized successfully');
+    debugPrint('✅ All Hive boxes opened successfully');
+
+    debugPrint('✅ All Hive boxes opened successfully');
 
     // ----------------------------------
     // Initialize AI Service
@@ -125,13 +145,16 @@ Future<void> main() async {
     // ----------------------------------
     // Initialize Family Service
     // ----------------------------------
-  await FamilyService.instance.initialize();
-  debugPrint('✅ Family backend: ${AppConstants.familyBackend} (local storage)');
+    await FamilyService.instance.initialize();
+    debugPrint('✅ Family backend: ${AppConstants.familyBackend} (local storage)');
     debugPrint('✅ Family Service initialized successfully');
 
-  } catch (e) {
-    // If initialization fails, log it but let the app continue
-    debugPrint('❌ Error during initialization: $e');
+  } catch (e, stackTrace) {
+    // Critical error - show it clearly
+    debugPrint('❌ CRITICAL ERROR during initialization: $e');
+    debugPrint('Stack trace: $stackTrace');
+    // Don't continue if Hive fails
+    rethrow;
   }
 
   // ----------------------------------

@@ -8,7 +8,7 @@ part of 'family_member_model.dart';
 
 class FamilyMemberAdapter extends TypeAdapter<FamilyMember> {
   @override
-  final int typeId = 2;
+  final int typeId = 19;
 
   @override
   FamilyMember read(BinaryReader reader) {

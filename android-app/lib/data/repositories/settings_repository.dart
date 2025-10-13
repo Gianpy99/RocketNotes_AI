@@ -50,6 +50,15 @@ class SettingsRepository {
     }
   }
 
+  String? getStoredDefaultMode() {
+    try {
+      final settings = settingsBox.get(_settingsKey);
+      return settings?.defaultMode;
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<void> updateThemeMode(int themeMode) async {
     try {
       final settings = await getSettings();

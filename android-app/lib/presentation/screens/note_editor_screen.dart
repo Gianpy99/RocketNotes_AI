@@ -75,11 +75,13 @@ extension AIFeatureTypeExtension on AIFeatureType {
 class NoteEditorScreen extends ConsumerStatefulWidget {
   final String? noteId;
   final String? voiceNotePath;
+  final String? initialAppMode; // optional immediate fallback
 
   const NoteEditorScreen({
     super.key,
     this.noteId,
     this.voiceNotePath,
+    this.initialAppMode,
   });
 
   @override
@@ -97,13 +99,19 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
   bool _isLoading = true;
   bool _hasUnsavedChanges = false;
   String? _voiceNotePath;
-  String _selectedMode = 'personal'; // Default to personal mode
+  String? _selectedMode; // Only set when user manually overrides, or for existing notes
+  bool _hasManualOverride = false; // Track if user manually selected a mode
 
   @override
   void initState() {
     super.initState();
     _voiceNotePath = widget.voiceNotePath;
-    _loadNote();
+    // Delay loading until after first frame so providers (app settings/mode)
+    // have a chance to initialize and sync. This is a small, non-invasive
+    // fix to avoid the "new note always personal/work" race condition.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadNote();
+    });
     _setupChangeListeners();
   }
 
@@ -135,23 +143,40 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
           _contentController.text = note.content;
           _tags = List.from(note.tags);
           _selectedMode = note.mode; // Set the mode from the existing note
+          _hasManualOverride = true; // Existing notes always have their mode locked
           _isLoading = false;
         });
+        debugPrint('[EDITOR] 📝 Loaded existing note with mode: ${note.mode}');
         return;
       }
     } else if (_voiceNotePath != null) {
-      // Handle voice note - create a new note with voice note content
+      // Handle voice note - create a new note
+      // Use initialAppMode if provided, otherwise use current app mode via ref.watch
       setState(() {
         _titleController.text = 'Voice Note - ${DateTime.now().toString().split(' ')[0]}';
         _contentController.text = '[Voice recording attached]\n\n🎵 Voice Note: $_voiceNotePath\n\nTranscribe or add notes here...';
         _tags = ['voice-note'];
+        // Use initialAppMode if provided to avoid race condition
+        if (widget.initialAppMode != null) {
+          _selectedMode = widget.initialAppMode;
+          _hasManualOverride = true;
+        }
         _isLoading = false;
         _hasUnsavedChanges = true;
       });
+      debugPrint('[EDITOR] 🎤 Creating voice note with mode: ${widget.initialAppMode ?? "from provider"}');
       return;
     }
     
+    // For new notes, use initialAppMode if provided to avoid race condition
     setState(() {
+      if (widget.initialAppMode != null) {
+        _selectedMode = widget.initialAppMode;
+        _hasManualOverride = true;
+        debugPrint('[EDITOR] ✨ Creating new note with initialAppMode: ${widget.initialAppMode}');
+      } else {
+        debugPrint('[EDITOR] ✨ Creating new note, will use current app mode from provider');
+      }
       _isLoading = false;
     });
   }
@@ -162,15 +187,21 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
     }
 
     final now = DateTime.now();
+    final wasNewNote = _currentNote == null; // Track if this was a new note
     
-    debugPrint('[SAVE NOTE]  Creating/updating note with selected mode: $_selectedMode');
+    // Determine mode: use manual override if set, otherwise use current app mode
+    final String modeToUse = _hasManualOverride 
+        ? (_selectedMode ?? ref.read(appModeProvider))
+        : ref.read(appModeProvider);
+    
+    debugPrint('[SAVE NOTE] Creating/updating note with mode: $modeToUse (manual override: $_hasManualOverride, selected: $_selectedMode, app: ${ref.read(appModeProvider)})');
 
     final note = _currentNote?.copyWith(
       title: _titleController.text.trim().isEmpty 
           ? 'Untitled Note' 
           : _titleController.text.trim(),
       content: _contentController.text,
-      mode: _selectedMode, // Use the selected mode instead of global app mode
+      mode: modeToUse,
       updatedAt: now,
       tags: _tags,
     ) ?? NoteModel(
@@ -179,7 +210,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
           ? 'Untitled Note' 
           : _titleController.text.trim(),
       content: _contentController.text,
-      mode: _selectedMode, // Use the selected mode instead of global app mode
+      mode: modeToUse,
       createdAt: now,
       updatedAt: now,
       tags: _tags,
@@ -190,6 +221,11 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
     setState(() {
       _hasUnsavedChanges = false;
       _currentNote = note;
+      // Only update _selectedMode for existing notes (when editing)
+      // For new notes, keep it null so it continues to use app mode
+      if (!wasNewNote) {
+        _selectedMode = modeToUse;
+      }
     });
 
     if (mounted) {
@@ -278,6 +314,11 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
       );
     }
 
+    // Get current app mode in real-time for display
+    final currentAppMode = ref.watch(appModeProvider);
+    // Use manual override if set, otherwise use current app mode
+    final displayMode = _hasManualOverride ? (_selectedMode ?? currentAppMode) : currentAppMode;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -285,6 +326,8 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
 
         _onWillPop().then((shouldPop) {
           if (shouldPop && context.mounted) {
+            // Invalidate the notes provider to ensure fresh data when returning
+            ref.invalidate(notesProvider);
             context.pop();
           }
         });
@@ -368,18 +411,19 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                       onTap: () {
                         setState(() {
                           _selectedMode = 'personal';
+                          _hasManualOverride = true;
                           _hasUnsavedChanges = true;
                         });
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
                         decoration: BoxDecoration(
-                          color: _selectedMode == 'personal' 
+                          color: displayMode == 'personal' 
                               ? AppColors.personalGreen.withValues(alpha: 0.2)
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: _selectedMode == 'personal' 
+                            color: displayMode == 'personal' 
                                 ? AppColors.personalGreen
                                 : Colors.grey.withValues(alpha: 0.3),
                           ),
@@ -390,7 +434,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                             Icon(
                               Icons.person,
                               size: 14,
-                              color: _selectedMode == 'personal' 
+                              color: displayMode == 'personal' 
                                   ? AppColors.personalGreen
                                   : Colors.grey,
                             ),
@@ -399,10 +443,10 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                               'Personal',
                               style: TextStyle(
                                 fontSize: 11,
-                                fontWeight: _selectedMode == 'personal' 
+                                fontWeight: displayMode == 'personal' 
                                     ? FontWeight.bold 
                                     : FontWeight.normal,
-                                color: _selectedMode == 'personal' 
+                                color: displayMode == 'personal' 
                                     ? AppColors.personalGreen
                                     : Colors.grey,
                               ),
@@ -419,18 +463,19 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                       onTap: () {
                         setState(() {
                           _selectedMode = 'work';
+                          _hasManualOverride = true;
                           _hasUnsavedChanges = true;
                         });
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
                         decoration: BoxDecoration(
-                          color: _selectedMode == 'work' 
+                          color: displayMode == 'work' 
                               ? AppColors.workBlue.withValues(alpha: 0.2)
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: _selectedMode == 'work' 
+                            color: displayMode == 'work' 
                                 ? AppColors.workBlue
                                 : Colors.grey.withValues(alpha: 0.3),
                           ),
@@ -441,7 +486,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                             Icon(
                               Icons.work,
                               size: 14,
-                              color: _selectedMode == 'work' 
+                              color: displayMode == 'work' 
                                   ? AppColors.workBlue
                                   : Colors.grey,
                             ),
@@ -450,10 +495,10 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                               'Work',
                               style: TextStyle(
                                 fontSize: 11,
-                                fontWeight: _selectedMode == 'work' 
+                                fontWeight: displayMode == 'work' 
                                     ? FontWeight.bold 
                                     : FontWeight.normal,
-                                color: _selectedMode == 'work' 
+                                color: displayMode == 'work' 
                                     ? AppColors.workBlue
                                     : Colors.grey,
                               ),
@@ -1089,6 +1134,8 @@ Tag (separati da virgola):
         _titleController.clear();
         _contentController.clear();
         _tags.clear();
+        _selectedMode = null; // Reset mode to use current app mode
+        _hasManualOverride = false; // Reset manual override
         _hasUnsavedChanges = false;
       });
     } else if (result == 'home') {

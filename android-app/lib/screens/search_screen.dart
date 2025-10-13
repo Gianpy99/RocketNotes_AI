@@ -151,10 +151,13 @@ class SearchResultCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () {
+          // Pass current app mode as immediate fallback to avoid race
+          final container = ProviderScope.containerOf(context);
+          final currentMode = container.read(appModeProvider);
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => NoteEditorScreen(note: note),
+              builder: (context) => NoteEditorScreen(note: note, initialAppMode: currentMode),
             ),
           );
         },
