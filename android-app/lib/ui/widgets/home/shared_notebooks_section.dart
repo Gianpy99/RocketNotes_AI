@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/shared_notebook_model.dart';
 import '../../../core/services/family_service.dart';
+import '../../../features/family/providers/family_providers.dart';
 
 // Sezione quaderni condivisi completata
 // - Add notebook creation dialog
@@ -47,6 +48,29 @@ class _SharedNotebooksSectionState extends ConsumerState<SharedNotebooksSection>
   }
 
   Widget _buildEmptyState() {
+    // Watch current family to show which family is active
+    final currentFamilyAsync = ref.watch(currentFamilyProvider);
+    
+    return currentFamilyAsync.when(
+      data: (familyData) {
+        if (familyData == null) {
+          // No family - show create prompt
+          return _buildNoFamilyCard();
+        }
+        
+        // Family exists - show family info
+        final familyName = familyData['name'] as String? ?? 'My Family';
+        return _buildFamilyInfoCard(familyName);
+      },
+      loading: () => const SizedBox(
+        height: 120,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => _buildNoFamilyCard(),
+    );
+  }
+  
+  Widget _buildNoFamilyCard() {
     return Card(
       margin: const EdgeInsets.all(16),
       child: Padding(
@@ -76,15 +100,72 @@ class _SharedNotebooksSectionState extends ConsumerState<SharedNotebooksSection>
             ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
-              onPressed: _showCreateNotebookDialog,
+              onPressed: () => context.push('/family'),
               icon: const Icon(Icons.add),
-              label: const Text('Create Family Notebook'),
+              label: const Text('Create Family'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildFamilyInfoCard(String familyName) {
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: InkWell(
+        onTap: () => context.push('/family'),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.family_restroom,
+                  size: 32,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      familyName,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Tap to manage family',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 20,
+                color: Colors.grey.shade400,
+              ),
+            ],
+          ),
         ),
       ),
     );

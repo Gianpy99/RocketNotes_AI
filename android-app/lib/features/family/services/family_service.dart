@@ -37,11 +37,14 @@ class FamilyService {
       permissions: MemberPermissions.owner(),
     );
 
-    // Update user's family membership (skip for anonymous users)
-    if (currentUser != null) {
-      await _familyRepository.updateUserFamilyId(currentUser.uid, family.id);
-    }
+    debugPrint('👤 [FAMILY SERVICE] Adding member completed');
+    
+    // Update user's family membership
+    debugPrint('🔄 [FAMILY SERVICE] Updating user familyId: $userId -> ${family.id}');
+    await _familyRepository.updateUserFamilyId(userId, family.id);
+    debugPrint('✅ [FAMILY SERVICE] User familyId updated successfully');
 
+    debugPrint('🎉 [FAMILY SERVICE] Family creation completed: ${family.id}');
     return family;
   }
 

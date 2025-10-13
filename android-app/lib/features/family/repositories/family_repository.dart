@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../models/family.dart';
 import '../../../models/family_member.dart';
@@ -115,6 +116,8 @@ class FamilyRepository {
     required FamilyRole role,
     required MemberPermissions permissions,
   }) async {
+    debugPrint('👤 [FAMILY REPO] addFamilyMember called: familyId=$familyId, userId=$userId, role=$role');
+    
     final member = FamilyMember(
       userId: userId,
       familyId: familyId,
@@ -124,15 +127,19 @@ class FamilyRepository {
       lastActiveAt: DateTime.now(),
     );
 
+    debugPrint('💾 [FAMILY REPO] Saving member to family_members collection...');
+    // Save to root-level family_members collection for easier querying
     await _firestore
-        .collection(familiesCollection)
-        .doc(familyId)
-        .collection(membersCollection)
-        .doc(userId)
+        .collection('family_members')
+        .doc('${familyId}_$userId')  // Composite key
         .set(member.toJson());
+    
+    debugPrint('✅ [FAMILY REPO] Member saved successfully');
 
     // Update member count
+    debugPrint('🔢 [FAMILY REPO] Updating member count...');
     await incrementFamilyMemberCount(familyId);
+    debugPrint('✅ [FAMILY REPO] Member count updated');
   }
 
   /// Gets a family member
@@ -347,21 +354,30 @@ class FamilyRepository {
 
   /// Updates user's family ID in their user document
   Future<void> updateUserFamilyId(String userId, String? familyId) async {
+    debugPrint('🔧 [FAMILY REPO] updateUserFamilyId called: userId=$userId, familyId=$familyId');
+    
     final userRef = _firestore.collection('users').doc(userId);
     
+    debugPrint('🔎 [FAMILY REPO] Checking if user document exists...');
     // Check if user document exists, create if it doesn't
     final userDoc = await userRef.get();
+    debugPrint('📄 [FAMILY REPO] User doc exists: ${userDoc.exists}');
+    
     if (!userDoc.exists) {
+      debugPrint('➕ [FAMILY REPO] Creating new user document...');
       await userRef.set({
         'familyId': familyId,
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
       });
+      debugPrint('✅ [FAMILY REPO] User document created with familyId: $familyId');
     } else {
+      debugPrint('🔄 [FAMILY REPO] Updating existing user document...');
       await userRef.update({
         'familyId': familyId,
         'updatedAt': DateTime.now().toIso8601String(),
       });
+      debugPrint('✅ [FAMILY REPO] User document updated with familyId: $familyId');
     }
   }
 }
