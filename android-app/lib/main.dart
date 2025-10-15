@@ -45,27 +45,27 @@ Future<void> main() async {
   debugPrint('✅ Firebase initialized successfully');
 
   // ----------------------------------
-  // Initialize anonymous authentication for testing
+  // Initialize anonymous authentication for testing (DISABLED - now using login screen)
   // ----------------------------------
-  try {
-    final userCredential = await FirebaseAuth.instance.signInAnonymously();
-    final user = userCredential.user;
-    
-    if (user != null) {
-      // Create user document in Firestore for anonymous user
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        'email': null,
-        'displayName': 'Anonymous User',
-        'isAnonymous': true,
-        'createdAt': FieldValue.serverTimestamp(),
-        'lastLoginAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-      
-      debugPrint('✅ Anonymous authentication successful for user: ${user.uid}');
-    }
-  } catch (e) {
-    debugPrint('⚠️ Anonymous authentication failed: $e');
-  }
+  // try {
+  //   final userCredential = await FirebaseAuth.instance.signInAnonymously();
+  //   final user = userCredential.user;
+  //   
+  //   if (user != null) {
+  //     // Create user document in Firestore for anonymous user
+  //     await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+  //       'email': null,
+  //       'displayName': 'Anonymous User',
+  //       'isAnonymous': true,
+  //       'createdAt': FieldValue.serverTimestamp(),
+  //       'lastLoginAt': FieldValue.serverTimestamp(),
+  //     }, SetOptions(merge: true));
+  //     
+  //     debugPrint('✅ Anonymous authentication successful for user: ${user.uid}');
+  //   }
+  // } catch (e) {
+  //   debugPrint('⚠️ Anonymous authentication failed: $e');
+  // }
 
   // ----------------------------------
   // Initialize Hive for local storage

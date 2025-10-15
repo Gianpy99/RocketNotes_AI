@@ -372,6 +372,7 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
           final member = members[index];
           return FamilyMemberCard(
             member: member,
+            displayName: member.name,
             onTap: () => _showMemberOptions(member),
           );
         },

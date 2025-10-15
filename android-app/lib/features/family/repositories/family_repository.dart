@@ -118,9 +118,24 @@ class FamilyRepository {
   }) async {
     debugPrint('👤 [FAMILY REPO] addFamilyMember called: familyId=$familyId, userId=$userId, role=$role');
     
+    // Fetch user's display name from Firestore
+    String? userName;
+    try {
+      debugPrint('📝 [FAMILY REPO] Fetching user display name...');
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      if (userDoc.exists) {
+        final userData = userDoc.data();
+        userName = userData?['displayName'] as String?;
+        debugPrint('✅ [FAMILY REPO] User name found: $userName');
+      }
+    } catch (e) {
+      debugPrint('⚠️ [FAMILY REPO] Error fetching user name: $e');
+    }
+    
     final member = FamilyMember(
       userId: userId,
       familyId: familyId,
+      name: userName,  // Add the user's name here
       role: role,
       permissions: permissions,
       joinedAt: DateTime.now(),

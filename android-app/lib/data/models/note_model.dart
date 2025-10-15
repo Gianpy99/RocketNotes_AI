@@ -57,14 +57,17 @@ class NoteModel extends HiveObject {
   @HiveField(14)
   bool isArchived;
 
+  @HiveField(15)
+  String? userId; // ID of the user who owns this note
+
   // Campi per funzionalità famiglia implementati
-  // @HiveField(15)
-  // String? familyMemberId; // ID of family member who created the note
   // @HiveField(16)
-  // String? sharedNotebookId; // ID of shared family notebook
+  // String? familyMemberId; // ID of family member who created the note
   // @HiveField(17)
-  // List<String>? sharedWith; // List of family member IDs who can access
+  // String? sharedNotebookId; // ID of shared family notebook
   // @HiveField(18)
+  // List<String>? sharedWith; // List of family member IDs who can access
+  // @HiveField(19)
   // bool isEmergencyContact; // Flag for emergency contact notes
 
   NoteModel({
@@ -83,6 +86,7 @@ class NoteModel extends HiveObject {
     this.priority = 0,
     this.reminderDate,
     this.isArchived = false,
+    this.userId,
   });
 
   /// Factory constructor for creating a new note with default metadata
@@ -93,6 +97,7 @@ class NoteModel extends HiveObject {
     List<String>? tags,
     String? color,
     int priority = 0,
+    String? userId,
   }) {
     final now = DateTime.now();
     return NoteModel(
@@ -105,6 +110,7 @@ class NoteModel extends HiveObject {
       tags: tags ?? [],
       color: color,
       priority: priority,
+      userId: userId,
     );
   }
 
@@ -122,6 +128,7 @@ class NoteModel extends HiveObject {
     int? priority,
     DateTime? reminderDate,
     bool? isArchived,
+    String? userId,
   }) {
     return NoteModel(
       id: id,
@@ -139,6 +146,7 @@ class NoteModel extends HiveObject {
       priority: priority ?? this.priority,
       reminderDate: reminderDate ?? this.reminderDate,
       isArchived: isArchived ?? this.isArchived,
+      userId: userId ?? this.userId,
     );
   }
 
@@ -191,6 +199,7 @@ class NoteModel extends HiveObject {
       'priority': priority,
       'reminderDate': reminderDate?.toIso8601String(),
       'isArchived': isArchived,
+      'userId': userId,
     };
   }
 
@@ -213,6 +222,7 @@ class NoteModel extends HiveObject {
           ? DateTime.parse(json['reminderDate'] as String)
           : null,
       isArchived: json['isArchived'] as bool? ?? false,
+      userId: json['userId'] as String?,
     );
   }
 

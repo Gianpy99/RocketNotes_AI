@@ -1,6 +1,9 @@
 // lib/presentation/screens/settings_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/constants/app_constants.dart';
 import '../../data/services/nfc_service.dart';
 import '../providers/app_providers.dart';
@@ -413,6 +416,97 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
 
+          const SizedBox(height: 24),
+
+          // Account Section
+          _buildSectionHeader('Account'),
+          Card(
+            child: Column(
+              children: [
+                StreamBuilder<User?>(
+                  stream: FirebaseAuth.instance.authStateChanges(),
+                  builder: (context, snapshot) {
+                    final user = snapshot.data;
+                    
+                    if (user == null) {
+                      return ListTile(
+                        leading: const Icon(Icons.person_outline),
+                        title: const Text('Not logged in'),
+                        subtitle: const Text('Tap to sign in'),
+                        onTap: () => context.go('/login'),
+                      );
+                    }
+
+                    // Load user data from Firestore
+                    return StreamBuilder<DocumentSnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(user.uid)
+                          .snapshots(),
+                      builder: (context, userDoc) {
+                        Map<String, dynamic>? userData;
+                        if (userDoc.hasData) {
+                          final doc = userDoc.data!;
+                          userData = doc.data() as Map<String, dynamic>?;
+                        }
+                        final displayName = userData?['displayName'] ?? 
+                                          user.displayName ?? 
+                                          'User';
+                        final email = user.email ?? 'No email';
+                        final isAnonymous = user.isAnonymous;
+
+                        return Column(
+                          children: [
+                            ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: Theme.of(context).primaryColor,
+                                child: Text(
+                                  displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                              title: Text(displayName),
+                              subtitle: Text(isAnonymous ? 'Guest Account' : email),
+                            ),
+                            if (!isAnonymous) ...[
+                              const Divider(),
+                              ListTile(
+                                leading: const Icon(Icons.edit_outlined),
+                                title: const Text('Edit Profile'),
+                                trailing: const Icon(Icons.arrow_forward_ios),
+                                onTap: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Profile editing coming soon!'),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                            const Divider(),
+                            ListTile(
+                              leading: Icon(
+                                Icons.logout,
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                              title: Text(
+                                'Logout',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                              ),
+                              onTap: () => _showLogoutDialog(),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+
           const SizedBox(height: 32),
         ],
       ),
@@ -578,6 +672,46 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           '• Dark/Light theme support',
         ),
       ],
+    );
+  }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                try {
+                  await FirebaseAuth.instance.signOut();
+                  if (mounted) {
+                    Navigator.of(context).pop();
+                    context.go('/login');
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error logging out: $e')),
+                    );
+                  }
+                }
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
     );
   }
 

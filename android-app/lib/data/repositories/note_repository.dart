@@ -1,5 +1,6 @@
 // lib/data/repositories/note_repository.dart
 import 'package:hive/hive.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/note_model.dart';
 import '../../core/debug/debug_logger.dart';
 import '../../core/constants/app_constants.dart';
@@ -19,19 +20,34 @@ class NoteRepository {
     return _notesBox!;
   }
 
+  /// Get current user ID from Firebase Auth
+  String? get _currentUserId {
+    final user = FirebaseAuth.instance.currentUser;
+    return user?.uid;
+  }
+
   Future<List<NoteModel>> getAllNotes() async {
     DebugLogger().log('🔍 Repository: Getting all notes from box...');
     DebugLogger().log('📦 Box status: isOpen=${notesBox.isOpen}, length=${notesBox.length}');
     
-    final notes = notesBox.values.toList()
+    final currentUserId = _currentUserId;
+    DebugLogger().log('👤 Current userId: $currentUserId');
+    
+    // Filter notes by current user
+    var notes = notesBox.values.where((note) {
+      // If note has no userId (old notes), OR note belongs to current user
+      final hasNoUserId = note.userId == null || note.userId!.isEmpty;
+      final belongsToCurrentUser = note.userId == currentUserId;
+      return hasNoUserId || belongsToCurrentUser;
+    }).toList()
       ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     
-    DebugLogger().log('📋 Repository: Loaded ${notes.length} notes');
+    DebugLogger().log('📋 Repository: Loaded ${notes.length} notes for current user');
     
     // Debug: List all notes
     for (int i = 0; i < notes.length; i++) {
       final note = notes[i];
-      DebugLogger().log('📝 Note $i: "${note.title}" (${note.mode}) - ${note.content.substring(0, note.content.length > 50 ? 50 : note.content.length)}...');
+      DebugLogger().log('📝 Note $i: "${note.title}" (${note.mode}) userId=${note.userId ?? "null"} - ${note.content.substring(0, note.content.length > 50 ? 50 : note.content.length)}...');
     }
     
     return notes;
@@ -51,12 +67,19 @@ class NoteRepository {
       DebugLogger().log('🔄 Repository: Saving note ${note.id} to Hive box...');
       DebugLogger().log('📦 Box status: isOpen=${notesBox.isOpen}, length=${notesBox.length}');
       
-      await notesBox.put(note.id, note);
+      // Automatically assign current userId if not set
+      final noteToSave = note.userId == null
+          ? note.copyWith(userId: _currentUserId)
+          : note;
+      
+      DebugLogger().log('👤 Saving note with userId: ${noteToSave.userId}');
+      
+      await notesBox.put(noteToSave.id, noteToSave);
       
       DebugLogger().log('✅ Repository: Note saved successfully. Box now has ${notesBox.length} notes.');
       
       // Verify the note was saved
-      final savedNote = notesBox.get(note.id);
+      final savedNote = notesBox.get(noteToSave.id);
       if (savedNote != null) {
         DebugLogger().log('🔍 Repository: Verification successful - note found in box');
       } else {

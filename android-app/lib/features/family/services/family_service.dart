@@ -4,6 +4,7 @@ import '../../../models/family_invitation.dart';
 import '../repositories/family_repository.dart';
 import '../providers/auth_providers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class FamilyService {
   final FamilyRepository _familyRepository;
@@ -16,12 +17,15 @@ class FamilyService {
     required String name,
     required FamilySettings settings,
   }) async {
-    // Temporarily bypass authentication for testing
-    final currentUser = _authGuard.user;
-    final userId = currentUser?.uid ?? 'anonymous_user_${DateTime.now().millisecondsSinceEpoch}';
+    // Get current user directly from FirebaseAuth
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      throw Exception('User must be authenticated to create a family');
+    }
+    final userId = currentUser.uid;
     
-    // _authGuard.requireAuthentication();
-
+    debugPrint('👤 [FAMILY SERVICE] Creating family for user: $userId');
+    
     // Create the family
     final family = await _familyRepository.createFamily(
       ownerId: userId,

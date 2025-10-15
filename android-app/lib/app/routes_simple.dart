@@ -1,6 +1,7 @@
 // Simplified routes for initial launch
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../presentation/screens/home_screen.dart';
 import '../presentation/screens/note_editor_screen.dart';
 import '../presentation/screens/notes_list_screen.dart';
@@ -13,6 +14,7 @@ import '../presentation/screens/statistics_screen.dart';
 import '../presentation/screens/backup_screen.dart';
 import '../presentation/screens/nfc_screen.dart';
 import '../../features/family/screens/family_home_screen.dart';
+import '../../features/auth/screens/login_screen.dart';
 import '../screens/shared_notes/shared_notes_list_screen.dart';
 import '../screens/shared_notes/note_sharing_screen.dart';
 import '../screens/shared_notes/shared_note_viewer.dart';
@@ -26,7 +28,27 @@ import '../screens/audio_note_screen.dart';
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/',
+    redirect: (context, state) {
+      final user = FirebaseAuth.instance.currentUser;
+      final isLoginPage = state.matchedLocation == '/login';
+      
+      // If not logged in OR anonymous, redirect to login (unless already on login page)
+      if ((user == null || user.isAnonymous) && !isLoginPage) {
+        return '/login';
+      }
+      
+      // If logged in (and not anonymous) and on login page, redirect to home
+      if (user != null && !user.isAnonymous && isLoginPage) {
+        return '/';
+      }
+      
+      return null; // No redirect needed
+    },
     routes: [
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const LoginScreen(),
+      ),
       GoRoute(
         path: '/',
         builder: (context, state) => const HomeScreen(),

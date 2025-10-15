@@ -113,12 +113,16 @@ final sharedNotesProvider = FutureProvider<List<SharedNote>>((ref) async {
   final notesSnapshot = await FamilyFirebaseConfig.firestore
       .collection('shared_notes')
       .where('familyId', isEqualTo: familyId)
-      .orderBy('sharedAt', descending: true)
       .get();
 
-  return notesSnapshot.docs
+  // Sort in memory instead of using Firestore orderBy (which requires an index)
+  final notes = notesSnapshot.docs
       .map((doc) => SharedNote.fromJson(doc.data()..['id'] = doc.id))
       .toList();
+  
+  notes.sort((a, b) => b.sharedAt.compareTo(a.sharedAt));
+  
+  return notes;
 });
 
 /// Provider for user's permissions in current family
