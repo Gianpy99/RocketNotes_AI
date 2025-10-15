@@ -3,6 +3,7 @@
 // ==========================================
 import 'dart:io';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:dio/dio.dart';
 import 'package:hive/hive.dart';
 import '../../core/config/api_config.dart';
@@ -267,8 +268,23 @@ class AudioTranscriptionService {
       final parts = content['parts'] as List;
       final textContent = parts[0]['text'] as String;
 
-      // Parse JSON response
-      final parsed = jsonDecode(textContent) as Map<String, dynamic>;
+      DebugLogger().log('🔍 Raw Gemini response: ${textContent.substring(0, math.min(200, textContent.length))}');
+
+      // Parse JSON response - handle markdown code blocks
+      String jsonText = textContent.trim();
+      
+      // Remove markdown code block if present
+      if (jsonText.startsWith('```json') || jsonText.startsWith('```')) {
+        // Remove opening ```json or ```
+        jsonText = jsonText.replaceFirst(RegExp(r'^```(?:json)?\s*'), '');
+        // Remove closing ```
+        jsonText = jsonText.replaceFirst(RegExp(r'\s*```\s*$'), '');
+        jsonText = jsonText.trim();
+      }
+      
+      DebugLogger().log('🔍 Cleaned JSON: ${jsonText.substring(0, math.min(100, jsonText.length))}');
+
+      final parsed = jsonDecode(jsonText) as Map<String, dynamic>;
       final transcription = parsed['transcription'] as String;
       final language = parsed['language'] as String? ?? 'unknown';
 
@@ -453,10 +469,24 @@ $text''';
 
   String _getGeminiAudioModel(String configuredModel) {
     // Gemini models with audio support
-    if (configuredModel.contains('gemini') && configuredModel.contains('audio')) {
+    // Map any legacy audio model names to the correct multimodal models
+    if (configuredModel.contains('native-audio')) {
+      return 'gemini-2.5-flash'; // Fallback for legacy audio-specific model
+    }
+    
+    // Valid Gemini models with audio support
+    const validAudioModels = [
+      'gemini-2.5-flash',
+      'gemini-2.5-flash-lite',
+      'gemini-2.5-flash-8b',
+      'gemini-pro',
+    ];
+    
+    if (validAudioModels.contains(configuredModel)) {
       return configuredModel;
     }
-    // Default to flash with native audio
+    
+    // Default to flash (FREE tier + audio support)
     return 'gemini-2.5-flash';
   }
 

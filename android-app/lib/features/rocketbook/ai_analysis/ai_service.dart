@@ -213,19 +213,7 @@ class AIModelConfig {
       'isFree': false,
       'category': 'batch'
     },
-    {
-      'id': 'gemini-2.5-flash-native-audio',
-      'name': 'Gemini 2.5 Flash Native Audio',
-      'description': 'Native audio processing',
-      'textInputPrice': 0.50, // Text per 1M tokens
-      'textOutputPrice': 2.00, // Text per 1M tokens
-      'audioInputPrice': 3.00, // Audio per 1M tokens
-      'audioOutputPrice': 12.00, // Audio per 1M tokens
-      'supportsVision': false,
-      'supportsAudio': true,
-      'isFree': false,
-      'category': 'premium'
-    },
+
     {
       'id': 'gemini-pro',
       'name': 'Gemini Pro',

@@ -100,8 +100,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final currentMode = ref.watch(appModeProvider);
-    final recentWorkNotes = ref.watch(recentWorkNotesProvider(7)); // Get work notes from last 7 days
-    final recentPersonalNotes = ref.watch(recentPersonalNotesProvider(7)); // Get personal notes from last 7 days
 
     return Stack(
       children: [
@@ -320,10 +318,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Recent Notes - Show based on current mode
-                  currentMode == 'work' 
-                    ? _buildRecentNotesSection(context, recentWorkNotes, 'Recent Work Notes')
-                    : _buildRecentNotesSection(context, recentPersonalNotes, 'Recent Personal Notes'),
+                  // Recent Notes section removed - was not updating in real-time
+                  // Users can access all notes via "All Notes" quick action
                 ],
               ),
             ),

@@ -39,7 +39,10 @@ class _FamilyMemberSelectorState extends ConsumerState<FamilyMemberSelector> {
 
   Future<void> _loadCurrentMember() async {
     final currentUser = await FamilyService.instance.getCurrentUser();
-    if (mounted && currentUser != null) {
+    // Check mounted before setState
+    if (!mounted) return;
+    
+    if (currentUser != null) {
       setState(() {
         _selectedMember = currentUser;
       });
@@ -85,12 +88,15 @@ class _FamilyMemberSelectorState extends ConsumerState<FamilyMemberSelector> {
             )),
             const PopupMenuDivider(),
             PopupMenuItem(
-              value: null,
-              child: ListTile(
-                leading: const Icon(Icons.person_add),
-                title: const Text('Add Family Member'),
-                onTap: () => _showAddMemberDialog(context),
+              child: const ListTile(
+                leading: Icon(Icons.person_add),
+                title: Text('Add Family Member'),
               ),
+              onTap: () {
+                // Use Navigator.pop first, then show dialog
+                Navigator.pop(context);
+                Future.microtask(() => _showAddMemberDialog(context));
+              },
             ),
           ],
           child: _selectedMember != null
@@ -174,7 +180,10 @@ class _FamilyMemberSelectorState extends ConsumerState<FamilyMemberSelector> {
   }
 
   void _showAddMemberDialog(BuildContext context) {
-  // Dialog aggiunta membro famiglia implementato
+    // Dialog aggiunta membro famiglia implementato
+    // Check if widget is still mounted before showing snackbar
+    if (!mounted) return;
+    
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Add Family Member - Coming Soon!'),

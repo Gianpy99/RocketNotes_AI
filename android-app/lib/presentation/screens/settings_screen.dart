@@ -859,6 +859,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Navigator.of(context).pop();
                   await ref.read(settingsRepositoryProvider).updateAiProvider(provider['id']!);
                   ref.invalidate(appSettingsProvider);
+                  
+                  // Reinitialize AIService with new provider settings
+                  try {
+                    await AIService.instance.initialize();
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('AI Provider changed to ${provider['name']}')),
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Warning: ${e.toString()}'),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                    }
+                  }
                 },
               );
             },

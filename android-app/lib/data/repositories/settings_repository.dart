@@ -154,7 +154,7 @@ class SettingsRepository {
         case 'gemini':
           textModel = 'gemini-2.5-flash';
           imageModel = 'gemini-2.5-flash';
-          audioModel = 'gemini-2.5-flash-native-audio';
+          audioModel = 'gemini-2.5-flash';  // ✅ FIX: Gemini Flash supports audio natively
           break;
         default:
           textModel = settings.effectiveTextSummarizationModel;

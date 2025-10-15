@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../models/family.dart' as family_model;
 import '../../../models/family_member.dart';
@@ -121,8 +122,12 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
       ),
       floatingActionButton: currentFamilyAsync.when(
         data: (familyData) {
-          // Only show "Create Family" button if user doesn't have a family
+          // Don't show button if user already has a family
           if (familyData != null) return null;
+          
+          // Don't show button for guest users
+          final user = FirebaseAuth.instance.currentUser;
+          if (user?.isAnonymous ?? false) return null;
           
           return FloatingActionButton.extended(
             onPressed: () {
@@ -154,6 +159,9 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
   }
 
   Widget _buildNoFamilyView() {
+    final user = FirebaseAuth.instance.currentUser;
+    final isGuest = user?.isAnonymous ?? false;
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -172,40 +180,82 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
             ),
           ),
           const SizedBox(height: 16),
-          Text(
-            'Create or join a family to start sharing notes and collaborating.',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.grey[600],
+          if (isGuest) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 48,
+                    color: Colors.orange,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Guest Mode',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Family features are not available for guest users. Please create an account to use Family Hub.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey[600],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () => context.go('/login'),
+                    icon: const Icon(Icons.person_add),
+                    label: const Text('Create Account'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: () {
-              if (kDebugMode) {
-                debugPrint('🔘 Create Family button pressed');
-                debugPrint('📍 Navigating to CreateFamilyScreen with Navigator.push...');
-              }
-
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const CreateFamilyScreen(),
-                ),
-              );
-
-              if (kDebugMode) {
-                debugPrint('✅ Navigation to CreateFamilyScreen initiated');
-              }
-            },
-            icon: const Icon(Icons.add),
-            label: const Text('Create Family'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          ] else ...[
+            Text(
+              'Create or join a family to start sharing notes and collaborating.',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () {
+                if (kDebugMode) {
+                  debugPrint('🔘 Create Family button pressed');
+                  debugPrint('📍 Navigating to CreateFamilyScreen with Navigator.push...');
+                }
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CreateFamilyScreen(),
+                  ),
+                );
+
+                if (kDebugMode) {
+                  debugPrint('✅ Navigation to CreateFamilyScreen initiated');
+                }
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Create Family'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              ),
+            ),
+          ],
         ],
       ),
     );

@@ -32,13 +32,13 @@ class AppRouter {
       final user = FirebaseAuth.instance.currentUser;
       final isLoginPage = state.matchedLocation == '/login';
       
-      // If not logged in OR anonymous, redirect to login (unless already on login page)
-      if ((user == null || user.isAnonymous) && !isLoginPage) {
+      // If not logged in (completely unauthenticated), redirect to login
+      if (user == null && !isLoginPage) {
         return '/login';
       }
       
-      // If logged in (and not anonymous) and on login page, redirect to home
-      if (user != null && !user.isAnonymous && isLoginPage) {
+      // If logged in (either email or anonymous) and on login page, redirect to home
+      if (user != null && isLoginPage) {
         return '/';
       }
       

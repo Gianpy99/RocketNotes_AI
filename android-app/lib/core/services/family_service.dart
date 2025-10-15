@@ -4,6 +4,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/models/family_member_model.dart';
 import '../../data/models/shared_notebook_model.dart';
 
@@ -34,9 +35,15 @@ class FamilyService {
 
       debugPrint('✅ Family service initialized successfully');
 
-      // Create default family member if none exists
+      // Create default family member if none exists, or update if name is "Me"
       if (_familyMembersBox!.isEmpty) {
         await _createDefaultFamilyMember();
+      } else {
+        // Update existing member if name is still "Me"
+        final existingMember = _familyMembersBox!.get('default_user');
+        if (existingMember != null && existingMember.name == 'Me') {
+          await _updateDefaultFamilyMemberName();
+        }
       }
     } catch (e) {
       debugPrint('❌ Error initializing family service: $e');
@@ -45,15 +52,31 @@ class FamilyService {
   }
 
   Future<void> _createDefaultFamilyMember() async {
+    // Get display name from Firebase Auth if available
+    final user = FirebaseAuth.instance.currentUser;
+    final displayName = user?.displayName ?? user?.email?.split('@').first ?? 'Me';
+    
     final defaultMember = FamilyMember(
       id: 'default_user',
-      name: 'Me',
+      name: displayName,
       relationship: 'self',
       permissions: ['read', 'write', 'admin'],
     );
 
     await _familyMembersBox!.put(defaultMember.id, defaultMember);
-    debugPrint('✅ Created default family member');
+    debugPrint('✅ Created default family member: $displayName');
+  }
+
+  Future<void> _updateDefaultFamilyMemberName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final displayName = user?.displayName ?? user?.email?.split('@').first ?? 'Me';
+    
+    final existingMember = _familyMembersBox!.get('default_user');
+    if (existingMember != null) {
+      final updatedMember = existingMember.copyWith(name: displayName);
+      await _familyMembersBox!.put('default_user', updatedMember);
+      debugPrint('✅ Updated default family member name to: $displayName');
+    }
   }
 
   // Family Member Management
