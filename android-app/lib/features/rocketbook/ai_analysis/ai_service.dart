@@ -5,6 +5,8 @@ import '../../../core/debug/debug_logger.dart';
 import '../../../core/config/api_config.dart';
 import '../../../data/repositories/settings_repository.dart';
 import '../models/scanned_content.dart';
+import 'enhanced_prompts.dart';
+import 'ai_vision_helper.dart';
 
 // Enum per provider AI e OCR
 enum AIProvider {
@@ -457,7 +459,7 @@ class AIService {
     }
   }
 
-  /// Analyze content with Google Gemini
+  /// Analyze content with Google Gemini (ENHANCED with Vision + Template Support)
   Future<AIAnalysis> _analyzeWithGemini(ScannedContent scannedContent) async {
     // Use ApiConfig to check if we have a valid key
     if (!ApiConfig.hasGeminiKey) {
@@ -467,7 +469,7 @@ class AIService {
     }
 
     try {
-      DebugLogger().log('🚀 AI Service: Starting real Gemini analysis...');
+      DebugLogger().log('🚀 AI Service: Starting ENHANCED Gemini analysis with vision + templates...');
       
       // Get the configured model from settings
       final settings = await _settingsRepository.getSettings();
@@ -480,9 +482,35 @@ class AIService {
       
       DebugLogger().log('⚙️ Using configured model: $configuredModel');
       
-      final prompt = _buildAnalysisPrompt(scannedContent);
+      // ═══════════════════════════════════════════════════════════════════════
+      // NEW: Detect template and decide vision usage
+      // ═══════════════════════════════════════════════════════════════════════
+      final template = EnhancedPrompts.detectTemplate(scannedContent.rawText);
+      final useVision = AIVisionHelper.shouldUseVision(scannedContent, configuredModel);
       
-      DebugLogger().log('📤 AI Service: Sending request to Gemini API');
+      DebugLogger().log('📋 Template detected: ${AIVisionHelper.getTemplateName(template)}');
+      DebugLogger().log('🖼️ Vision enabled: $useVision');
+      
+      // Build enhanced prompts
+      final systemPrompt = AIVisionHelper.buildSystemPrompt(
+        useVision: useVision,
+        template: template,
+      );
+      
+      final userPrompt = AIVisionHelper.buildUserPrompt(
+        content: scannedContent,
+        useVision: useVision,
+        template: template,
+      );
+      
+      // Build parts (text + image if vision)
+      final parts = await AIVisionHelper.buildGeminiParts(
+        combinedPrompt: '$systemPrompt\n\n$userPrompt',
+        content: scannedContent,
+        useVision: useVision,
+      );
+      
+      DebugLogger().log('📤 AI Service: Sending request to Gemini API (${parts.length} parts)');
       final response = await _dio.post(
         '$geminiBaseUrl/models/$configuredModel:generateContent?key=$_geminiKey',
         options: Options(
@@ -493,16 +521,12 @@ class AIService {
         data: {
           'contents': [
             {
-              'parts': [
-                {
-                  'text': '${_getSystemPrompt()}\n\n$prompt',
-                }
-              ]
+              'parts': parts,  // ✅ Now includes image if vision-enabled!
             }
           ],
           'generationConfig': {
-            'temperature': 0.7,
-            'maxOutputTokens': 1500,
+            'temperature': 0.3,  // Lower for more consistent structured output
+            'maxOutputTokens': 3000,  // Increased for richer analysis
           },
         },
       );
@@ -575,15 +599,15 @@ class AIService {
         throw Exception('No parts in Gemini content');
       }
       
-      final parts = contentMap['parts'];
-      DebugLogger().log('🔍 Parts type: ${parts.runtimeType}, length: ${parts is List ? parts.length : 'Not a List'}');
+      final responseParts = contentMap['parts'];
+      DebugLogger().log('🔍 Parts type: ${responseParts.runtimeType}, length: ${responseParts is List ? responseParts.length : 'Not a List'}');
       
-      if (parts is! List || parts.isEmpty) {
+      if (responseParts is! List || responseParts.isEmpty) {
         DebugLogger().log('❌ Parts is not a List or is empty');
         throw Exception('Invalid parts in Gemini content');
       }
       
-      final partsList = parts;
+      final partsList = responseParts;
       final firstPart = partsList[0];
       DebugLogger().log('🔍 First part type: ${firstPart.runtimeType}');
       DebugLogger().log('🔍 First part keys: ${firstPart is Map ? (firstPart).keys.toList() : 'Not a Map'}');

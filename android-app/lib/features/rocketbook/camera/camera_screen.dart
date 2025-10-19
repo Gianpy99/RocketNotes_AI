@@ -17,6 +17,8 @@ import 'package:hive/hive.dart';
 import '../../../core/constants/app_constants.dart';
 import '../models/scanned_content.dart';
 import '../services/rocketbook_orchestrator_service.dart';
+import '../processing/page_detector.dart';
+import 'package:image/image.dart' as img;
 
 // Provider per il camera service (web o mobile)
 final cameraServiceProvider = Provider<dynamic>((ref) {
@@ -479,12 +481,90 @@ class RocketbookCameraScreen extends ConsumerWidget {
     
     if (imagePath != null && context.mounted) {
       debugPrint('✅ Camera: Photo captured successfully: $imagePath');
-      // Navigate to preview screen
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => ImagePreviewScreen(imagePath: imagePath),
-        ),
-      );
+      
+      // NEW: Apply page detection and perspective correction
+      try {
+        debugPrint('🔍 PageDetector: Loading image for processing...');
+        final imageFile = File(imagePath);
+        final imageBytes = await imageFile.readAsBytes();
+        final image = img.decodeImage(imageBytes);
+        
+        if (image != null) {
+          debugPrint('🔍 PageDetector: Running page detection...');
+          final detected = await PageDetector.detectPage(image);
+          
+          if (detected != null && detected.isValid) {
+            debugPrint('✅ PageDetector: Page detected with confidence ${detected.confidence.toStringAsFixed(2)}');
+            debugPrint('   Corners: TL${detected.corners[0]}, TR${detected.corners[1]}, BR${detected.corners[2]}, BL${detected.corners[3]}');
+            debugPrint('   Rocketbook page: ${detected.isRocketbookPage}');
+            
+            // Save the corrected image over the original
+            if (detected.croppedImage != null) {
+              final correctedBytes = img.encodeJpg(detected.croppedImage!, quality: 95);
+              await imageFile.writeAsBytes(correctedBytes);
+              debugPrint('✅ PageDetector: Perspective-corrected image saved');
+            }
+            
+            // Show success feedback
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      Icon(
+                        detected.isRocketbookPage ? Icons.check_circle : Icons.crop_square,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          detected.isRocketbookPage 
+                            ? 'Rocketbook page detected! Confidence: ${(detected.confidence * 100).toStringAsFixed(0)}%'
+                            : 'Page detected and corrected. Confidence: ${(detected.confidence * 100).toStringAsFixed(0)}%',
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
+          } else {
+            debugPrint('⚠️ PageDetector: No valid page detected, using original image');
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Row(
+                    children: [
+                      Icon(Icons.warning, color: Colors.white),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text('Page not clearly detected. Proceeding with full image.'),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Colors.orange,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
+          }
+        }
+      } catch (e, stackTrace) {
+        debugPrint('❌ PageDetector: Error processing image: $e');
+        debugPrint('   Stack trace: $stackTrace');
+        // Continue with original image if detection fails
+      }
+      
+      // Navigate to preview screen (with corrected or original image)
+      if (context.mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ImagePreviewScreen(imagePath: imagePath),
+          ),
+        );
+      }
     } else {
       debugPrint('❌ Camera: Failed to capture photo');
       if (context.mounted) {
