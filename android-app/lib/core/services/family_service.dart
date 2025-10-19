@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../data/models/family_member_model.dart';
 import '../../data/models/shared_notebook_model.dart';
 
@@ -69,14 +70,47 @@ class FamilyService {
 
   Future<void> _updateDefaultFamilyMemberName() async {
     final user = FirebaseAuth.instance.currentUser;
-    final displayName = user?.displayName ?? user?.email?.split('@').first ?? 'Me';
+    if (user == null) return;
+    
+    // Try Firestore for displayName
+    String? displayName = user.displayName;
+    if (displayName == null || displayName.trim().isEmpty) {
+      try {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get(const GetOptions(source: Source.serverAndCache));
+        if (doc.exists) {
+          final data = doc.data();
+          displayName = (data?['displayName'] as String?)?.trim();
+          displayName ??= (data?['fullName'] as String?)?.trim();
+          displayName ??= (data?['name'] as String?)?.trim();
+          if (displayName != null && displayName.isNotEmpty) {
+            debugPrint('🗄️ Fetched displayName from Firestore: "$displayName"');
+          }
+        }
+      } catch (e) {
+        debugPrint('⚠️ Firestore lookup failed: $e');
+      }
+    }
+    
+    displayName = displayName?.isNotEmpty == true ? displayName : (user.email?.split('@').first ?? 'Me');
     
     final existingMember = _familyMembersBox!.get('default_user');
     if (existingMember != null) {
-      final updatedMember = existingMember.copyWith(name: displayName);
-      await _familyMembersBox!.put('default_user', updatedMember);
-      debugPrint('✅ Updated default family member name to: $displayName');
+      // ALWAYS update if different (not just if "Me")
+      if (existingMember.name != displayName) {
+        final updatedMember = existingMember.copyWith(name: displayName);
+        await _familyMembersBox!.put('default_user', updatedMember);
+        await _familyMembersBox!.flush();
+        debugPrint('✅ Updated member name: "${existingMember.name}" → "$displayName"');
+      }
     }
+  }
+  
+  /// Public method to update member name (called from widget)
+  Future<void> updateDefaultMemberNameIfNeeded() async {
+    await _updateDefaultFamilyMemberName();
   }
 
   // Family Member Management

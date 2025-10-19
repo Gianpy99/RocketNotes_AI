@@ -17,6 +17,7 @@ import 'data/models/family_member_model.dart';
 import 'data/models/shared_notebook_model.dart';
 import 'data/models/usage_monitoring_model.dart';
 import 'data/services/cost_monitoring_service.dart';
+import 'data/services/note_sync_service.dart';
 import 'features/rocketbook/ai_analysis/ai_service.dart';
 import 'features/rocketbook/ocr/ocr_service_real.dart';
 import 'features/rocketbook/models/scanned_content.dart';
@@ -148,6 +149,12 @@ Future<void> main() async {
     await FamilyService.instance.initialize();
     debugPrint('✅ Family backend: ${AppConstants.familyBackend} (local storage)');
     debugPrint('✅ Family Service initialized successfully');
+
+    // ----------------------------------
+    // Initialize Note Sync Service
+    // ----------------------------------
+    await NoteSyncService.instance.initialize();
+    debugPrint('✅ Note Sync Service initialized - auto-sync every 30s');
 
   } catch (e, stackTrace) {
     // Critical error - show it clearly
