@@ -13,6 +13,7 @@ enum AIProvider {
   openAI,
   gemini,
   huggingFace,
+  ollama,     // Ollama Cloud
   mockAI,
 }
 
@@ -242,6 +243,145 @@ class AIModelConfig {
     },
   ];
 
+  // Modelli Ollama Cloud (dalla documentazione ufficiale)
+  // Docs: https://docs.ollama.com/cloud
+  static const List<Map<String, dynamic>> ollamaModels = [
+    // Cloud Models (require account on ollama.com)
+    {
+      'id': 'deepseek-v3.1:671b-cloud',
+      'name': 'DeepSeek V3.1 (671B Cloud)',
+      'description': 'Massive reasoning model - Cloud only',
+      'inputPrice': 0.0,  // Pricing TBD
+      'outputPrice': 0.0,
+      'supportsVision': false,
+      'supportsAudio': false,
+      'isCloud': true,
+      'category': 'premium'
+    },
+    {
+      'id': 'gpt-oss:120b-cloud',
+      'name': 'GPT-OSS (120B Cloud)',
+      'description': 'Large open-source GPT - Cloud only',
+      'inputPrice': 0.0,
+      'outputPrice': 0.0,
+      'supportsVision': false,
+      'supportsAudio': false,
+      'isCloud': true,
+      'category': 'premium'
+    },
+    {
+      'id': 'gpt-oss:20b-cloud',
+      'name': 'GPT-OSS (20B Cloud)',
+      'description': 'Efficient GPT - Cloud only',
+      'inputPrice': 0.0,
+      'outputPrice': 0.0,
+      'supportsVision': false,
+      'supportsAudio': false,
+      'isCloud': true,
+      'category': 'balanced'
+    },
+    {
+      'id': 'kimi-k2:1t-cloud',
+      'name': 'Kimi K2 (1T Cloud)',
+      'description': 'Trillion parameter model - Cloud only',
+      'inputPrice': 0.0,
+      'outputPrice': 0.0,
+      'supportsVision': false,
+      'supportsAudio': false,
+      'isCloud': true,
+      'category': 'premium'
+    },
+    {
+      'id': 'qwen3-coder:480b-cloud',
+      'name': 'Qwen3 Coder (480B Cloud)',
+      'description': 'Specialized coding model - Cloud only',
+      'inputPrice': 0.0,
+      'outputPrice': 0.0,
+      'supportsVision': false,
+      'supportsAudio': false,
+      'isCloud': true,
+      'category': 'premium'
+    },
+    {
+      'id': 'glm-4.6:cloud',
+      'name': 'GLM 4.6 (Cloud)',
+      'description': 'General language model - Cloud only',
+      'inputPrice': 0.0,
+      'outputPrice': 0.0,
+      'supportsVision': false,
+      'supportsAudio': false,
+      'isCloud': true,
+      'category': 'balanced'
+    },
+    // Direct API access models (via https://ollama.com/api)
+    {
+      'id': 'llama3.2-vision:90b',
+      'name': 'Llama 3.2 Vision (90B)',
+      'description': 'Vision + text - FREE via API',
+      'inputPrice': 0.0,
+      'outputPrice': 0.0,
+      'supportsVision': true,
+      'supportsAudio': false,
+      'isFree': true,
+      'category': 'vision'
+    },
+    {
+      'id': 'gpt-oss:120b',
+      'name': 'GPT-OSS (120B)',
+      'description': 'Large open GPT - FREE via API',
+      'inputPrice': 0.0,
+      'outputPrice': 0.0,
+      'supportsVision': false,
+      'supportsAudio': false,
+      'isFree': true,
+      'category': 'premium'
+    },
+    {
+      'id': 'llama3.1:70b',
+      'name': 'Llama 3.1 (70B)',
+      'description': 'High quality - FREE via API',
+      'inputPrice': 0.0,
+      'outputPrice': 0.0,
+      'supportsVision': false,
+      'supportsAudio': false,
+      'isFree': true,
+      'category': 'premium'
+    },
+    {
+      'id': 'mistral-nemo',
+      'name': 'Mistral Nemo (12B)',
+      'description': 'Efficient reasoning - FREE via API',
+      'inputPrice': 0.0,
+      'outputPrice': 0.0,
+      'supportsVision': false,
+      'supportsAudio': false,
+      'isFree': true,
+      'category': 'balanced'
+    },
+    {
+      'id': 'phi3',
+      'name': 'Phi-3 (3.8B)',
+      'description': 'Compact and fast - FREE',
+      'inputPrice': 0.0,
+      'outputPrice': 0.0,
+      'supportsVision': false,
+      'supportsAudio': false,
+      'isFree': true,
+      'category': 'economical'
+    },
+    {
+      'id': 'gemma2',
+      'name': 'Gemma 2 (9B)',
+      'description': 'Google model - FREE',
+      'inputPrice': 0.0,
+      'outputPrice': 0.0,
+      'supportsVision': false,
+      'supportsAudio': false,
+      'isFree': true,
+      'category': 'balanced'
+    },
+  ];
+
   /// Get models by provider and tier
   static List<Map<String, dynamic>> getModelsForProvider(String provider, {String tier = 'flex'}) {
     switch (provider.toLowerCase()) {
@@ -256,6 +396,8 @@ class AIModelConfig {
         }
       case 'gemini':
         return geminiModels;
+      case 'ollama':
+        return ollamaModels;
       default:
         return [];
     }
@@ -268,6 +410,8 @@ class AIModelConfig {
         return openAIAudioModels;
       case 'gemini':
         return geminiModels.where((model) => model['supportsAudio'] == true).toList();
+      case 'ollama':
+        return ollamaModels.where((model) => model['supportsAudio'] == true).toList();
       default:
         return [];
     }
@@ -340,10 +484,12 @@ class AIService {
     final hasOpenAI = ApiConfig.hasOpenAIKey;
     final hasGemini = ApiConfig.hasGeminiKey;
     final hasHuggingFace = ApiConfig.hasHuggingFaceKey;
+    final hasOllama = ApiConfig.hasOllamaKey;
     
     DebugLogger().log('🔑 OpenAI Key available: $hasOpenAI');
     DebugLogger().log('🔑 Gemini Key available: $hasGemini');
     DebugLogger().log('🔑 HuggingFace Key available: $hasHuggingFace');
+    DebugLogger().log('🔑 Ollama Key available: $hasOllama');
     
     // Set provider based on configuration and available keys
     if (provider != null) {
@@ -358,6 +504,9 @@ class AIService {
           break;
         case 'huggingface':
           _currentProvider = hasHuggingFace ? AIProvider.huggingFace : AIProvider.mockAI;
+          break;
+        case 'ollama':
+          _currentProvider = hasOllama ? AIProvider.ollama : AIProvider.mockAI;
           break;
         default:
           _currentProvider = AIProvider.mockAI;
@@ -386,6 +535,8 @@ class AIService {
         return await _analyzeWithGemini(scannedContent);
       case AIProvider.huggingFace:
         return await _analyzeWithHuggingFace(scannedContent);
+      case AIProvider.ollama:
+        return await _analyzeWithOllama(scannedContent);
       case AIProvider.mockAI:
         return _mockAnalysis(scannedContent);
     }
@@ -639,6 +790,158 @@ class AIService {
       
     } catch (e) {
       DebugLogger().log('❌ AI Service: Gemini analysis error: $e');
+      return _fallbackAnalysis(scannedContent);
+    }
+  }
+
+  /// Analyze content with Ollama Cloud (ENHANCED with Vision + Template Support)
+  Future<AIAnalysis> _analyzeWithOllama(ScannedContent scannedContent) async {
+    try {
+      DebugLogger().log('🚀 AI Service: Starting OLLAMA CLOUD analysis with vision + templates...');
+      
+      // Ollama Cloud endpoint - Uses OpenAI-compatible API format
+      const ollamaBaseUrl = 'https://cloud.ollamalabs.ai/v1';
+      final ollamaApiKey = ApiConfig.actualOllamaKey;
+      
+      // Check if API key is available
+      if (ollamaApiKey.isEmpty) {
+        DebugLogger().log('❌ Ollama API key not configured');
+        throw Exception('Ollama API key not configured. Please add it to ApiConfig.developmentKeys');
+      }
+      
+      final bool hasImages = scannedContent.imagePath.isNotEmpty;
+      
+      // Ollama Cloud models (from docs)
+      // With -cloud suffix for cloud models, without for direct API access
+      String model = hasImages ? 'llama3.2-vision:90b' : 'gpt-oss:120b';
+      
+      DebugLogger().log('⚙️ Using Ollama Cloud model: $model');
+      
+      // ═══════════════════════════════════════════════════════════════════════
+      // Detect template and decide vision usage
+      // ═══════════════════════════════════════════════════════════════════════
+      final template = EnhancedPrompts.detectTemplate(scannedContent.rawText);
+      final useVision = hasImages && model.contains('vision');
+      
+      DebugLogger().log('📋 Template detected: ${AIVisionHelper.getTemplateName(template)}');
+      DebugLogger().log('🖼️ Vision enabled: $useVision');
+      
+      // Build enhanced prompts
+      final systemPrompt = AIVisionHelper.buildSystemPrompt(
+        useVision: useVision,
+        template: template,
+      );
+      
+      final userPrompt = AIVisionHelper.buildUserPrompt(
+        content: scannedContent,
+        useVision: useVision,
+        template: template,
+      );
+      
+      // ═══════════════════════════════════════════════════════════════════════
+      // Build messages (Ollama Cloud uses OpenAI-compatible format!)
+      // OpenAI format: messages with content array containing text + image_url objects
+      // ═══════════════════════════════════════════════════════════════════════
+      final List<Map<String, dynamic>> messages = [
+        {
+          'role': 'system',
+          'content': systemPrompt,
+        },
+      ];
+      
+      // Add user message (OpenAI-compatible format for Ollama Cloud)
+      if (useVision && scannedContent.imagePath.isNotEmpty) {
+        final base64Image = await AIVisionHelper.encodeImageBase64(scannedContent.imagePath);
+        if (base64Image != null) {
+          // OPENAI FORMAT: content array with type: text and type: image_url
+          messages.add({
+            'role': 'user',
+            'content': [
+              {
+                'type': 'text',
+                'text': userPrompt,
+              },
+              {
+                'type': 'image_url',
+                'image_url': {
+                  'url': 'data:image/jpeg;base64,$base64Image',
+                },
+              },
+            ],
+          });
+          DebugLogger().log('📷 Image attached for vision analysis (OpenAI-compatible format for Ollama Cloud)');
+        } else {
+          // Fallback to text-only
+          messages.add({
+            'role': 'user',
+            'content': userPrompt,
+          });
+        }
+      } else {
+        messages.add({
+          'role': 'user',
+          'content': userPrompt,
+        });
+      }
+      
+      DebugLogger().log('📤 AI Service: Sending request to Ollama Cloud');
+      final response = await _dio.post(
+        '$ollamaBaseUrl/chat/completions',  // ✅ OpenAI-compatible endpoint
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $ollamaApiKey',
+            'Content-Type': 'application/json',
+          },
+        ),
+        data: {
+          'model': model,
+          'messages': messages,
+          'temperature': 0.3,
+          'max_tokens': 3000,
+        },
+      );
+
+      DebugLogger().log('✅ AI Service: Received response from Ollama Cloud');
+      
+      // Parse response (OpenAI-compatible format)
+      if (response.data == null || response.data is! Map<String, dynamic>) {
+        throw Exception('Invalid response from Ollama Cloud');
+      }
+      
+      final responseMap = response.data as Map<String, dynamic>;
+      
+      if (!responseMap.containsKey('choices') || 
+          (responseMap['choices'] as List).isEmpty) {
+        throw Exception('No choices in Ollama response');
+      }
+      
+      final choice = (responseMap['choices'] as List)[0];
+      if (choice is! Map<String, dynamic> || 
+          !choice.containsKey('message') ||
+          !(choice['message'] as Map<String, dynamic>).containsKey('content')) {
+        throw Exception('Invalid message structure from Ollama');
+      }
+      
+      final content = choice['message']['content'] as String;
+      
+      DebugLogger().log('🔍 Ollama response preview: ${content.substring(0, math.min(200, content.length))}...');
+      
+      // Parse AI response
+      final analysis = _parseAIResponse(content);
+      
+      DebugLogger().log('🎯 Ollama analysis completed - ${analysis.keyTopics.length} topics, ${analysis.actionItems.length} actions');
+      
+      // Log stats if available
+      if (responseMap.containsKey('usage')) {
+        final usage = responseMap['usage'] as Map<String, dynamic>;
+        DebugLogger().log('📊 Tokens: ${usage['total_tokens']} (prompt: ${usage['prompt_tokens']}, completion: ${usage['completion_tokens']})');
+      }
+      
+      return analysis;
+      
+    } catch (e, stackTrace) {
+      DebugLogger().log('❌ AI Service: Ollama Cloud error: $e');
+      DebugLogger().log('Stack trace: $stackTrace');
       return _fallbackAnalysis(scannedContent);
     }
   }

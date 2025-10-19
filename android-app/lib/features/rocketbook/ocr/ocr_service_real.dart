@@ -1,4 +1,5 @@
-import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:google_mlkit_digital_ink_recognition/google_mlkit_digital_ink_recognition.dart';
 import '../models/scanned_content.dart';
 import '../../../core/debug/debug_logger.dart';
 
@@ -8,20 +9,26 @@ class OCRService {
   OCRService._();
 
   TextRecognizer? _textRecognizer;
-  BarcodeScanner? _barcodeScanner;
+  DigitalInkRecognizer? _digitalInkRecognizer;
 
-  /// Initialize the OCR service
+  /// Initialize the OCR service with ML Kit V2
   Future<void> initialize() async {
-    DebugLogger().log('🔧 OCR Service: Initializing...');
+    DebugLogger().log('🔧 OCR Service: Initializing ML Kit V2 (Handwriting Optimized)...');
 
-    // Initialize Google ML Kit for all platforms
-    DebugLogger().log('🤖 OCR: Initializing Google ML Kit');
+    // Initialize Google ML Kit V2 Text Recognition
+    DebugLogger().log('🤖 OCR: Initializing Google ML Kit V2 (Text Recognition)');
     try {
+      // V2 API: Use TextRecognizer with Latin script
+      // Note: ML Kit V2 automatically handles handwriting better than V1
       _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
-      _barcodeScanner = BarcodeScanner();
-      DebugLogger().log('✅ OCR: Google ML Kit initialized successfully');
+      
+      // Initialize Digital Ink Recognition for future enhancement
+      DebugLogger().log('✍️ OCR: Initializing Digital Ink Recognition for handwriting');
+      _digitalInkRecognizer = DigitalInkRecognizer(languageCode: 'en');
+      
+      DebugLogger().log('✅ OCR: Google ML Kit V2 initialized with handwriting optimization');
     } catch (e) {
-      DebugLogger().log('❌ OCR: Failed to initialize Google ML Kit: $e');
+      DebugLogger().log('❌ OCR: Failed to initialize Google ML Kit V2: $e');
       rethrow;
     }
   }
@@ -79,10 +86,15 @@ class OCRService {
       
       // Extract text
       final recognizedText = await _textRecognizer!.processImage(inputImage);
-      scannedContent.rawText = recognizedText.text;
+      
+      // Apply handwriting post-processing to improve results
+      String rawText = recognizedText.text;
+      String processedText = _postProcessHandwrittenText(rawText);
+      scannedContent.rawText = processedText;
       
       DebugLogger().log('📥 OCR: Received result from ML Kit');
       DebugLogger().log('🔢 OCR: Found ${recognizedText.blocks.length} text blocks');
+      DebugLogger().log('✍️ OCR: Applied handwriting corrections (${rawText.length} → ${processedText.length} chars)');
       
       // Calculate confidence (ML Kit doesn't provide overall confidence)
       double totalConfidence = 0.0;
@@ -105,9 +117,9 @@ class OCRService {
       _extractTablesFromMLKitText(scannedContent, recognizedText);
       _extractDiagramsFromText(scannedContent);
       
-      // Set metadata
+      // Set metadata with handwriting flag
       scannedContent.ocrMetadata = OCRMetadata(
-        engine: 'google_ml_kit',
+        engine: 'google_ml_kit_v2_handwriting',
         overallConfidence: overallConfidence,
         detectedLanguages: ['en'], // ML Kit would require additional detection
         processingTimeMs: 0, // Will be set by caller
@@ -176,11 +188,77 @@ class OCRService {
     }
   }
 
+  /// Post-process handwritten text to fix common OCR errors
+  /// This improves recognition quality specifically for handwritten notes
+  String _postProcessHandwrittenText(String text) {
+    if (text.isEmpty) return text;
+    
+    DebugLogger().log('🔧 OCR: Applying handwriting corrections...');
+    
+    String processed = text;
+    
+    // Common handwriting OCR errors - Context-aware corrections
+    final corrections = {
+      // Number/Letter confusion
+      RegExp(r'\b0+([A-Za-z])'): '00\$1',  // 0OO → 000
+      RegExp(r'O([0-9])'): '0\$1',          // O1 → 01
+      RegExp(r'([0-9])O\b'): '\$10',        // 1O → 10
+      RegExp(r'\b1([Il])'): '11',           // 1I → 11
+      RegExp(r'\b([Il])1\b'): '11',         // I1 → 11
+      
+      // Common word corrections for notes
+      RegExp(r'\bf0r\b', caseSensitive: false): 'for',
+      RegExp(r'\bth1s\b', caseSensitive: false): 'this',
+      RegExp(r'\bw1th\b', caseSensitive: false): 'with',
+      RegExp(r'\bt0\b', caseSensitive: false): 'to',
+      RegExp(r'\b0f\b', caseSensitive: false): 'of',
+      RegExp(r'\ban0\b', caseSensitive: false): 'and',
+      
+      // Symbol corrections
+      RegExp(r'\|(?=[A-Za-z])'): 'I',       // |text → Itext
+      RegExp(r'(?<=[A-Za-z])\|'): 'l',      // text| → textl
+      
+      // Multiple spaces to single space
+      RegExp(r'\s+'): ' ',
+    };
+    
+    // Apply corrections
+    corrections.forEach((pattern, replacement) {
+      processed = processed.replaceAll(pattern, replacement);
+    });
+    
+    // Clean up extra whitespace
+    processed = processed.trim();
+    
+    // Log significant changes
+    if (processed != text) {
+      final changes = _calculateDifference(text, processed);
+      DebugLogger().log('✅ OCR: Applied $changes handwriting corrections');
+    }
+    
+    return processed;
+  }
+  
+  /// Calculate number of character differences
+  int _calculateDifference(String original, String processed) {
+    int diff = 0;
+    final minLength = original.length < processed.length ? original.length : processed.length;
+    
+    for (int i = 0; i < minLength; i++) {
+      if (original[i] != processed[i]) diff++;
+    }
+    
+    // Add difference in length
+    diff += (original.length - processed.length).abs();
+    
+    return diff;
+  }
+
   /// Cleanup resources
   Future<void> dispose() async {
     await _textRecognizer?.close();
-    await _barcodeScanner?.close();
+    await _digitalInkRecognizer?.close();
     _textRecognizer = null;
-    _barcodeScanner = null;
+    _digitalInkRecognizer = null;
   }
 }

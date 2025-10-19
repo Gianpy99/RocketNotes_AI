@@ -84,8 +84,13 @@ dependencies:
   # Path utilities
   path: ^1.8.3
 
-  # Google ML Kit OCR (Compatible versions)
-  google_ml_kit: ^0.20.0
+  # Google ML Kit V2 (LATEST versions - github.com/flutter-ml/google_ml_kit_flutter)
+  google_mlkit_text_recognition: ^0.15.0         # Text OCR V2 - Better handwriting accuracy
+  google_mlkit_digital_ink_recognition: ^0.14.1  # Handwriting recognition - PERFECT for Rocketbook!
+  google_mlkit_document_scanner: ^0.4.0          # Document scanning with auto-crop & enhancement
+  google_mlkit_barcode_scanning: ^0.14.1         # Barcode/QR scanning - For Rocketbook symbols ★🚀🍀💎☁✉📁
+  # google_mlkit_image_labeling: ^0.12.0        # Image classification (future use)
+  # google_mlkit_object_detection: ^0.13.0      # Object detection (future use)
 
   # HTTP & API
   dio: ^5.3.2

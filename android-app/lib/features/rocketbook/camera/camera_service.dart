@@ -39,7 +39,7 @@ class CameraService {
       // Initialize the camera controller with the first camera (usually back camera)
       _controller = CameraController(
         _cameras!.first,
-        ResolutionPreset.medium, // Reduced from high to medium
+        ResolutionPreset.veryHigh, // ✅ INCREASED: High quality for better OCR
         enableAudio: false,
         imageFormatGroup: ImageFormatGroup.jpeg,
       );
@@ -47,8 +47,8 @@ class CameraService {
       // Configure with optimized settings
       await _controller!.initialize();
       
-      // Set additional configuration to prevent buffer overflow
-      await _controller!.setFlashMode(FlashMode.off);
+      // Set flash to AUTO for better lighting in low-light conditions
+      await _controller!.setFlashMode(FlashMode.auto);
       
       _isInitialized = true;
 
@@ -74,7 +74,7 @@ class CameraService {
       
       _controller = CameraController(
         newCamera,
-        ResolutionPreset.medium, // Changed to medium
+        ResolutionPreset.veryHigh, // ✅ INCREASED: Match main camera resolution
         enableAudio: false,
         imageFormatGroup: ImageFormatGroup.jpeg,
       );

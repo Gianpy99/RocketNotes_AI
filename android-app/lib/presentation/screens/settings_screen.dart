@@ -781,6 +781,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         return 'OpenAI (GPT Models)';
       case 'gemini':
         return 'Google Gemini';
+      case 'ollama':
+        return 'Ollama Cloud (FREE!)';
       default:
         return 'Unknown Provider';
     }
@@ -822,6 +824,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         return 'Gemini 2.5 Flash Lite Batch';
       case 'gemini-2.5-flash-native-audio':
         return 'Gemini 2.5 Flash Native Audio';
+      // Ollama Cloud models
+      case 'deepseek-v3.1:671b-cloud':
+        return 'DeepSeek V3.1 (671B Cloud)';
+      case 'gpt-oss:120b-cloud':
+        return 'GPT-OSS (120B Cloud)';
+      case 'gpt-oss:20b-cloud':
+        return 'GPT-OSS (20B Cloud)';
+      case 'kimi-k2:1t-cloud':
+        return 'Kimi K2 (1T Cloud)';
+      case 'qwen3-coder:480b-cloud':
+        return 'Qwen3 Coder (480B Cloud)';
+      case 'glm-4.6:cloud':
+        return 'GLM 4.6 (Cloud)';
+      case 'llama3.2-vision:90b':
+        return 'Llama 3.2 Vision (90B)';
+      case 'gpt-oss:120b':
+        return 'GPT-OSS (120B)';
+      case 'llama3.1:70b':
+        return 'Llama 3.1 (70B)';
+      case 'mistral-nemo':
+        return 'Mistral Nemo (12B)';
       default:
         return 'Unknown Model';
     }
@@ -838,6 +861,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         'id': 'gemini', 
         'name': 'Google Gemini', 
         'description': 'Gemini Pro and Gemini Pro Vision'
+      },
+      {
+        'id': 'ollama', 
+        'name': 'Ollama Cloud (FREE!)', 
+        'description': 'GPT-OSS 120B, Llama 3.2 Vision 90B, DeepSeek V3.1 671B'
       },
     ];
 

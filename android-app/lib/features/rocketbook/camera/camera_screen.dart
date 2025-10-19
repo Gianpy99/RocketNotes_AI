@@ -798,86 +798,46 @@ class ImagePreviewScreen extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Header with processing options
+                  // Header
                   Container(
                     padding: const EdgeInsets.all(16),
-                    margin: const EdgeInsets.only(bottom: 16),
+                    margin: const EdgeInsets.only(bottom: 24),
                     decoration: BoxDecoration(
                       color: Colors.grey[900],
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Column(
                       children: [
-                        Icon(Icons.auto_awesome, color: Colors.blue, size: 32),
-                        SizedBox(height: 8),
+                        Icon(Icons.auto_awesome, color: Colors.blue, size: 40),
+                        SizedBox(height: 12),
                         Text(
-                          'Choose Processing Method',
+                          'Ready to Analyze',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 18,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        SizedBox(height: 8),
                         Text(
-                          'Select how you want to process this image',
+                          'AI will extract text and provide analysis',
                           style: TextStyle(color: Colors.grey, fontSize: 14),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
                   ),
                   
-                  // OCR Option
-                  Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: ElevatedButton(
-                      onPressed: () => _processImage(context, ref),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.all(16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.text_fields, size: 24),
-                              SizedBox(width: 8),
-                              Text(
-                                'OCR + AI Analysis',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Extract text first, then analyze with AI',
-                            style: TextStyle(fontSize: 12, color: Colors.white70),
-                          ),
-                          Text(
-                            'Best for handwritten notes & documents',
-                            style: TextStyle(fontSize: 11, color: Colors.white60),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  
-                  // Direct AI Option
+                  // Single Process Button - Always uses Enhanced OCR + Vision
                   Container(
                     width: double.infinity,
                     margin: const EdgeInsets.only(bottom: 16),
                     child: ElevatedButton(
                       onPressed: () => _processImageDirectAI(context, ref),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.purple,
+                        backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -887,22 +847,18 @@ class ImagePreviewScreen extends ConsumerWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.smart_toy, size: 24),
-                              SizedBox(width: 8),
+                              Icon(Icons.smart_toy, size: 28),
+                              SizedBox(width: 12),
                               Text(
-                                'Enhanced OCR + AI Analysis',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                'Process with AI',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
-                          SizedBox(height: 4),
+                          SizedBox(height: 8),
                           Text(
-                            'Use OCR + AI for best accuracy',
-                            style: TextStyle(fontSize: 12, color: Colors.white70),
-                          ),
-                          Text(
-                            'Combines text extraction with visual analysis',
-                            style: TextStyle(fontSize: 11, color: Colors.white60),
+                            'OCR + Vision Analysis for best accuracy',
+                            style: TextStyle(fontSize: 13, color: Colors.white70),
                           ),
                         ],
                       ),
@@ -1306,15 +1262,72 @@ class ImagePreviewScreen extends ConsumerWidget {
       
       DebugLogger().log('📄 Creating note with content: ${scannedContent.rawText.substring(0, scannedContent.rawText.length > 100 ? 100 : scannedContent.rawText.length)}...');
       
+      // Build enhanced content with AI analysis
+      String noteContent = scannedContent.rawText;
+      
+      // Add AI analysis to content if available
+      if (scannedContent.aiAnalysis != null) {
+        final analysis = scannedContent.aiAnalysis!;
+        
+        DebugLogger().log('📝 Including AI analysis in note content');
+        
+        // Add separator
+        noteContent += '\n\n' + '═' * 50 + '\n';
+        noteContent += '🤖 AI ANALYSIS\n';
+        noteContent += '═' * 50 + '\n\n';
+        
+        // Add summary if available
+        if (analysis.summary.isNotEmpty) {
+          noteContent += '📋 SUMMARY:\n${analysis.summary}\n\n';
+        }
+        
+        // Add key topics
+        if (analysis.keyTopics.isNotEmpty) {
+          noteContent += '🎯 KEY TOPICS:\n';
+          for (var topic in analysis.keyTopics) {
+            noteContent += '  • $topic\n';
+          }
+          noteContent += '\n';
+        }
+        
+        // Add action items
+        if (analysis.actionItems.isNotEmpty) {
+          noteContent += '✅ ACTION ITEMS:\n';
+          for (var action in analysis.actionItems) {
+            final checkbox = action.isCompleted ? '☑' : '☐';
+            final priority = action.priority == Priority.high ? ' ⭐' : 
+                           action.priority == Priority.urgent ? ' 🔥' : '';
+            noteContent += '  $checkbox ${action.text}$priority\n';
+            if (action.dueDate != null) {
+              noteContent += '      📅 Due: ${action.dueDate!.toString().split(' ')[0]}\n';
+            }
+          }
+          noteContent += '\n';
+        }
+        
+        // Add insights if available
+        if (analysis.insights.isNotEmpty) {
+          noteContent += '� INSIGHTS:\n';
+          analysis.insights.forEach((key, value) {
+            noteContent += '  • $key: $value\n';
+          });
+          noteContent += '\n';
+        }
+        
+        DebugLogger().log('✅ AI analysis added to note content (${noteContent.length} total chars)');
+      } else {
+        DebugLogger().log('⚠️ No AI analysis available to include');
+      }
+      
       final note = NoteModel(
         id: uuid.v4(),
         title: scannedContent.aiAnalysis?.suggestedTitle ?? 'Scanned Note',
-        content: scannedContent.rawText,
+        content: noteContent,  // ✅ Now includes AI analysis!
         mode: 'personal', // Default mode
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
         tags: scannedContent.aiAnalysis?.suggestedTags ?? [],
-        aiSummary: scannedContent.aiAnalysis?.summary,
+        aiSummary: scannedContent.aiAnalysis?.summary,  // Keep for backward compatibility
         attachments: attachments,
         isFavorite: false,
         priority: 1, // medium priority

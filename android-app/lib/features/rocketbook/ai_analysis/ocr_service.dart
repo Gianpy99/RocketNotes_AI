@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui';
 import 'package:dio/dio.dart';
-import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../../core/debug/debug_logger.dart';
 import '../../../core/config/api_config.dart';
 import '../../../data/repositories/settings_repository.dart';
@@ -97,21 +98,22 @@ class OCRService {
     }
   }
 
-  /// Estrai testo usando Google ML Kit
+  /// Estrai testo usando Google ML Kit - FIXED VERSION
+  /// Usa il file path direttamente per migliore qualità OCR
   Future<String> _extractWithGoogleMLKit(Uint8List imageBytes) async {
     DebugLogger().log('🔍 OCR Service: Starting Google ML Kit extraction');
     
     try {
-      // Create InputImage from bytes
-      final inputImage = InputImage.fromBytes(
-        bytes: imageBytes,
-        metadata: InputImageMetadata(
-          size: const Size(800, 600), // Default size - you may want to calculate from actual image
-          rotation: InputImageRotation.rotation0deg,
-          format: InputImageFormat.nv21,
-          bytesPerRow: 800 * 4, // Assuming RGBA
-        ),
-      );
+      // Save bytes to temporary file for better quality
+      // Google ML Kit works much better with file path than with bytes
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/temp_ocr_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await tempFile.writeAsBytes(imageBytes);
+      
+      DebugLogger().log('📁 OCR: Saved temp file for ML Kit: ${tempFile.path}');
+      
+      // Create InputImage from file path (MUCH better quality!)
+      final inputImage = InputImage.fromFilePath(tempFile.path);
       
       // Initialize text recognizer
       final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
@@ -124,8 +126,11 @@ class OCRService {
       
       // Clean up
       textRecognizer.close();
+      await tempFile.delete(); // Delete temp file
       
       DebugLogger().log('✅ OCR Service: Google ML Kit extraction completed - ${extractedText.length} characters');
+      DebugLogger().log('📊 OCR: Found ${recognizedText.blocks.length} text blocks');
+      
       return extractedText.trim();
       
     } catch (e) {

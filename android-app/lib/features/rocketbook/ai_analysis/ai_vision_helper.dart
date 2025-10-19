@@ -10,6 +10,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'enhanced_prompts.dart';
 import '../models/scanned_content.dart';
+import '../../../core/debug/debug_logger.dart';
 
 class AIVisionHelper {
   
@@ -31,6 +32,8 @@ class AIVisionHelper {
     if (lowerModel.contains('gemini-pro-vision') ||
         lowerModel.contains('gemini-1.5') ||
         lowerModel.contains('gemini-2.0') ||
+        lowerModel.contains('gemini-2.5') ||  // ✅ Gemini 2.5 Flash
+        lowerModel.contains('gemini-2-') ||   // ✅ Gemini 2.x variants
         lowerModel.contains('gemini-flash') ||
         lowerModel.contains('gemini-exp')) {
       return true;
@@ -50,6 +53,12 @@ class AIVisionHelper {
       return true;
     }
     
+    // Ollama Cloud vision models
+    if (lowerModel.contains('llama3.2-vision') ||
+        lowerModel.contains('llava')) {
+      return true;
+    }
+    
     return false;
   }
   
@@ -57,10 +66,19 @@ class AIVisionHelper {
   /// (Optimize costs by using vision only when beneficial)
   static bool shouldUseVision(ScannedContent content, String model) {
     // Model must support vision
-    if (!modelSupportsVision(model)) return false;
+    final supportsVision = modelSupportsVision(model);
+    DebugLogger().log('🔍 Vision check - Model: "$model", Supports vision: $supportsVision');
+    
+    if (!supportsVision) {
+      DebugLogger().log('❌ Vision disabled: Model does not support vision');
+      return false;
+    }
     
     // Must have image
-    if (content.imagePath.isEmpty) return false;
+    if (content.imagePath.isEmpty) {
+      DebugLogger().log('❌ Vision disabled: No image path');
+      return false;
+    }
     
     // Use vision if:
     final lowConfidence = content.ocrMetadata.overallConfidence < 0.7;
@@ -70,7 +88,16 @@ class AIVisionHelper {
     final hasTables = content.tables.isNotEmpty;
     final hasDiagrams = content.diagrams.isNotEmpty;
     
-    return lowConfidence || littleText || hasSymbols || isRocketbook || hasTables || hasDiagrams;
+    // 🆕 ALWAYS use vision for handwritten text (OCR is never perfect for handwriting!)
+    final isHandwritten = content.ocrMetadata.engine.contains('handwritten') ||
+                          content.rawText.length < 200 ||  // Short text often = handwritten
+                          lowConfidence;  // Low confidence = likely handwritten
+    
+    final useVision = isHandwritten || littleText || hasSymbols || isRocketbook || hasTables || hasDiagrams;
+    
+    DebugLogger().log('✅ Vision decision: $useVision (handwritten: $isHandwritten, textLen: ${content.rawText.length}, confidence: ${content.ocrMetadata.overallConfidence})');
+    
+    return useVision;
   }
   
   /// Build system prompt with template-specific enhancements
