@@ -60,14 +60,17 @@ class NoteModel extends HiveObject {
   @HiveField(15)
   String? userId; // ID of the user who owns this note
 
+  @HiveField(16)
+  String? topicId; // ID of the topic/group this note belongs to
+
   // Campi per funzionalità famiglia implementati
-  // @HiveField(16)
-  // String? familyMemberId; // ID of family member who created the note
   // @HiveField(17)
-  // String? sharedNotebookId; // ID of shared family notebook
+  // String? familyMemberId; // ID of family member who created the note
   // @HiveField(18)
-  // List<String>? sharedWith; // List of family member IDs who can access
+  // String? sharedNotebookId; // ID of shared family notebook
   // @HiveField(19)
+  // List<String>? sharedWith; // List of family member IDs who can access
+  // @HiveField(20)
   // bool isEmergencyContact; // Flag for emergency contact notes
 
   NoteModel({
@@ -87,6 +90,7 @@ class NoteModel extends HiveObject {
     this.reminderDate,
     this.isArchived = false,
     this.userId,
+    this.topicId,
   });
 
   /// Factory constructor for creating a new note with default metadata
@@ -129,6 +133,7 @@ class NoteModel extends HiveObject {
     DateTime? reminderDate,
     bool? isArchived,
     String? userId,
+    String? topicId,
   }) {
     return NoteModel(
       id: id,
@@ -147,6 +152,7 @@ class NoteModel extends HiveObject {
       reminderDate: reminderDate ?? this.reminderDate,
       isArchived: isArchived ?? this.isArchived,
       userId: userId ?? this.userId,
+      topicId: topicId ?? this.topicId,
     );
   }
 
@@ -200,6 +206,7 @@ class NoteModel extends HiveObject {
       'reminderDate': reminderDate?.toIso8601String(),
       'isArchived': isArchived,
       'userId': userId,
+      'topicId': topicId,
     };
   }
 
@@ -223,6 +230,7 @@ class NoteModel extends HiveObject {
           : null,
       isArchived: json['isArchived'] as bool? ?? false,
       userId: json['userId'] as String?,
+      topicId: json['topicId'] as String?,
     );
   }
 
