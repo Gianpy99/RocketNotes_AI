@@ -5,10 +5,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/topic.dart';
-import '../../data/models/note.dart';
 import '../../data/repositories/topic_repository.dart';
 import '../../data/repositories/note_repository.dart';
 import '../../data/services/topic_ai_service.dart';
+import 'topic_detail_screen.dart';
 
 // Provider for topic repository
 final topicRepositoryProvider = Provider<TopicRepository>((ref) {
@@ -385,9 +385,10 @@ class _TopicsScreenState extends ConsumerState<TopicsScreen> {
   }
 
   void _openTopicDetail(Topic topic) {
-    // TODO: Navigate to topic detail screen with notes filtered by topicId
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Opening ${topic.name}...')),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => TopicDetailScreen(topic: topic),
+      ),
     );
   }
 

@@ -169,7 +169,7 @@ class OCRMetadataAdapter extends TypeAdapter<OCRMetadata> {
       engine: fields[0] as String,
       overallConfidence: fields[1] as double,
       detectedLanguages: (fields[2] as List).cast<String>(),
-      processingTime: fields[3] as Duration,
+      processingTimeMs: fields[3] as int,
       additionalData: (fields[4] as Map).cast<String, dynamic>(),
     );
   }
@@ -185,7 +185,7 @@ class OCRMetadataAdapter extends TypeAdapter<OCRMetadata> {
       ..writeByte(2)
       ..write(obj.detectedLanguages)
       ..writeByte(3)
-      ..write(obj.processingTime)
+      ..write(obj.processingTimeMs)
       ..writeByte(4)
       ..write(obj.additionalData);
   }

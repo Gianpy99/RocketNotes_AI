@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/note_model.dart';
 import '../main_simple.dart';
+import '../presentation/providers/app_providers_simple.dart' as providers;
 import 'note_editor_screen.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
@@ -153,7 +154,7 @@ class SearchResultCard extends StatelessWidget {
         onTap: () {
           // Pass current app mode as immediate fallback to avoid race
           final container = ProviderScope.containerOf(context);
-          final currentMode = container.read(appModeProvider);
+          final currentMode = container.read(providers.appModeProvider);
           Navigator.push(
             context,
             MaterialPageRoute(

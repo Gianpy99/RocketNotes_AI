@@ -39,7 +39,7 @@ class OCRService {
       await _processImage(scannedContent, imagePath);
       
       stopwatch.stop();
-      scannedContent.ocrMetadata.processingTime = stopwatch.elapsed;
+      scannedContent.ocrMetadata.processingTimeMs = stopwatch.elapsedMilliseconds;
       scannedContent.status = ProcessingStatus.completed;
       
       DebugLogger().log('✅ OCR: Processing completed in ${stopwatch.elapsedMilliseconds}ms');
@@ -57,7 +57,7 @@ class OCRService {
         engine: 'google_ml_kit_error',
         overallConfidence: 0.0,
         detectedLanguages: [],
-        processingTime: stopwatch.elapsed,
+        processingTimeMs: stopwatch.elapsedMilliseconds,
         additionalData: {'error': e.toString()},
       );
       return scannedContent;
@@ -110,7 +110,7 @@ class OCRService {
         engine: 'google_ml_kit',
         overallConfidence: overallConfidence,
         detectedLanguages: ['en'], // ML Kit would require additional detection
-        processingTime: Duration.zero, // Will be set by caller
+        processingTimeMs: 0, // Will be set by caller
         additionalData: {
           'blocks_count': recognizedText.blocks.length,
           'cross_platform': true,

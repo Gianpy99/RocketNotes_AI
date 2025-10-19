@@ -3,13 +3,46 @@
 // ==========================================
 
 import 'package:flutter/foundation.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../models/note.dart';
 import '../models/topic.dart';
-import 'ai_service.dart';
 
 /// Service for AI-powered topic analysis and summarization
 class TopicAIService {
-  final AIService _aiService = AIService();
+  static const String _openAIApiKey = 'YOUR_OPENAI_API_KEY'; // TODO: Move to secure config
+  
+  /// Call OpenAI API for text generation
+  Future<String> _chat(String prompt) async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.openai.com/v1/chat/completions'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_openAIApiKey',
+        },
+        body: json.encode({
+          'model': 'gpt-3.5-turbo',
+          'messages': [
+            {'role': 'user', 'content': prompt}
+          ],
+          'max_tokens': 500,
+          'temperature': 0.7,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['choices'][0]['message']['content'];
+      } else {
+        debugPrint('[TopicAI] API Error: ${response.statusCode} ${response.body}');
+        return 'Unable to generate AI response. Please try again.';
+      }
+    } catch (e) {
+      debugPrint('[TopicAI] Exception: $e');
+      return 'AI service temporarily unavailable.';
+    }
+  }
 
   /// Generate a comprehensive summary of all notes in a topic
   Future<TopicSummary> generateTopicSummary({
@@ -35,7 +68,7 @@ class TopicAIService {
 
       // Generate AI summary
       final prompt = _buildSummaryPrompt(topic, notes, notesContext);
-      final aiResponse = await _aiService.chat(prompt);
+      final aiResponse = await _chat(prompt);
 
       // Parse AI response
       final summary = _parseAISummary(aiResponse);
@@ -84,7 +117,7 @@ ${notes.map((n) => '- ${n.title}: ${n.content.substring(0, n.content.length > 20
 Provide a concise analysis (max 300 words).
 ''';
 
-      return await _aiService.chat(prompt);
+      return await _chat(prompt);
     } catch (e) {
       debugPrint('[TopicAI] Error generating insights: $e');
       return 'Error generating insights: $e';
@@ -114,7 +147,7 @@ Provide insights about:
 Keep it brief (max 200 words).
 ''';
 
-      return await _aiService.chat(prompt);
+      return await _chat(prompt);
     } catch (e) {
       return 'Error comparing topics: $e';
     }

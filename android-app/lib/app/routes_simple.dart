@@ -24,6 +24,7 @@ import '../screens/shopping_categories_screen.dart';
 import '../presentation/screens/statistics_screen.dart' as stats;
 import '../../features/rocketbook/camera/camera_screen.dart';
 import '../screens/audio_note_screen.dart';
+import '../presentation/screens/topics_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -143,6 +144,10 @@ class AppRouter {
       GoRoute(
         path: '/statistics',
         builder: (context, state) => const stats.StatisticsScreen(),
+      ),
+      GoRoute(
+        path: '/topics',
+        builder: (context, state) => const TopicsScreen(),
       ),
       // Widget deep links
       GoRoute(

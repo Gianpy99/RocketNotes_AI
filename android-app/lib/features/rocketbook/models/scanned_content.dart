@@ -116,7 +116,7 @@ class OCRMetadata extends HiveObject {
   List<String> detectedLanguages;
 
   @HiveField(3)
-  Duration processingTime;
+  int processingTimeMs; // Duration in milliseconds
 
   @HiveField(4)
   Map<String, dynamic> additionalData;
@@ -125,16 +125,19 @@ class OCRMetadata extends HiveObject {
     required this.engine,
     required this.overallConfidence,
     required this.detectedLanguages,
-    required this.processingTime,
+    required this.processingTimeMs,
     required this.additionalData,
   });
+
+  // Helper getter per ottenere Duration
+  Duration get processingTime => Duration(milliseconds: processingTimeMs);
 
   factory OCRMetadata.empty() {
     return OCRMetadata(
       engine: 'none',
       overallConfidence: 0.0,
       detectedLanguages: [],
-      processingTime: Duration.zero,
+      processingTimeMs: 0,
       additionalData: {},
     );
   }

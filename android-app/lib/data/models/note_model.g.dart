@@ -33,13 +33,14 @@ class NoteModelAdapter extends TypeAdapter<NoteModel> {
       reminderDate: fields[13] as DateTime?,
       isArchived: fields[14] as bool,
       userId: fields[15] as String?,
+      topicId: fields[16] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, NoteModel obj) {
     writer
-      ..writeByte(16)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -71,7 +72,9 @@ class NoteModelAdapter extends TypeAdapter<NoteModel> {
       ..writeByte(14)
       ..write(obj.isArchived)
       ..writeByte(15)
-      ..write(obj.userId);
+      ..write(obj.userId)
+      ..writeByte(16)
+      ..write(obj.topicId);
   }
 
   @override

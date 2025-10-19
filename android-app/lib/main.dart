@@ -1,10 +1,7 @@
-// ==========================================
 // lib/main.dart - CLEANED UP MAIN ENTRY POINT
 // ==========================================
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 // App imports
@@ -16,11 +13,14 @@ import 'data/models/app_settings_model.dart';
 import 'data/models/family_member_model.dart';
 import 'data/models/shared_notebook_model.dart';
 import 'data/models/usage_monitoring_model.dart';
+import 'data/models/topic.dart';
 import 'data/services/cost_monitoring_service.dart';
 import 'data/services/note_sync_service.dart';
+import 'data/services/cloud_backup_service.dart';
 import 'features/rocketbook/ai_analysis/ai_service.dart';
 import 'features/rocketbook/ocr/ocr_service_real.dart';
 import 'features/rocketbook/models/scanned_content.dart';
+import 'features/rocketbook/services/symbol_action_service.dart';
 import 'core/services/family_service.dart';
 
 // FAMILY_FEATURES implementate - Gestione membri famiglia completata
@@ -92,6 +92,7 @@ Future<void> main() async {
     if (!Hive.isAdapterRegistered(19)) Hive.registerAdapter(FamilyMemberAdapter());
     if (!Hive.isAdapterRegistered(21)) Hive.registerAdapter(PriorityAdapter());
     if (!Hive.isAdapterRegistered(22)) Hive.registerAdapter(SharedNotebookAdapter());
+    if (!Hive.isAdapterRegistered(23)) Hive.registerAdapter(TopicAdapter());
     
     debugPrint('✅ Hive adapters registered');
 
@@ -120,8 +121,8 @@ Future<void> main() async {
     await Hive.openBox<UsageMonitoringModel>('usage_monitoring');
     await Hive.openBox<ScannedContent>(AppConstants.scansBox);
     await Hive.openBox<FamilyMember>('familyMembers');
-
-    debugPrint('✅ All Hive boxes opened successfully');
+    await Hive.openBox<Map>('rocketbook_symbol_config');
+    await Hive.openBox<Topic>('topics');
 
     debugPrint('✅ All Hive boxes opened successfully');
 
@@ -155,6 +156,18 @@ Future<void> main() async {
     // ----------------------------------
     await NoteSyncService.instance.initialize();
     debugPrint('✅ Note Sync Service initialized - auto-sync every 30s');
+
+    // ----------------------------------
+    // Initialize Rocketbook Symbol Actions
+    // ----------------------------------
+    await SymbolActionService.instance.initialize();
+    debugPrint('✅ Rocketbook Symbol Actions initialized');
+
+    // ----------------------------------
+    // Initialize Cloud Backup Service
+    // ----------------------------------
+    await CloudBackupService.instance.initialize();
+    debugPrint('✅ Cloud Backup Service initialized');
 
   } catch (e, stackTrace) {
     // Critical error - show it clearly

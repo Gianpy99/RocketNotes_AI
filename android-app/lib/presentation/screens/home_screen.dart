@@ -1,9 +1,8 @@
-// lib/presentation/screens/home_screen.dart
+﻿// lib/presentation/screens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
-import '../../data/models/note_model.dart';
 import '../../data/services/nfc_service.dart';
 import '../../data/services/deep_link_service.dart';
 import '../../features/rocketbook/camera/camera_screen.dart';
@@ -124,6 +123,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.topic_outlined),
+                tooltip: 'Topics',
+                onPressed: () => context.push('/topics'),
+              ),
               const FamilyMemberSelector(),
               IconButton(
                 icon: const Icon(Icons.settings),
@@ -344,135 +348,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ),
   ],
 );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inMinutes < 1) {
-      return 'Just now';
-    } else if (difference.inHours < 1) {
-      return '${difference.inMinutes}m ago';
-    } else if (difference.inDays < 1) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
-    } else {
-      return '${date.day}/${date.month}/${date.year}';
-    }
-  }
-
-  Widget _buildRecentNotesSection(BuildContext context, AsyncValue<List<NoteModel>> notesAsync, String title) {
-    return notesAsync.when(
-      data: (notes) {
-        if (notes.isNotEmpty) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ...notes.take(3).map((note) => Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: note.mode == 'work'
-                            ? AppColors.workBlue
-                            : AppColors.personalGreen,
-                        child: Icon(
-                          note.mode == 'work' ? Icons.work : Icons.home,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                      title: Text(
-                        note.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(
-                        note.content,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      trailing: Text(
-                        _formatDate(note.updatedAt),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      onTap: () => context.push('/editor?id=${note.id}'),
-                    ),
-                  )),
-            ],
-          );
-        } else {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Theme.of(context).dividerColor,
-                    style: BorderStyle.solid,
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.note_add_outlined,
-                      size: 48,
-                      color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.5),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'No recent notes',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Create your first note to get started',
-                      style: Theme.of(context).textTheme.bodySmall,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        }
-      },
-      loading: () => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Center(child: CircularProgressIndicator()),
-        ],
-      ),
-      error: (error, stack) => const SizedBox.shrink(),
-    );
   }
 
 }

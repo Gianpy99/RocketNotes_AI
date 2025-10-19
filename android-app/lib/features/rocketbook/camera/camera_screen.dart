@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:camera/camera.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'camera_service.dart';
 import 'web_camera_service.dart';
 import '../ocr/ocr_service_real.dart';
@@ -15,6 +16,7 @@ import 'package:uuid/uuid.dart';
 import 'package:hive/hive.dart';
 import '../../../core/constants/app_constants.dart';
 import '../models/scanned_content.dart';
+import '../services/rocketbook_orchestrator_service.dart';
 
 // Provider per il camera service (web o mobile)
 final cameraServiceProvider = Provider<dynamic>((ref) {
@@ -874,7 +876,7 @@ class ImagePreviewScreen extends ConsumerWidget {
             ),
             SizedBox(height: 12),
             Text(
-              '1. Extracting text with OCR\n2. Analyzing content with AI\n3. Generating smart notes',
+              '1. Checking for Rocketbook page\n2. Extracting text with OCR\n3. Analyzing content with AI\n4. Generating smart notes',
               style: TextStyle(fontSize: 14, color: Colors.grey),
               textAlign: TextAlign.center,
             ),
@@ -891,6 +893,12 @@ class ImagePreviewScreen extends ConsumerWidget {
     try {
       DebugLogger().log('📷 Starting image processing...');
       
+      // Get current user
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId == null) {
+        throw Exception('User not authenticated');
+      }
+      
       // Initialize and use OCR service
       final ocrService = OCRService.instance;
       await ocrService.initialize();
@@ -901,6 +909,80 @@ class ImagePreviewScreen extends ConsumerWidget {
       DebugLogger().log('📝 OCR processing complete. Text length: ${scannedContent.rawText.length}');
       
       if (scannedContent.rawText.isNotEmpty) {
+        // 🚀 NEW: Try Rocketbook automatic processing first
+        DebugLogger().log('🔍 Checking if this is a Rocketbook page...');
+        
+        // Read image bytes for template recognition
+        final imageBytes = await File(imagePath).readAsBytes();
+        
+        // Process with Rocketbook Orchestrator (seamless detection)
+        final rocketbookResult = await RocketbookOrchestratorService.instance
+            .processScannedImage(
+          imageBytes: imageBytes,
+          ocrText: scannedContent.rawText,
+          userId: userId,
+        );
+        
+        if (rocketbookResult.isRocketbook) {
+          // 🎉 Rocketbook page detected and processed!
+          DebugLogger().log('✅ Rocketbook page processed automatically!');
+          
+          if (context.mounted) {
+            Navigator.of(context).pop(); // Close loading dialog
+            
+            // Show success message with template info
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Row(
+                  children: [
+                    Icon(Icons.rocket_launch, color: Colors.blue),
+                    SizedBox(width: 8),
+                    Text('Rocketbook Detected!'),
+                  ],
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Template: ${rocketbookResult.template?.displayName}',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Confidence: ${(rocketbookResult.confidence! * 100).toStringAsFixed(0)}%',
+                    ),
+                    if (rocketbookResult.markedSymbols?.isNotEmpty == true) ...[
+                      SizedBox(height: 8),
+                      Text(
+                        'Actions: ${rocketbookResult.actionResult?.summary}',
+                        style: TextStyle(color: Colors.green),
+                      ),
+                    ],
+                    SizedBox(height: 16),
+                    Text('Note created with structured data!'),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Close dialog
+                      Navigator.of(context).pop(); // Return to previous screen
+                      Navigator.of(context).pop(); // Return to camera
+                    },
+                    child: Text('Done'),
+                  ),
+                ],
+              ),
+            );
+          }
+          return; // Exit processing - Rocketbook handled everything
+        }
+        
+        // Not a Rocketbook page - proceed with normal AI analysis
+        DebugLogger().log('ℹ️ Not a Rocketbook page, processing as normal scan');
+        
         // Get AI service from provider (already initialized)
         final aiService = ref.read(aiServiceProvider);
         DebugLogger().log('🤖 Using AI Service from provider');
