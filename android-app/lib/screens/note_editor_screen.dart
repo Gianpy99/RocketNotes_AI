@@ -166,6 +166,9 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                 case 'share':
                   _shareNote();
                   break;
+                case 'move_to_folder':
+                  _showMoveToFolderDialog();
+                  break;
                 case 'delete':
                   if (_isEditing) _deleteNote();
                   break;
@@ -174,6 +177,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
             itemBuilder: (context) => [
               const PopupMenuItem(value: 'save', child: ListTile(leading: Icon(Icons.save), title: Text('Salva'), contentPadding: EdgeInsets.zero)),
               const PopupMenuItem(value: 'share', child: ListTile(leading: Icon(Icons.share), title: Text('Condividi'), contentPadding: EdgeInsets.zero)),
+              if (_isEditing) const PopupMenuItem(value: 'move_to_folder', child: ListTile(leading: Icon(Icons.folder_open), title: Text('Sposta in Cartella'), contentPadding: EdgeInsets.zero)),
               if (_isEditing) const PopupMenuItem(value: 'delete', child: ListTile(leading: Icon(Icons.delete, color: Colors.red), title: Text('Elimina', style: TextStyle(color: Colors.red)), contentPadding: EdgeInsets.zero)),
             ],
           ),
@@ -215,5 +219,72 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(onPressed: _saveNote, icon: const Icon(Icons.save), label: Text(_isEditing ? 'Aggiorna Nota' : 'Salva Nota')),
     );
+  }
+
+  void _showMoveToFolderDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sposta in Cartella'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Seleziona una cartella o crea una nuova:'),
+            const SizedBox(height: 16),
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'Nome Cartella/Topic',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.folder),
+              ),
+              onSubmitted: (value) {
+                if (value.trim().isNotEmpty) {
+                  _moveToFolder(value.trim());
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Annulla'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _moveToFolder(String folderName) async {
+    if (widget.note == null) return;
+    
+    try {
+      final updatedNote = widget.note!.copyWith(
+        topicId: folderName,
+        updatedAt: DateTime.now(),
+      );
+      
+      final noteProvider = ref.read(notesProvider.notifier);
+      await noteProvider.saveNote(updatedNote);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Nota spostata in "$folderName"'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Errore: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

@@ -14,12 +14,18 @@ class CameraService {
   List<CameraDescription>? _cameras;
   bool _isInitialized = false;
   bool _isCapturing = false; // New flag to track capture state
+  double _currentZoomLevel = 1.0;
+  double _minZoomLevel = 1.0;
+  double _maxZoomLevel = 1.0;
 
   // Getters
   CameraController? get controller => _controller;
   bool get isInitialized => _isInitialized;
   bool get isCapturing => _isCapturing;
   List<CameraDescription>? get cameras => _cameras;
+  double get currentZoomLevel => _currentZoomLevel;
+  double get minZoomLevel => _minZoomLevel;
+  double get maxZoomLevel => _maxZoomLevel;
 
   /// Initialize the camera service
   Future<bool> initialize() async {
@@ -46,6 +52,17 @@ class CameraService {
 
       // Configure with optimized settings
       await _controller!.initialize();
+      
+      // Get zoom capabilities
+      _minZoomLevel = await _controller!.getMinZoomLevel();
+      _maxZoomLevel = await _controller!.getMaxZoomLevel();
+      _currentZoomLevel = 1.0;
+      
+      // Set focus mode to auto-focus with continuous mode for better sharpness
+      await _controller!.setFocusMode(FocusMode.auto);
+      
+      // Set exposure mode to auto for better lighting
+      await _controller!.setExposureMode(ExposureMode.auto);
       
       // Set flash to AUTO for better lighting in low-light conditions
       await _controller!.setFlashMode(FlashMode.auto);
@@ -282,6 +299,47 @@ class CameraService {
       final maxZoom = await getMaxZoomLevel();
       final clampedZoom = zoom.clamp(minZoom, maxZoom);
       await _controller!.setZoomLevel(clampedZoom);
+      _currentZoomLevel = clampedZoom;
+    }
+  }
+
+  /// 🎯 NEW: Set focus point manually by tapping on preview
+  Future<void> setFocusPoint(Offset point) async {
+    if (_controller != null && _controller!.value.isInitialized) {
+      try {
+        debugPrint('🎯 CameraService: Setting focus point to: $point');
+        await _controller!.setFocusPoint(point);
+        await _controller!.setExposurePoint(point); // Also adjust exposure to same point
+      } catch (e) {
+        debugPrint('❌ CameraService: Error setting focus point: $e');
+      }
+    }
+  }
+
+  /// 💡 NEW: Set exposure offset (-4.0 to 4.0)
+  Future<void> setExposureOffset(double offset) async {
+    if (_controller != null && _controller!.value.isInitialized) {
+      try {
+        final minExposure = await _controller!.getMinExposureOffset();
+        final maxExposure = await _controller!.getMaxExposureOffset();
+        final clampedOffset = offset.clamp(minExposure, maxExposure);
+        await _controller!.setExposureOffset(clampedOffset);
+        debugPrint('💡 CameraService: Exposure offset set to: $clampedOffset');
+      } catch (e) {
+        debugPrint('❌ CameraService: Error setting exposure: $e');
+      }
+    }
+  }
+
+  /// 🔄 NEW: Reset to auto focus mode
+  Future<void> resetFocus() async {
+    if (_controller != null && _controller!.value.isInitialized) {
+      try {
+        await _controller!.setFocusMode(FocusMode.auto);
+        debugPrint('🔄 CameraService: Focus reset to auto');
+      } catch (e) {
+        debugPrint('❌ CameraService: Error resetting focus: $e');
+      }
     }
   }
 }

@@ -98,11 +98,11 @@ class PageDetector {
     // Convert to grayscale
     var gray = img.grayscale(image);
     
-    // Apply Gaussian blur to reduce noise
-    gray = img.gaussianBlur(gray, radius: 2);
+    // Apply MILD Gaussian blur to reduce noise (REDUCED from 2 to 1)
+    gray = img.gaussianBlur(gray, radius: 1);
     
-    // Increase contrast
-    gray = img.adjustColor(gray, contrast: 1.3);
+    // Increase contrast SLIGHTLY (REDUCED from 1.3 to 1.15)
+    gray = img.adjustColor(gray, contrast: 1.15, brightness: 1.05);
     
     return gray;
   }
@@ -145,8 +145,8 @@ class PageDetector {
         
         final magnitude = math.sqrt(gx * gx + gy * gy).clamp(0, 255).toInt();
         
-        // Threshold to create binary edge map
-        final edgeValue = magnitude > 50 ? 255 : 0;
+        // Threshold to create binary edge map (LOWERED from 50 to 35 for better detection)
+        final edgeValue = magnitude > 35 ? 255 : 0;
         final color = img.ColorRgb8(edgeValue, edgeValue, edgeValue);
         sobelX.setPixel(x, y, color);
       }
@@ -344,16 +344,16 @@ class PageDetector {
   static bool _isValidQuad(List<Point> corners, int width, int height) {
     if (corners.length != 4) return false;
     
-    // Check minimum area (should be at least 10% of image)
+    // Check minimum area (RELAXED: 5% instead of 10% for distant/partial pages)
     final area = _calculateArea(corners);
-    final minArea = width * height * 0.1;
+    final minArea = width * height * 0.05;
     
     if (area < minArea) {
       print('[PageDetector] ❌ Quad too small: ${area.toInt()} < ${minArea.toInt()}');
       return false;
     }
     
-    // Check aspect ratio (should be roughly rectangular)
+    // Check aspect ratio (RELAXED: 0.3-3.5 instead of 0.5-2.5 for angled photos)
     final topWidth = corners[0].distanceTo(corners[1]);
     final bottomWidth = corners[3].distanceTo(corners[2]);
     final leftHeight = corners[0].distanceTo(corners[3]);
@@ -361,7 +361,7 @@ class PageDetector {
     
     final aspectRatio = math.max(topWidth, bottomWidth) / math.max(leftHeight, rightHeight);
     
-    if (aspectRatio < 0.5 || aspectRatio > 2.5) {
+    if (aspectRatio < 0.3 || aspectRatio > 3.5) {
       print('[PageDetector] ❌ Bad aspect ratio: ${aspectRatio.toStringAsFixed(2)}');
       return false;
     }
@@ -468,10 +468,11 @@ class PageDetector {
     print('[PageDetector] Checking for Rocketbook markers...');
     
     // Check corners for high-frequency patterns (QR codes)
-    final cornerSize = math.min(image.width, image.height) ~/ 8;
+    // INCREASED corner size for better detection (from 1/8 to 1/6)
+    final cornerSize = math.min(image.width, image.height) ~/ 6;
     int markersFound = 0;
     
-    // Check each corner
+    // Check each corner with MORE tolerance
     final corners = [
       (0, 0), // Top-left
       (image.width - cornerSize, 0), // Top-right
@@ -485,8 +486,8 @@ class PageDetector {
       }
     }
     
-    // Rocketbook pages have at least 2-3 markers
-    final isRocketbook = markersFound >= 2;
+    // RELAXED: Accept as Rocketbook with just 1 marker (often only bottom markers visible)
+    final isRocketbook = markersFound >= 1;
     print('[PageDetector] ${isRocketbook ? "✅" : "❌"} Rocketbook markers: $markersFound/4');
     
     return isRocketbook;
@@ -503,8 +504,11 @@ class PageDetector {
     double sumSq = 0;
     int count = 0;
     
-    for (int dy = 0; dy < size; dy++) {
-      for (int dx = 0; dx < size; dx++) {
+    // INCREASED sampling density - step every 2 pixels instead of every pixel for speed
+    final step = math.max(1, size ~/ 20); // Sample more densely
+    
+    for (int dy = 0; dy < size; dy += step) {
+      for (int dx = 0; dx < size; dx += step) {
         final pixel = image.getPixel(x + dx, y + dy);
         final intensity = pixel.r.toDouble();
         sum += intensity;
@@ -516,7 +520,8 @@ class PageDetector {
     final mean = sum / count;
     final variance = (sumSq / count) - (mean * mean);
     
-    // High variance indicates pattern (QR code has black/white squares)
-    return variance > 5000; // Empirical threshold
+    // LOWERED variance threshold (from 5000 to 3000) to catch markers with lower contrast
+    // This helps with different lighting conditions and worn markers
+    return variance > 3000;
   }
 }

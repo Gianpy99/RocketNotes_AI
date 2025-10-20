@@ -38,11 +38,6 @@ class BiometricAuthService {
     try {
       final authenticated = await _localAuth.authenticate(
         localizedReason: reason,
-        options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: true,
-          useErrorDialogs: true,
-        ),
       );
       return authenticated;
     } on PlatformException catch (_) {

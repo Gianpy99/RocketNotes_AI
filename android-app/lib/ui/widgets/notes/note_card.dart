@@ -83,9 +83,12 @@ class NoteCard extends StatelessWidget {
                   color: theme.textTheme.bodySmall?.color,
                 ),
                 const SizedBox(width: 4),
-                Text(
-                  _formatDate(note.updatedAt),
-                  style: theme.textTheme.bodySmall,
+                Expanded(
+                  child: Text(
+                    _formatDate(note.updatedAt),
+                    style: theme.textTheme.bodySmall,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),

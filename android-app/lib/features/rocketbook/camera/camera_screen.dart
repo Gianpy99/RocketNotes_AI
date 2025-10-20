@@ -259,9 +259,53 @@ class RocketbookCameraScreen extends ConsumerWidget {
 
     return Stack(
       children: [
-        // Camera preview
+        // Camera preview with tap-to-focus
         Positioned.fill(
-          child: CameraPreview(controller),
+          child: GestureDetector(
+            onTapDown: (TapDownDetails details) {
+              // Calculate relative position for focus point (0.0 to 1.0)
+              final RenderBox renderBox = context.findRenderObject() as RenderBox;
+              final Offset localPosition = renderBox.globalToLocal(details.globalPosition);
+              final Size size = renderBox.size;
+              
+              final double x = localPosition.dx / size.width;
+              final double y = localPosition.dy / size.height;
+              
+              // Set focus point
+              cameraService.setFocusPoint(Offset(x, y));
+              
+              // Show visual focus indicator
+              final overlay = Overlay.of(context);
+              late OverlayEntry entry;
+              entry = OverlayEntry(
+                builder: (ctx) => Positioned(
+                  left: details.localPosition.dx - 40,
+                  top: details.localPosition.dy - 40,
+                  child: TweenAnimationBuilder<double>(
+                    duration: const Duration(milliseconds: 600),
+                    tween: Tween(begin: 1.0, end: 0.0),
+                    onEnd: () => entry.remove(),
+                    builder: (context, value, child) {
+                      return Opacity(
+                        opacity: value,
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.white, width: 2),
+                            borderRadius: BorderRadius.circular(40),
+                          ),
+                          child: const Icon(Icons.center_focus_strong, color: Colors.white, size: 40),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
+              overlay.insert(entry);
+            },
+            child: CameraPreview(controller),
+          ),
         ),
 
         // Simple frame overlay (non-blocking)
@@ -1260,10 +1304,10 @@ class ImagePreviewScreen extends ConsumerWidget {
         attachments = [scannedContent.imagePath];
       }
       
-      DebugLogger().log('📄 Creating note with content: ${scannedContent.rawText.substring(0, scannedContent.rawText.length > 100 ? 100 : scannedContent.rawText.length)}...');
+      DebugLogger().log('📄 Creating note from AI analysis (OCR hidden)');
       
-      // Build enhanced content with AI analysis
-      String noteContent = scannedContent.rawText;
+      // Build content - ONLY AI ANALYSIS (hide raw OCR text)
+      String noteContent = '';
       
       // Add AI analysis to content if available
       if (scannedContent.aiAnalysis != null) {
@@ -1271,8 +1315,8 @@ class ImagePreviewScreen extends ConsumerWidget {
         
         DebugLogger().log('📝 Including AI analysis in note content');
         
-        // Add separator
-        noteContent += '\n\n' + '═' * 50 + '\n';
+        // Start with AI analysis header
+        noteContent += '═' * 50 + '\n';
         noteContent += '🤖 AI ANALYSIS\n';
         noteContent += '═' * 50 + '\n\n';
         
@@ -1392,3 +1436,4 @@ class ImagePreviewScreen extends ConsumerWidget {
     }
   }
 }
+

@@ -157,8 +157,6 @@ class NotificationService {
         tzScheduledDate,
         notificationDetails,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
         payload: note.id, // Pass note ID as payload
       );
 
