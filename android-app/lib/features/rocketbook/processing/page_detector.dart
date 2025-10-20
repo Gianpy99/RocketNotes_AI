@@ -20,7 +20,8 @@ class DetectedPage {
     this.isRocketbookPage = false,
   });
 
-  bool get isValid => corners.length == 4 && confidence > 0.5;
+  // RIDOTTO da 0.5 a 0.35 per Rocketbook (confidence più bassa accettabile)
+  bool get isValid => corners.length == 4 && confidence > 0.35;
 }
 
 class Point {

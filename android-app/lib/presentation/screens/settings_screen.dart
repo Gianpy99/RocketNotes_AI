@@ -8,6 +8,7 @@ import '../../core/constants/app_constants.dart';
 import '../../data/services/nfc_service.dart';
 import '../providers/app_providers.dart';
 import '../../features/rocketbook/ai_analysis/ai_service.dart';
+import '../../features/family/services/biometric_auth_service.dart';
 import 'cost_monitoring_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -388,6 +389,42 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           const SizedBox(height: 24),
 
+          // Privacy & Security Section
+          _buildSectionHeader('Privacy & Security'),
+          Card(
+            child: Column(
+              children: [
+                Consumer(
+                  builder: (context, ref, child) {
+                    return ref.watch(appSettingsProvider).when(
+                      data: (settings) {
+                        debugPrint('🔐 [SETTINGS] Rendering Biometric Lock toggle - value: ${settings.enableBiometric}');
+                        return SwitchListTile(
+                          secondary: const Icon(Icons.fingerprint),
+                          title: const Text('Biometric Lock'),
+                          subtitle: const Text('Require biometric authentication to open app'),
+                          value: settings.enableBiometric,
+                          onChanged: (value) async {
+                            debugPrint('🔐 [SETTINGS] Biometric Lock toggle tapped - new value: $value');
+                            await _toggleBiometricLock(value);
+                          },
+                        );
+                      },
+                      loading: () => const ListTile(
+                        leading: Icon(Icons.fingerprint),
+                        title: Text('Biometric Lock'),
+                        subtitle: Text('Loading...'),
+                      ),
+                      error: (_, __) => const SizedBox.shrink(),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
           // About Section
           _buildSectionHeader('About'),
           Card(
@@ -395,7 +432,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.info_outline),
-                  title: const Text('About RocketNotes AI'),
+                  title: const Text('About Pensieve'),
                   subtitle: const Text('Smart note-taking with NFC switching'),
                   onTap: () => _showAboutDialog(),
                 ),
@@ -537,6 +574,66 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Future<void> _toggleBiometricLock(bool enable) async {
+    try {
+      if (enable) {
+        // Verify biometric capability before enabling - usa direttamente il service
+        final biometricService = BiometricAuthService();
+        final isAvailable = await biometricService.isBiometricAvailable();
+        
+        if (!isAvailable) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Biometric authentication not available on this device'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return;
+        }
+
+        // Authenticate before enabling
+        final authenticated = await biometricService.authenticate(
+          reason: 'Enable biometric lock',
+        );
+        
+        if (!authenticated) {
+          return; // User cancelled or failed authentication
+        }
+      }
+
+      // Update settings
+      final settingsAsync = ref.read(appSettingsProvider);
+      if (settingsAsync.hasValue && settingsAsync.value != null) {
+        await ref.read(appSettingsProvider.notifier).updateSettings(
+          settingsAsync.value!.copyWith(enableBiometric: enable),
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(enable
+                  ? 'Blocco biometrico abilitato'
+                  : 'Blocco biometrico disabilitato'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error toggling biometric lock: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Errore: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   void _showThemeDialog() {
     showDialog(
       context: context,
@@ -574,7 +671,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'How to use NFC tags with RocketNotes:',
+                'How to use NFC tags with Pensieve:',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 16),
@@ -582,8 +679,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               SizedBox(height: 8),
               Text('2. Write these URLs to your tags:'),
               SizedBox(height: 8),
-              Text('   • Work mode: rocketnotes://work'),
-              Text('   • Personal mode: rocketnotes://personal'),
+              Text('   • Work mode: pensieve://work'),
+              Text('   • Personal mode: pensieve://personal'),
               SizedBox(height: 16),
               Text('3. Tap the NFC tag with your phone to quickly switch modes'),
               SizedBox(height: 16),
@@ -647,11 +744,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         width: 64,
         height: 64,
         decoration: BoxDecoration(
-          color: Theme.of(context).primaryColor,
+          gradient: LinearGradient(
+            colors: [Colors.deepPurple, Colors.purpleAccent],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.deepPurple.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: Offset(0, 4),
+            ),
+          ],
         ),
         child: const Icon(
-          Icons.rocket_launch,
+          Icons.psychology, // Brain/mind icon perfect for Pensieve
           size: 32,
           color: Colors.white,
         ),
@@ -659,17 +767,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       children: [
         const SizedBox(height: 16),
         const Text(
-          'RocketNotes AI is a smart note-taking app that uses NFC tags '
-          'to quickly switch between work and personal modes.',
+          'Pensieve is an intelligent memory storage system that captures '
+          'and organizes your thoughts, notes, and memories with AI assistance.',
+          style: TextStyle(fontSize: 14),
         ),
         const SizedBox(height: 16),
         const Text(
           'Features:\n'
-          '• Work/Personal mode switching\n'
-          '• NFC tag integration\n'
+          '• Smart work/personal mode switching\n'
+          '• NFC tag quick access\n'
           '• AI-powered note enhancement\n'
-          '• Local storage with sync\n'
-          '• Dark/Light theme support',
+          '• Biometric security\n'
+          '• Rocketbook scanning integration\n'
+          '• Cloud sync with Firebase\n'
+          '• Family sharing capabilities',
+          style: TextStyle(fontSize: 13),
         ),
       ],
     );

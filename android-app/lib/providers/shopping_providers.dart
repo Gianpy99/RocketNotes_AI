@@ -462,6 +462,50 @@ class ShoppingTemplatesNotifier extends StateNotifier<List<ShoppingListTemplate>
     state = state.where((template) => template.id != templateId).toList();
   }
 
+  // Mark template as used (increment usage count)
+  void markAsUsed(String templateId) {
+    state = state.map((template) {
+      if (template.id == templateId) {
+        return ShoppingListTemplate(
+          id: template.id,
+          name: template.name,
+          description: template.description,
+          category: template.category,
+          defaultItems: template.defaultItems,
+          isPublic: template.isPublic,
+          createdAt: template.createdAt,
+          createdBy: template.createdBy,
+          isFavorite: template.isFavorite,
+          usageCount: template.usageCount + 1,
+          lastUsed: DateTime.now(),
+        );
+      }
+      return template;
+    }).toList();
+  }
+
+  // Toggle favorite status
+  void toggleFavorite(String templateId) {
+    state = state.map((template) {
+      if (template.id == templateId) {
+        return ShoppingListTemplate(
+          id: template.id,
+          name: template.name,
+          description: template.description,
+          category: template.category,
+          defaultItems: template.defaultItems,
+          isPublic: template.isPublic,
+          createdAt: template.createdAt,
+          createdBy: template.createdBy,
+          isFavorite: !template.isFavorite,
+          usageCount: template.usageCount,
+          lastUsed: template.lastUsed,
+        );
+      }
+      return template;
+    }).toList();
+  }
+
   // Create shopping list from template
   ShoppingList createListFromTemplate(String templateId, String createdBy) {
     final template = state.firstWhere((t) => t.id == templateId);
@@ -490,5 +534,25 @@ class ShoppingTemplatesNotifier extends StateNotifier<List<ShoppingListTemplate>
       createdBy: createdBy,
       sharedWith: [],
     );
+  }
+}
+
+// ==========================================
+// Category Filter Provider
+// ==========================================
+
+final categoryFilterProvider = StateNotifierProvider<CategoryFilterNotifier, ShoppingCategory?>((ref) {
+  return CategoryFilterNotifier();
+});
+
+class CategoryFilterNotifier extends StateNotifier<ShoppingCategory?> {
+  CategoryFilterNotifier() : super(null);
+
+  void setFilter(ShoppingCategory category) {
+    state = category;
+  }
+
+  void clearFilter() {
+    state = null;
   }
 }

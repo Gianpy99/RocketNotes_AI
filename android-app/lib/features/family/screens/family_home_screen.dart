@@ -14,6 +14,7 @@ import '../widgets/family_member_card.dart';
 import '../widgets/shared_note_card.dart';
 import '../widgets/family_stats_card.dart';
 import 'create_family_screen.dart';
+import 'invite_member_screen.dart';
 
 class FamilyHomeScreen extends ConsumerStatefulWidget {
   const FamilyHomeScreen({super.key});
@@ -71,7 +72,13 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen>
           ),
           IconButton(
             icon: const Icon(Icons.person_add),
-            onPressed: () => AppRouter.goToInviteMember(),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const InviteMemberScreen(),
+                ),
+              );
+            },
             tooltip: 'Invite Member',
           ),
         ],

@@ -5,11 +5,12 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/note_model.dart';
 
 /// Service to sync notes between local Hive storage and Firestore cloud
-class NoteSyncService {
+class NoteSyncService with WidgetsBindingObserver {
   static const String _notesCollection = 'notes';
   static const Duration _syncInterval = Duration(seconds: 30);
   
@@ -23,6 +24,7 @@ class NoteSyncService {
 
   Timer? _syncTimer;
   bool _isSyncing = false;
+  bool _isPaused = false;
   DateTime? _lastSyncTime;
   StreamSubscription<QuerySnapshot>? _cloudNotesSubscription;
 
@@ -31,11 +33,14 @@ class NoteSyncService {
     try {
       debugPrint('🔄 NoteSyncService: Initializing...');
       
+      // Register as lifecycle observer
+      WidgetsBinding.instance.addObserver(this);
+      
       // Initial sync
       await syncNotes();
       
       // Setup automatic sync interval
-      _syncTimer = Timer.periodic(_syncInterval, (_) => syncNotes());
+      _startTimer();
       
       // Listen to real-time Firestore changes
       _setupCloudListener();
@@ -43,6 +48,49 @@ class NoteSyncService {
       debugPrint('✅ NoteSyncService: Initialized with ${_syncInterval.inSeconds}s interval');
     } catch (e) {
       debugPrint('❌ NoteSyncService: Initialization failed: $e');
+    }
+  }
+
+  /// Start the sync timer
+  void _startTimer() {
+    _syncTimer?.cancel();
+    _syncTimer = Timer.periodic(_syncInterval, (_) {
+      if (!_isPaused) {
+        syncNotes();
+      }
+    });
+  }
+
+  /// Stop the sync timer
+  void _stopTimer() {
+    _syncTimer?.cancel();
+    _syncTimer = null;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    debugPrint('🔄 NoteSyncService: App lifecycle changed: $state');
+    
+    switch (state) {
+      case AppLifecycleState.resumed:
+        // App in foreground - resume sync and reconnect Firestore listener
+        debugPrint('▶️ NoteSyncService: Resuming sync (app in foreground)');
+        _isPaused = false;
+        _setupCloudListener(); // Reconnect Firestore listener
+        syncNotes(); // Immediate sync when returning to foreground
+        break;
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.detached:
+        // App in background - pause sync and disconnect Firestore to save battery
+        debugPrint('⏸️ NoteSyncService: Pausing sync (app in background)');
+        _isPaused = true;
+        _cloudNotesSubscription?.cancel(); // Disconnect Firestore listener
+        _cloudNotesSubscription = null;
+        debugPrint('🔌 NoteSyncService: Firestore listener disconnected');
+        break;
     }
   }
 
@@ -234,7 +282,8 @@ class NoteSyncService {
 
   /// Dispose service and cleanup
   void dispose() {
-    _syncTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    _stopTimer();
     _cloudNotesSubscription?.cancel();
     _instance = null;
     debugPrint('🛑 NoteSyncService: Disposed');

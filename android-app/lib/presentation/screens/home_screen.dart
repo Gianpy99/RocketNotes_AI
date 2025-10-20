@@ -106,22 +106,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           body: CustomScrollView(
             slivers: [
               SliverAppBar(
-                expandedHeight: 120,
+                expandedHeight: 0,
                 floating: false,
                 pinned: true,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: currentMode == 'work'
-                        ? [AppColors.workBlue, AppColors.workBlue.withValues(alpha: 0.8)]
-                        : [AppColors.personalGreen, AppColors.personalGreen.withValues(alpha: 0.8)],
-                  ),
-                ),
-              ),
-            ),
+                backgroundColor: currentMode == 'work'
+                    ? AppColors.workBlue
+                    : AppColors.personalGreen,
             actions: [
               IconButton(
                 icon: const Icon(Icons.topic_outlined),

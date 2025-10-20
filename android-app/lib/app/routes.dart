@@ -7,6 +7,9 @@ import 'package:go_router/go_router.dart';
 import '../presentation/screens/splash_screen.dart';
 import '../presentation/screens/home_screen.dart';
 import '../presentation/screens/note_editor_screen.dart';
+// Legacy/simple note editor (used by some parts of the app via context.push('/note-editor', extra: NoteModel))
+import '../screens/note_editor_screen.dart' as simple_editor;
+import '../data/models/note_model.dart';
 import '../presentation/screens/notes_list_screen.dart';
 import '../presentation/screens/settings_screen.dart';
 import '../presentation/screens/favorites_screen.dart';
@@ -76,7 +79,20 @@ class AppRouter {
         },
       ),
       
-      // Note Editor Screen
+      // Legacy/simple Note Editor route - accepts NoteModel via state.extra
+      GoRoute(
+        path: '/note-editor',
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is NoteModel) {
+            return simple_editor.NoteEditorScreen(note: extra);
+          }
+          // Fallback: open empty/simple editor
+          return simple_editor.NoteEditorScreen(note: null);
+        },
+      ),
+
+      // Presentation Note Editor Screen (modern)
       GoRoute(
         path: '/editor',
         name: 'editor',

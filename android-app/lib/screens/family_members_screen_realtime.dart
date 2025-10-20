@@ -545,19 +545,225 @@ class _FamilyMembersScreenState extends ConsumerState<FamilyMembersScreen> with 
   }
 
   void _showAddMemberDialog() {
+    print('🔵 [DEBUG] _showAddMemberDialog called in REALTIME screen!');
+    debugPrint('🔵 [DEBUG] _showAddMemberDialog called in REALTIME screen!');
+    
+    final emailController = TextEditingController();
+    FamilyRole selectedRole = FamilyRole.editor;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Invite Family Member'),
-        content: const Text('Family member invitation feature will be implemented soon.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Invite Family Member'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Enter the email address of the person you want to invite to your family.',
+                  style: TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: emailController,
+                  decoration: const InputDecoration(
+                    labelText: 'Email Address',
+                    hintText: 'example@email.com',
+                    prefixIcon: Icon(Icons.email),
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  autofocus: true,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Select Member Role:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<FamilyRole>(
+                  value: selectedRole,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  items: [
+                    DropdownMenuItem(
+                      value: FamilyRole.admin,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Admin', style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text('Can manage members and settings', 
+                            style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: FamilyRole.editor,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Editor', style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text('Can create and edit notes', 
+                            style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: FamilyRole.viewer,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Viewer', style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text('Can only view shared notes', 
+                            style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                        ],
+                      ),
+                    ),
+                  ],
+                  onChanged: (FamilyRole? newValue) {
+                    if (newValue != null) {
+                      setState(() {
+                        selectedRole = newValue;
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'An invitation email will be sent to this address.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () {
+                emailController.dispose();
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () async {
+                final email = emailController.text.trim();
+                
+                // Validate email
+                if (email.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter an email address'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                  return;
+                }
+
+                if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter a valid email address'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                  return;
+                }
+
+                // Close dialog
+                emailController.dispose();
+                Navigator.of(dialogContext).pop();
+
+                // Send invitation
+                _inviteMember(email, selectedRole);
+              },
+              icon: const Icon(Icons.send),
+              label: const Text('Send Invitation'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  void _inviteMember(String email, FamilyRole role) async {
+    if (_currentFamilyId == null) return;
+
+    try {
+      // Show loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              SizedBox(width: 16),
+              Text('Sending invitation...'),
+            ],
+          ),
+          duration: Duration(seconds: 30),
+        ),
+      );
+
+      final result = await _familyService.inviteMember(
+        familyId: _currentFamilyId!,
+        inviteeEmail: email,
+        role: role,
+      );
+
+      // Hide loading
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      if (result.isSuccess && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Invitation sent to $email successfully!'),
+            backgroundColor: Colors.green,
+            action: SnackBarAction(
+              label: 'OK',
+              textColor: Colors.white,
+              onPressed: () {},
+            ),
+          ),
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send invitation: ${result.error ?? "Unknown error"}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    }
   }
 
   void _showCreateFamilyDialog() {

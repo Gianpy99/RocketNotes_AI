@@ -1,14 +1,25 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Permessi per connessione internet (OBBLIGATORIO per Firebase) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    
     <!-- Permessi per fotocamera e storage -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
                      android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     
+    <!-- Permessi per autenticazione biometrica -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+    
     <!-- Feature hardware camera (opzionale se l'app può funzionare senza) -->
     <uses-feature android:name="android.hardware.camera" 
                   android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" 
+                  android:required="false" />
+    <!-- Feature hardware biometric (opzionale) -->
+    <uses-feature android:name="android.hardware.fingerprint" 
                   android:required="false" />
                   
     <application

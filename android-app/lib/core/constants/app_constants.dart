@@ -3,18 +3,18 @@
 // ==========================================
 class AppConstants {
   // App Information
-  static const String appName = 'RocketNotes AI';
+  static const String appName = 'Pensieve';
   static const String appVersion = '1.0.0';
-  static const String appDescription = 'AI-powered note-taking with NFC support';
+  static const String appDescription = 'AI-powered memory storage with smart note-taking';
   
   // NFC URI Schemes
-  static const String uriScheme = 'rocketnotes';
+  static const String uriScheme = 'pensieve';
   static const String workMode = 'work';
   static const String personalMode = 'personal';
   
   // Deep Link URLs
-  static const String workDeepLink = 'rocketnotes://work';
-  static const String personalDeepLink = 'rocketnotes://personal';
+  static const String workDeepLink = 'pensieve://work';
+  static const String personalDeepLink = 'pensieve://personal';
   
   // Storage Keys
   static const String notesBox = 'notes';

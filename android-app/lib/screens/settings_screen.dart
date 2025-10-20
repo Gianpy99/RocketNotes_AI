@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../main_simple.dart';
-import 'family_members_screen.dart';
+import '../features/family/screens/family_home_screen.dart';
 
 /// Future Features - Family Settings
 /// - Family member management (add/remove/edit profiles)
@@ -749,7 +749,7 @@ class SettingsScreen extends ConsumerWidget {
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => const FamilyMembersScreen(),
+                        builder: (context) => const FamilyHomeScreen(),
                       ),
                     );
                   },

@@ -12,7 +12,8 @@ import '../../widgets/common/gradient_background.dart';
 import '../../widgets/settings/setting_section.dart';
 import '../../widgets/settings/setting_tile.dart';
 import '../../widgets/common/confirmation_dialog.dart';
-import '../../widgets/settings/encryption_setup_dialog.dart';
+import '../../../features/security/providers/biometric_lock_provider.dart';
+import '../../../features/family/services/biometric_auth_service.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -198,19 +199,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           title: 'Privacy & Security',
           icon: Icons.security_rounded,
           children: [
-            SettingTile.toggle(
-              title: 'Encrypt Notes',
-              subtitle: 'Enable local encryption for sensitive notes',
-              leading: const Icon(Icons.lock_rounded),
-              value: settingsData?.encryptNotes ?? false,
-              onChanged: (value) => _showEncryptionDialog(context, value),
-            ),
-            SettingTile.toggle(
-              title: 'Biometric Lock',
-              subtitle: 'Require biometric authentication to open app',
-              leading: const Icon(Icons.fingerprint_rounded),
-              value: settingsData?.biometricLock ?? false,
-              onChanged: (value) => _updateSetting('biometricLock', value),
+            Builder(
+              builder: (context) {
+                debugPrint('🔐 [SETTINGS] Rendering Biometric Lock toggle - value: ${settingsData?.enableBiometric}');
+                return SettingTile.toggle(
+                  title: 'Biometric Lock',
+                  subtitle: 'Require biometric authentication to open app',
+                  leading: const Icon(Icons.fingerprint_rounded),
+                  value: settingsData?.enableBiometric ?? false,
+                  onChanged: (value) {
+                    debugPrint('🔐 [SETTINGS] Biometric Lock toggle tapped - new value: $value');
+                    _toggleBiometricLock(context, value);
+                  },
+                );
+              },
             ),
             SettingTile(
               title: 'Data Privacy',
@@ -403,6 +405,87 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Future<void> _toggleBiometricLock(BuildContext context, bool enable) async {
+    try {
+      final biometricService = ref.read(biometricAuthServiceProvider);
+      
+      // Verifica disponibilità
+      final isAvailable = await biometricService.isBiometricAvailable();
+      
+      if (!isAvailable) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Autenticazione biometrica non disponibile su questo dispositivo'),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+        return;
+      }
+
+      if (enable) {
+        // Test autenticazione prima di abilitare
+        final authenticated = await biometricService.authenticate(
+          reason: 'Conferma per abilitare il blocco biometrico',
+        );
+
+        if (!authenticated) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Autenticazione fallita. Blocco biometrico non abilitato.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+          return;
+        }
+      } else {
+        // Richiedi autenticazione per disabilitare
+        final authenticated = await biometricService.authenticate(
+          reason: 'Conferma per disabilitare il blocco biometrico',
+        );
+
+        if (!authenticated) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Autenticazione fallita. Blocco biometrico rimane abilitato.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+          return;
+        }
+      }
+
+      // Aggiorna le impostazioni
+      await _updateSetting('enableBiometric', enable);
+      
+      // Aggiorna lo stato del provider
+      ref.read(appLockedProvider.notifier).state = enable;
+
+      if (!mounted) return;
+      HapticFeedback.mediumImpact();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            enable 
+              ? 'Blocco biometrico abilitato' 
+              : 'Blocco biometrico disabilitato'
+          ),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Errore: ${e.toString()}'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
   void _showThemeSelector(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -449,45 +532,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  void _showEncryptionDialog(BuildContext context, bool enable) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(enable ? 'Enable Encryption' : 'Disable Encryption'),
-        content: Text(
-          enable 
-            ? 'This will encrypt all your notes locally. You\'ll need to set up a password or use biometric authentication.'
-            : 'This will remove encryption from your notes. They will be stored as plain text.'
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              if (enable) {
-                _showEncryptionSetup(context);
-              } else {
-                _updateSetting('encryptNotes', false);
-              }
-            },
-            child: Text(enable ? 'Set Up' : 'Disable'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showEncryptionSetup(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const EncryptionSetupDialog(),
     );
   }
 

@@ -6,6 +6,8 @@ import 'package:share_plus/share_plus.dart';
 import '../../../core/services/openai_service.dart';
 import '../../core/themes/app_colors.dart';
 import '../../data/models/note_model.dart';
+import '../../data/models/topic.dart';
+import '../../data/repositories/topic_repository.dart';
 import '../providers/app_providers.dart';
 import '../../ui/widgets/note_editor/tag_input.dart';
 
@@ -96,6 +98,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
   
   List<String> _tags = [];
   NoteModel? _currentNote;
+  String? _selectedTopicId;
   bool _isLoading = true;
   bool _hasUnsavedChanges = false;
   String? _voiceNotePath;
@@ -139,6 +142,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
       if (note != null) {
         setState(() {
           _currentNote = note;
+          _selectedTopicId = note.topicId;
           _titleController.text = note.title;
           _contentController.text = note.content;
           _tags = List.from(note.tags);
@@ -181,6 +185,39 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
     });
   }
 
+  Future<void> _showTopicPicker() async {
+    final repo = TopicRepository();
+    final topics = await repo.getAllTopics();
+
+    final selected = await showModalBottomSheet<String?>(
+      context: context,
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            title: const Text('No Topic'),
+            leading: const Icon(Icons.clear),
+            onTap: () => Navigator.of(context).pop(null),
+          ),
+          ...topics.map((t) => ListTile(
+                leading: CircleAvatar(backgroundColor: t.color.withOpacity(0.2), child: Icon(t.icon ?? Icons.folder, color: t.color)),
+                title: Text(t.name),
+                subtitle: Text('${t.noteCount} notes'),
+                onTap: () => Navigator.of(context).pop(t.id),
+              )),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+
+    if (selected != null || selected == null) {
+      setState(() {
+        _selectedTopicId = selected;
+        _hasUnsavedChanges = true;
+      });
+    }
+  }
+
   Future<void> _saveNote() async {
     if (_titleController.text.trim().isEmpty && _contentController.text.trim().isEmpty) {
       return;
@@ -202,6 +239,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
           : _titleController.text.trim(),
       content: _contentController.text,
       mode: modeToUse,
+      topicId: _selectedTopicId,
       updatedAt: now,
       tags: _tags,
     ) ?? NoteModel(
@@ -211,6 +249,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
           : _titleController.text.trim(),
       content: _contentController.text,
       mode: modeToUse,
+      topicId: _selectedTopicId,
       createdAt: now,
       updatedAt: now,
       tags: _tags,
@@ -342,6 +381,12 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                 onPressed: _saveNote,
                 tooltip: 'Save',
               ),
+            // Topic picker button
+            IconButton(
+              icon: Icon(_selectedTopicId == null ? Icons.folder_open : Icons.folder),
+              tooltip: _selectedTopicId == null ? 'Assign Topic' : 'Change Topic',
+              onPressed: _showTopicPicker,
+            ),
             PopupMenuButton<String>(
               onSelected: (value) {
                 switch (value) {
@@ -539,6 +584,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                     TextField(
                       controller: _titleController,
                       focusNode: _titleFocusNode,
+                      maxLines: 1,
                       decoration: InputDecoration(
                         hintText: 'Note title...',
                         border: OutlineInputBorder(
@@ -554,7 +600,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                       onSubmitted: (_) => _contentFocusNode.requestFocus(),
                     ),
                     
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     
                     // Tags Input
                     TagInput(
@@ -572,7 +618,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                       ),
                     ),
                     
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 6),
                     
                     // OCR Tools Row
                     Row(
@@ -595,7 +641,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                       ],
                     ),
                     
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 6),
                     
                     // Content Field
                     Expanded(
@@ -615,7 +661,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                       ),
                     ),
                     
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 4),
                     
                     // Action Buttons
                     Row(
@@ -627,7 +673,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                             label: const Text('AI Enhance'),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: ElevatedButton.icon(
                             onPressed: _hasUnsavedChanges ? _saveNote : null,
